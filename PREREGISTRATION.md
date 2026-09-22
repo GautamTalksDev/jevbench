@@ -166,7 +166,7 @@ explicitly marked not scored).
 
 | Amendment | Date (UTC) | Binding commit |
 |---|---|---|
-| 1–4 (this section) | 2026-09-22 | _filled in immediately after this commit; see below_ |
+| 1–4 (this section) | 2026-09-22 | `70be25f7baf91daa748cec11c38f26f17315b17c` |
 
 ### Amendment 1 — primary endpoint → ΔECE
 
@@ -211,11 +211,12 @@ Do not proceed underpowered.
 ### Amendment commit hash (binding timestamp)
 
 ```
-AMENDMENT_COMMIT=<filled by follow-up one-line commit after this file lands>
+AMENDMENT_COMMIT=70be25f7baf91daa748cec11c38f26f17315b17c
 ```
 
-Until that line is replaced with a 40-character git SHA, treat the commit
-that introduced this Amendments section as the binding timestamp. Verify with:
+This SHA is the commit that introduced Amendments 1–4 and the publication
+commitment. It precedes any paid API call and any scored `runs/<id>/`
+artifact. Verify with:
 
 ```bash
 git log --oneline -- PREREGISTRATION.md
