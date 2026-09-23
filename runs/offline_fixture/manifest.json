@@ -1,0 +1,15 @@
+{
+  "clients": [
+    "jev",
+    "adapter",
+    "trivial"
+  ],
+  "n_records": 132,
+  "note": "Committed demo predictions for make reproduce. Not a scored live API run.",
+  "resolved_model": "jev-1.13.0",
+  "run_id": "demo-replay-support-tickets",
+  "scored": false,
+  "source": "offline_fixture",
+  "status": "offline_fixture",
+  "task": "support_tickets"
+}

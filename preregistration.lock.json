@@ -1,0 +1,18 @@
+{
+  "experiment": "exp1_difficulty_calibration",
+  "experiment_yaml": "experiments/exp1_difficulty_calibration.yaml",
+  "items_sha256": "38c8c5b204de7306d6c4bc4a9fcd4c815144e04ceed38191da505726cf66f549",
+  "labels_sha256": "efadb35ac7472d18d25ee325b0582d4632a393ea7e024b7ff09c5ce164fe84ad",
+  "locked_at": "2026-09-23T13:45:00+00:00",
+  "model": "jev-1.13.0",
+  "n_items": 1600,
+  "n_labels": 1600,
+  "preregistration_md": "PREREGISTRATION.md",
+  "task": "chaosnli",
+  "tier_counts": {
+    "ambiguous": 0,
+    "easy": 800,
+    "hard": 800,
+    "trivial": 0
+  }
+}

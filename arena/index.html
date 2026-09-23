@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>jevbench Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ground: #2E3439;
+      --panel: #373E44;
+      --recess: #252A2E;
+      --bone: #D9D4C7;
+      --bone-dim: #8E8A80;
+      --jev: #57C4C9;
+      --baseline: #D8A24A;
+      --miss: #C4574F;
+      --diagonal: #F2EDE1;
+      --ink: var(--bone);
+      --paper: var(--ground);
+      --muted: var(--bone-dim);
+      --hairline: #4A5258;
+      --accent: var(--jev);
+      --accent-soft: #3A4A4C;
+      --danger: var(--miss);
+      --warn: var(--baseline);
+      --adapter: var(--baseline);
+      --trivial: var(--bone-dim);
+      --focus: var(--jev);
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --sans: "Archivo", "Segoe UI", sans-serif;
+      --radius: 0;
+      --fs-13: 13px;
+      --fs-16: 16px;
+      --fs-20: 20px;
+      --fs-25: 25px;
+      --fs-31: 31px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: var(--sans);
+      background: var(--ground);
+      color: var(--bone);
+      line-height: 1.45;
+      font-size: var(--fs-16);
+      text-align: left;
+    }
+    body.capture-1080 {
+      width: 1920px;
+      min-height: 1080px;
+    }
+    body.chrome-off .chrome { display: none; }
+    .slow-badge {
+      position: fixed; top: 0.75rem; right: 0.75rem; z-index: 40;
+      background: var(--recess); color: var(--baseline);
+      border: 1px solid var(--baseline); padding: 0.35rem 0.65rem;
+      font-size: var(--fs-13); font-weight: 600;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); border: 0;
+    }
+
+    /* Chrome */
+    .chrome {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.25rem;
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid var(--hairline);
+      background: var(--panel);
+      position: sticky; top: 0; z-index: 20;
+    }
+    .brand {
+      font-weight: 700; font-size: var(--fs-25); letter-spacing: -0.02em;
+      margin-right: 0.5rem;
+    }
+    .brand span { color: var(--jev); }
+    .version-badge {
+      font-family: var(--mono); font-variant-numeric: tabular-nums;
+      font-size: var(--fs-13); color: var(--bone);
+      border: 1px solid var(--hairline); padding: 0.2rem 0.45rem;
+      background: var(--recess);
+    }
+    .mode-toggle, .tabs {
+      display: flex; gap: 0.35rem; flex-wrap: wrap;
+    }
+    .mode-toggle button, .tabs button, .chip, .btn {
+      border: 1px solid var(--hairline);
+      background: transparent;
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: var(--bone);
+    }
+    .mode-toggle button[aria-pressed="true"],
+    .tabs button[aria-selected="true"],
+    .chip[aria-pressed="true"] {
+      background: var(--accent-soft);
+      border-color: var(--jev);
+      font-weight: 600;
+    }
+    .btn-primary {
+      background: var(--jev); color: var(--recess); border-color: var(--jev); font-weight: 600;
+    }
+    .btn-primary:hover { filter: brightness(1.05); }
+    .badge-demo {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--recess); color: var(--baseline);
+      border: 1px solid var(--baseline);
+      padding: 0.2rem 0.55rem; font-size: var(--fs-13); font-weight: 600;
+    }
+    .meta {
+      margin-left: auto; color: var(--muted); font-size: var(--fs-13);
+      font-family: var(--mono); font-variant-numeric: tabular-nums;
+    }
+
+    main { padding: 1.25rem; max-width: 1400px; margin: 0; }
+    h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+    h2 { font-size: var(--fs-25); margin: 0 0 0.75rem; }
+    .muted { color: var(--muted); }
+    .panel {
+      border: 1px solid var(--hairline);
+      padding: 1rem 1.1rem;
+      background: var(--panel);
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Race */
+    .race-controls { display: grid; gap: 0.75rem; margin-bottom: 1rem; }
+    .race-controls label { display: grid; gap: 0.3rem; font-weight: 500; }
+    .race-controls textarea, .race-controls input, .key-field input {
+      width: 100%; border: 1px solid var(--hairline); padding: 0.55rem 0.65rem;
+      background: var(--recess); border-radius: var(--radius); color: var(--bone);
+    }
+    .key-field { max-width: 420px; }
+    .lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 900px) { .lanes { grid-template-columns: 1fr; } }
+    .lane {
+      border: 1px solid var(--hairline);
+      padding: 1rem;
+      min-height: 280px;
+      position: relative;
+      background: var(--panel);
+    }
+    .lane.jev { border-color: var(--jev); }
+    .lane.adapter { border-color: var(--baseline); border-style: dashed; }
+    .lane-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 0.75rem; gap: 0.5rem; flex-wrap: wrap;
+    }
+    .lane-title { font-weight: 700; font-size: 1.1rem; }
+    .lane-title .mark {
+      display: inline-block; width: 0.75rem; height: 0.75rem; margin-right: 0.35rem;
+      vertical-align: middle;
+    }
+    .lane.jev .mark { background: var(--jev); border-radius: 50%; }
+    .lane.adapter .mark { background: var(--adapter); }
+    .timer {
+      font-family: var(--mono); font-variant-numeric: tabular-nums;
+      font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 600; line-height: 1;
+    }
+    .cost {
+      font-family: var(--mono); font-variant-numeric: tabular-nums;
+      font-size: 1.1rem; color: var(--muted);
+    }
+    .bars { display: grid; gap: 0.45rem; margin-top: 1rem; }
+    .bar-row { display: grid; grid-template-columns: 6.5rem 1fr 3.5rem; gap: 0.5rem; align-items: center; }
+    .bar-track { height: 1.1rem; background: var(--recess); border: 1px solid var(--hairline); position: relative; }
+    .bar-fill {
+      height: 100%; background: var(--jev);
+      transition: none;
+    }
+    .bar-fill.crawl {
+      transition: width 80ms linear;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bar-fill.crawl { transition: none !important; }
+      .token-stream { animation: none !important; }
+    }
+    .token-stream {
+      font-family: var(--mono); font-size: 0.9rem; white-space: pre-wrap;
+      min-height: 4.5rem; border: 1px solid var(--hairline); padding: 0.5rem;
+      background: var(--recess); margin-top: 0.75rem;
+    }
+
+    /* Calibration — bins as layout */
+    .tier-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+    .cal-square {
+      width: min(100%, 520px);
+      aspect-ratio: 1 / 1;
+    }
+    .chart-wrap { width: 100%; height: 100%; }
+    .occ-bins {
+      display: flex; width: min(100%, 520px); gap: 2px; margin-top: 0.35rem;
+      align-items: stretch; min-height: 3.25rem;
+    }
+    .occ-bin {
+      background: var(--recess); border: 1px solid var(--hairline);
+      padding: 0.25rem 0.2rem; cursor: pointer;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      overflow: hidden; min-width: 0;
+    }
+    .occ-bin[aria-pressed="true"] { border-color: var(--diagonal); }
+    .occ-bin .occ-label {
+      font-size: var(--fs-13); color: var(--bone-dim);
+      font-stretch: condensed; white-space: nowrap; overflow: hidden;
+    }
+    .occ-bin .occ-n {
+      font-family: var(--mono); font-variant-numeric: tabular-nums;
+      font-size: var(--fs-13); color: var(--bone);
+    }
+    .occ-bin .occ-fill {
+      height: 0.35rem; background: var(--jev); margin-top: 0.2rem;
+    }
+    .bin-detail { margin-top: 1rem; }
+    .bin-detail table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    .bin-detail th, .bin-detail td {
+      text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--hairline);
+    }
+
+    /* Gate */
+    .gate-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+      margin: 1rem 0;
+    }
+    @media (max-width: 700px) { .gate-stats { grid-template-columns: 1fr; } }
+    .stat {
+      border: 1px solid var(--hairline); padding: 1rem; text-align: left;
+      background: var(--panel);
+    }
+    .stat .num {
+      font-family: var(--mono); font-variant-numeric: tabular-nums;
+      font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 600; display: block;
+    }
+    .stat .lbl { color: var(--muted); font-size: 0.9rem; margin-top: 0.25rem; }
+    .slider-wrap { margin: 1.25rem 0; }
+    .slider-wrap input[type="range"] { width: 100%; accent-color: var(--jev); height: 1.5rem; }
+    .slider-readout {
+      font-family: var(--mono); font-variant-numeric: tabular-nums;
+      font-size: 1.25rem; font-weight: 600; margin-top: 0.35rem;
+    }
+
+    /* Items */
+    .filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+    .table-wrap { overflow: auto; border: 1px solid var(--hairline); }
+    table.items { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    table.items th, table.items td {
+      padding: 0.45rem 0.55rem; border-bottom: 1px solid var(--hairline);
+      text-align: left; vertical-align: top;
+    }
+    table.items th { background: var(--recess); position: sticky; top: 0; }
+    table.items tr:hover { background: var(--accent-soft); cursor: pointer; }
+    table.items tr[aria-selected="true"] { background: var(--accent-soft); }
+    .pill {
+      display: inline-block; padding: 0.1rem 0.4rem; border: 1px solid var(--hairline);
+      font-size: 0.75rem;
+    }
+    .pill.wrong { border-color: var(--miss); color: var(--miss); }
+    .pill.ok { border-color: var(--jev); color: var(--jev); }
+    .raw-json {
+      font-family: var(--mono); font-size: 0.8rem; white-space: pre-wrap;
+      background: var(--recess); color: var(--bone); padding: 1rem; max-height: 320px; overflow: auto;
+      margin-top: 0.75rem;
+    }
+
+    .footer-note {
+      margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--hairline);
+      color: var(--muted); font-size: 0.85rem; max-width: 72ch;
+    }
+    .error { color: var(--miss); font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Pinned CDN deps — no bundler. -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js" crossorigin></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js" crossorigin></script>
+
+  <!-- Embedded fallback so file:// / offline clone still works -->
+  <script>
+window.__JEVBENCH_FALLBACK__ = {"meta": {"run_id": "demo-replay-support-tickets", "resolved_model": "jev-1.13.0", "task": "support_tickets", "source": "arena/data \u2014 UI demo pack (includes synthetic items; not a scored run)", "clients": ["jev", "adapter", "trivial"]}, "items": [{"id": "st-001", "state": "Hi, my invoice shows a double charge for order A-104. Please refund the duplicate payment.", "tier": "trivial", "label": "billing", "disputed": false}, {"id": "st-002", "state": "Password reset link expired again. I cannot log in to the dashboard.", "tier": "trivial", "label": "technical", "disputed": false}, {"id": "st-003", "state": "The app crashes when I export a CSV with more than 10k rows. Started after Tuesday's deploy.", "tier": "easy", "label": "technical", "disputed": false}, {"id": "st-004", "state": "Can someone confirm whether plan Pro includes SSO? Sales said yes on the call but docs say Enterprise only.", "tier": "easy", "label": "other", "disputed": false}, {"id": "st-005", "state": "We were charged for seats we deactivated last month. Also the webhook retries look stuck \u2014 not sure which team owns this.", "tier": "hard", "label": "billing", "disputed": true}, {"id": "st-006", "state": "Urgent: production is fine but our CFO wants a VAT invoice reissued for Q2 before Friday close.", "tier": "hard", "label": "billing", "disputed": false}, {"id": "st-007", "state": "This might be feedback more than a ticket \u2014 the new UI is confusing and I almost cancelled. No ask.", "tier": "ambiguous", "label": "other", "disputed": true}, {"id": "st-008", "state": "Following up on nothing in particular. Just checking you're still there.", "tier": "ambiguous", "label": "other", "disputed": false}, {"id": "syn-tr-bil-001", "state": "Please refund the duplicate charge on my card.", "tier": "trivial", "label": "billing", "disputed": false}, {"id": "syn-tr-bil-002", "state": "Invoice VAT line looks wrong for last month.", "tier": "trivial", "label": "billing", "disputed": false}, {"id": "syn-tr-bil-003", "state": "We deactivated seats but still got billed.", "tier": "trivial", "label": "billing", "disputed": false}, {"id": "syn-tr-tec-004", "state": "Dashboard crashes when exporting large CSV.", "tier": "trivial", "label": "technical", "disputed": false}, {"id": "syn-tr-tec-005", "state": "Password reset email never arrives.", "tier": "trivial", "label": "technical", "disputed": false}, {"id": "syn-tr-tec-006", "state": "Webhook retries are stuck after deploy.", "tier": "trivial", "label": "technical", "disputed": false}, {"id": "syn-tr-oth-007", "state": "Just checking in \u2014 no action needed.", "tier": "trivial", "label": "other", "disputed": false}, {"id": "syn-tr-oth-008", "state": "UI feedback: the new nav is confusing.", "tier": "trivial", "label": "other", "disputed": false}, {"id": "syn-tr-oth-009", "state": "Does Pro include SSO or only Enterprise?", "tier": "trivial", "label": "other", "disputed": false}, {"id": "syn-ea-bil-010", "state": "Please refund the duplicate charge on my card.", "tier": "easy", "label": "billing", "disputed": false}, {"id": "syn-ea-bil-011", "state": "Invoice VAT line looks wrong for last month.", "tier": "easy", "label": "billing", "disputed": false}, {"id": "syn-ea-bil-012", "state": "We deactivated seats but still got billed.", "tier": "easy", "label": "billing", "disputed": false}, {"id": "syn-ea-tec-013", "state": "Dashboard crashes when exporting large CSV.", "tier": "easy", "label": "technical", "disputed": false}, {"id": "syn-ea-tec-014", "state": "Password reset email never arrives.", "tier": "easy", "label": "technical", "disputed": false}, {"id": "syn-ea-tec-015", "state": "Webhook retries are stuck after deploy.", "tier": "easy", "label": "technical", "disputed": false}, {"id": "syn-ea-oth-016", "state": "Just checking in \u2014 no action needed.", "tier": "easy", "label": "other", "disputed": false}, {"id": "syn-ea-oth-017", "state": "UI feedback: the new nav is confusing.", "tier": "easy", "label": "other", "disputed": false}, {"id": "syn-ea-oth-018", "state": "Does Pro include SSO or only Enterprise?", "tier": "easy", "label": "other", "disputed": false}, {"id": "syn-ha-bil-019", "state": "Please refund the duplicate charge on my card. (tier note: hard)", "tier": "hard", "label": "billing", "disputed": false}, {"id": "syn-ha-bil-020", "state": "Invoice VAT line looks wrong for last month. (tier note: hard)", "tier": "hard", "label": "billing", "disputed": false}, {"id": "syn-ha-bil-021", "state": "We deactivated seats but still got billed. (tier note: hard)", "tier": "hard", "label": "billing", "disputed": false}, {"id": "syn-ha-tec-022", "state": "Dashboard crashes when exporting large CSV. (tier note: hard)", "tier": "hard", "label": "technical", "disputed": false}, {"id": "syn-ha-tec-023", "state": "Password reset email never arrives. (tier note: hard)", "tier": "hard", "label": "technical", "disputed": false}, {"id": "syn-ha-tec-024", "state": "Webhook retries are stuck after deploy. (tier note: hard)", "tier": "hard", "label": "technical", "disputed": false}, {"id": "syn-ha-oth-025", "state": "Just checking in \u2014 no action needed. (tier note: hard)", "tier": "hard", "label": "other", "disputed": false}, {"id": "syn-ha-oth-026", "state": "UI feedback: the new nav is confusing. (tier note: hard)", "tier": "hard", "label": "other", "disputed": false}, {"id": "syn-ha-oth-027", "state": "Does Pro include SSO or only Enterprise? (tier note: hard)", "tier": "hard", "label": "other", "disputed": false}, {"id": "syn-am-bil-028", "state": "Please refund the duplicate charge on my card. (tier note: ambiguous)", "tier": "ambiguous", "label": "billing", "disputed": false}, {"id": "syn-am-bil-029", "state": "Invoice VAT line looks wrong for last month. (tier note: ambiguous)", "tier": "ambiguous", "label": "billing", "disputed": false}, {"id": "syn-am-bil-030", "state": "We deactivated seats but still got billed. (tier note: ambiguous)", "tier": "ambiguous", "label": "billing", "disputed": true}, {"id": "syn-am-tec-031", "state": "Dashboard crashes when exporting large CSV. (tier note: ambiguous)", "tier": "ambiguous", "label": "technical", "disputed": false}, {"id": "syn-am-tec-032", "state": "Password reset email never arrives. (tier note: ambiguous)", "tier": "ambiguous", "label": "technical", "disputed": false}, {"id": "syn-am-tec-033", "state": "Webhook retries are stuck after deploy. (tier note: ambiguous)", "tier": "ambiguous", "label": "technical", "disputed": false}, {"id": "syn-am-oth-034", "state": "Just checking in \u2014 no action needed. (tier note: ambiguous)", "tier": "ambiguous", "label": "other", "disputed": false}, {"id": "syn-am-oth-035", "state": "UI feedback: the new nav is confusing. (tier note: ambiguous)", "tier": "ambiguous", "label": "other", "disputed": true}, {"id": "syn-am-oth-036", "state": "Does Pro include SSO or only Enterprise? (tier note: ambiguous)", "tier": "ambiguous", "label": "other", "disputed": false}], "predictions": [{"item_id": "st-001", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.75, "technical": 0.125, "other": 0.125}, "confidence": 0.75, "latency_ms": 274, "correct": true, "input_tokens": 112, "output_tokens": 14}, {"item_id": "st-001", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 112, "output_tokens": 0}, {"item_id": "st-002", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.125, "technical": 0.75, "other": 0.125}, "confidence": 0.75, "latency_ms": 294, "correct": true, "input_tokens": 107, "output_tokens": 14}, {"item_id": "st-002", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 107, "output_tokens": 0}, {"item_id": "st-003", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 673, "correct": true, "input_tokens": 113, "output_tokens": 14}, {"item_id": "st-003", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 0, "correct": true, "input_tokens": 113, "output_tokens": 0}, {"item_id": "st-004", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 363, "correct": true, "input_tokens": 116, "output_tokens": 14}, {"item_id": "st-004", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 116, "output_tokens": 0}, {"item_id": "st-005", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.75, "technical": 0.125, "other": 0.125}, "confidence": 0.75, "latency_ms": 310, "correct": true, "input_tokens": 120, "output_tokens": 14}, {"item_id": "st-005", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 120, "output_tokens": 0}, {"item_id": "st-006", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.75, "technical": 0.125, "other": 0.125}, "confidence": 0.75, "latency_ms": 299, "correct": true, "input_tokens": 113, "output_tokens": 14}, {"item_id": "st-006", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 113, "output_tokens": 0}, {"item_id": "st-007", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.19, "technical": 0.19, "other": 0.62}, "confidence": 0.62, "latency_ms": 488, "correct": true, "input_tokens": 114, "output_tokens": 14}, {"item_id": "st-007", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 114, "output_tokens": 0}, {"item_id": "st-008", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.19, "technical": 0.19, "other": 0.62}, "confidence": 0.62, "latency_ms": 544, "correct": true, "input_tokens": 108, "output_tokens": 14}, {"item_id": "st-008", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 108, "output_tokens": 0}, {"item_id": "syn-tr-bil-001", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.75, "technical": 0.125, "other": 0.125}, "confidence": 0.75, "latency_ms": 512, "correct": true, "input_tokens": 101, "output_tokens": 14}, {"item_id": "syn-tr-bil-001", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 101, "output_tokens": 0}, {"item_id": "syn-tr-bil-002", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.75, "technical": 0.125, "other": 0.125}, "confidence": 0.75, "latency_ms": 592, "correct": true, "input_tokens": 101, "output_tokens": 14}, {"item_id": "syn-tr-bil-002", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 101, "output_tokens": 0}, {"item_id": "syn-tr-bil-003", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.75, "technical": 0.125, "other": 0.125}, "confidence": 0.75, "latency_ms": 504, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-tr-bil-003", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 0, "correct": true, "input_tokens": 100, "output_tokens": 0}, {"item_id": "syn-tr-tec-004", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.125, "technical": 0.75, "other": 0.125}, "confidence": 0.75, "latency_ms": 624, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-tr-tec-004", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 100, "output_tokens": 0}, {"item_id": "syn-tr-tec-005", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.125, "technical": 0.75, "other": 0.125}, "confidence": 0.75, "latency_ms": 427, "correct": true, "input_tokens": 98, "output_tokens": 14}, {"item_id": "syn-tr-tec-005", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 98, "output_tokens": 0}, {"item_id": "syn-tr-tec-006", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.125, "technical": 0.75, "other": 0.125}, "confidence": 0.75, "latency_ms": 361, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-tr-tec-006", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 99, "output_tokens": 0}, {"item_id": "syn-tr-oth-007", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.125, "technical": 0.125, "other": 0.75}, "confidence": 0.75, "latency_ms": 335, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-tr-oth-007", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 99, "output_tokens": 0}, {"item_id": "syn-tr-oth-008", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.125, "technical": 0.125, "other": 0.75}, "confidence": 0.75, "latency_ms": 392, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-tr-oth-008", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 99, "output_tokens": 0}, {"item_id": "syn-tr-oth-009", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.125, "technical": 0.125, "other": 0.75}, "confidence": 0.75, "latency_ms": 327, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-tr-oth-009", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 0, "correct": true, "input_tokens": 100, "output_tokens": 0}, {"item_id": "syn-ea-bil-010", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 394, "correct": true, "input_tokens": 101, "output_tokens": 14}, {"item_id": "syn-ea-bil-010", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 101, "output_tokens": 0}, {"item_id": "syn-ea-bil-011", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 603, "correct": true, "input_tokens": 101, "output_tokens": 14}, {"item_id": "syn-ea-bil-011", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 101, "output_tokens": 0}, {"item_id": "syn-ea-bil-012", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 496, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-ea-bil-012", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 0, "correct": true, "input_tokens": 100, "output_tokens": 0}, {"item_id": "syn-ea-tec-013", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 424, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-ea-tec-013", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 100, "output_tokens": 0}, {"item_id": "syn-ea-tec-014", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 263, "correct": true, "input_tokens": 98, "output_tokens": 14}, {"item_id": "syn-ea-tec-014", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 98, "output_tokens": 0}, {"item_id": "syn-ea-tec-015", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 558, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-ea-tec-015", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 0, "correct": true, "input_tokens": 99, "output_tokens": 0}, {"item_id": "syn-ea-oth-016", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 409, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-ea-oth-016", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 99, "output_tokens": 0}, {"item_id": "syn-ea-oth-017", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 261, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-ea-oth-017", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 99, "output_tokens": 0}, {"item_id": "syn-ea-oth-018", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 402, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-ea-oth-018", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 100, "output_tokens": 0}, {"item_id": "syn-ha-bil-019", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.75, "technical": 0.125, "other": 0.125}, "confidence": 0.75, "latency_ms": 645, "correct": true, "input_tokens": 106, "output_tokens": 14}, {"item_id": "syn-ha-bil-019", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 106, "output_tokens": 0}, {"item_id": "syn-ha-bil-020", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.75, "technical": 0.125, "other": 0.125}, "confidence": 0.75, "latency_ms": 668, "correct": true, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-ha-bil-020", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 105, "output_tokens": 0}, {"item_id": "syn-ha-bil-021", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.75, "technical": 0.125, "other": 0.125}, "confidence": 0.75, "latency_ms": 654, "correct": true, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-ha-bil-021", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 105, "output_tokens": 0}, {"item_id": "syn-ha-tec-022", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.125, "technical": 0.75, "other": 0.125}, "confidence": 0.75, "latency_ms": 663, "correct": true, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-ha-tec-022", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 105, "output_tokens": 0}, {"item_id": "syn-ha-tec-023", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.125, "technical": 0.75, "other": 0.125}, "confidence": 0.75, "latency_ms": 422, "correct": true, "input_tokens": 103, "output_tokens": 14}, {"item_id": "syn-ha-tec-023", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 0, "correct": true, "input_tokens": 103, "output_tokens": 0}, {"item_id": "syn-ha-tec-024", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.125, "technical": 0.75, "other": 0.125}, "confidence": 0.75, "latency_ms": 293, "correct": true, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-ha-tec-024", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 104, "output_tokens": 0}, {"item_id": "syn-ha-oth-025", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.125, "technical": 0.125, "other": 0.75}, "confidence": 0.75, "latency_ms": 420, "correct": true, "input_tokens": 103, "output_tokens": 14}, {"item_id": "syn-ha-oth-025", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 103, "output_tokens": 0}, {"item_id": "syn-ha-oth-026", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.125, "technical": 0.125, "other": 0.75}, "confidence": 0.75, "latency_ms": 315, "correct": true, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-ha-oth-026", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 104, "output_tokens": 0}, {"item_id": "syn-ha-oth-027", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.125, "technical": 0.125, "other": 0.75}, "confidence": 0.75, "latency_ms": 429, "correct": true, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-ha-oth-027", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 104, "output_tokens": 0}, {"item_id": "syn-am-bil-028", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.62, "technical": 0.19, "other": 0.19}, "confidence": 0.62, "latency_ms": 633, "correct": true, "input_tokens": 107, "output_tokens": 14}, {"item_id": "syn-am-bil-028", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 107, "output_tokens": 0}, {"item_id": "syn-am-bil-029", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.62, "technical": 0.19, "other": 0.19}, "confidence": 0.62, "latency_ms": 399, "correct": true, "input_tokens": 106, "output_tokens": 14}, {"item_id": "syn-am-bil-029", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 2, "correct": true, "input_tokens": 106, "output_tokens": 0}, {"item_id": "syn-am-bil-030", "client": "adapter", "choice": "billing", "probabilities": {"billing": 0.62, "technical": 0.19, "other": 0.19}, "confidence": 0.62, "latency_ms": 628, "correct": true, "input_tokens": 106, "output_tokens": 14}, {"item_id": "syn-am-bil-030", "client": "trivial", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 106, "output_tokens": 0}, {"item_id": "syn-am-tec-031", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.19, "technical": 0.62, "other": 0.19}, "confidence": 0.62, "latency_ms": 511, "correct": true, "input_tokens": 106, "output_tokens": 14}, {"item_id": "syn-am-tec-031", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 1, "correct": true, "input_tokens": 106, "output_tokens": 0}, {"item_id": "syn-am-tec-032", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.19, "technical": 0.62, "other": 0.19}, "confidence": 0.62, "latency_ms": 322, "correct": true, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-am-tec-032", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 0, "correct": true, "input_tokens": 104, "output_tokens": 0}, {"item_id": "syn-am-tec-033", "client": "adapter", "choice": "technical", "probabilities": {"billing": 0.19, "technical": 0.62, "other": 0.19}, "confidence": 0.62, "latency_ms": 515, "correct": true, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-am-tec-033", "client": "trivial", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 0, "correct": true, "input_tokens": 105, "output_tokens": 0}, {"item_id": "syn-am-oth-034", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.19, "technical": 0.19, "other": 0.62}, "confidence": 0.62, "latency_ms": 645, "correct": true, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-am-oth-034", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 0, "correct": true, "input_tokens": 104, "output_tokens": 0}, {"item_id": "syn-am-oth-035", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.19, "technical": 0.19, "other": 0.62}, "confidence": 0.62, "latency_ms": 508, "correct": true, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-am-oth-035", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 105, "output_tokens": 0}, {"item_id": "syn-am-oth-036", "client": "adapter", "choice": "other", "probabilities": {"billing": 0.19, "technical": 0.19, "other": 0.62}, "confidence": 0.62, "latency_ms": 376, "correct": true, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-am-oth-036", "client": "trivial", "choice": "other", "probabilities": {"billing": 0.05, "technical": 0.05, "other": 0.9}, "confidence": 0.9, "latency_ms": 3, "correct": true, "input_tokens": 105, "output_tokens": 0}, {"item_id": "st-001", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.8614, "technical": 0.0693, "other": 0.0693}, "confidence": 0.8614, "latency_ms": 62, "correct": true, "input_tokens": 112, "output_tokens": 14}, {"item_id": "st-002", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.0997, "technical": 0.8006, "other": 0.0997}, "confidence": 0.8006, "latency_ms": 51, "correct": true, "input_tokens": 107, "output_tokens": 14}, {"item_id": "st-003", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 127, "correct": false, "input_tokens": 113, "output_tokens": 14}, {"item_id": "st-004", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 119, "correct": false, "input_tokens": 116, "output_tokens": 14}, {"item_id": "st-005", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.6512, "technical": 0.1744, "other": 0.1744}, "confidence": 0.6512, "latency_ms": 118, "correct": true, "input_tokens": 120, "output_tokens": 14}, {"item_id": "st-006", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.686, "technical": 0.157, "other": 0.157}, "confidence": 0.686, "latency_ms": 87, "correct": true, "input_tokens": 113, "output_tokens": 14}, {"item_id": "st-007", "client": "jev", "choice": "other", "probabilities": {"billing": 0.1811, "technical": 0.1811, "other": 0.6378}, "confidence": 0.6378, "latency_ms": 67, "correct": true, "input_tokens": 114, "output_tokens": 14}, {"item_id": "st-008", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.9, "technical": 0.05, "other": 0.05}, "confidence": 0.9, "latency_ms": 112, "correct": false, "input_tokens": 108, "output_tokens": 14}, {"item_id": "syn-tr-bil-001", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.8386, "technical": 0.0807, "other": 0.0807}, "confidence": 0.8386, "latency_ms": 107, "correct": true, "input_tokens": 101, "output_tokens": 14}, {"item_id": "syn-tr-bil-002", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.957, "technical": 0.0215, "other": 0.0215}, "confidence": 0.957, "latency_ms": 80, "correct": true, "input_tokens": 101, "output_tokens": 14}, {"item_id": "syn-tr-bil-003", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.05, "technical": 0.9, "other": 0.05}, "confidence": 0.9, "latency_ms": 40, "correct": false, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-tr-tec-004", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.0656, "technical": 0.8688, "other": 0.0656}, "confidence": 0.8688, "latency_ms": 108, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-tr-tec-005", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.1259, "technical": 0.7482, "other": 0.1259}, "confidence": 0.7482, "latency_ms": 65, "correct": true, "input_tokens": 98, "output_tokens": 14}, {"item_id": "syn-tr-tec-006", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.034, "technical": 0.932, "other": 0.034}, "confidence": 0.932, "latency_ms": 85, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-tr-oth-007", "client": "jev", "choice": "other", "probabilities": {"billing": 0.1174, "technical": 0.1174, "other": 0.7652}, "confidence": 0.7652, "latency_ms": 60, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-tr-oth-008", "client": "jev", "choice": "other", "probabilities": {"billing": 0.0092, "technical": 0.0092, "other": 0.9816}, "confidence": 0.9816, "latency_ms": 62, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-tr-oth-009", "client": "jev", "choice": "other", "probabilities": {"billing": 0.005, "technical": 0.005, "other": 0.99}, "confidence": 0.99, "latency_ms": 44, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-ea-bil-010", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.6584, "technical": 0.1708, "other": 0.1708}, "confidence": 0.6584, "latency_ms": 127, "correct": true, "input_tokens": 101, "output_tokens": 14}, {"item_id": "syn-ea-bil-011", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.0466, "technical": 0.9068, "other": 0.0466}, "confidence": 0.9068, "latency_ms": 94, "correct": false, "input_tokens": 101, "output_tokens": 14}, {"item_id": "syn-ea-bil-012", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.8412, "technical": 0.0794, "other": 0.0794}, "confidence": 0.8412, "latency_ms": 119, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-ea-tec-013", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.189, "technical": 0.622, "other": 0.189}, "confidence": 0.622, "latency_ms": 106, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-ea-tec-014", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.1191, "technical": 0.7618, "other": 0.1191}, "confidence": 0.7618, "latency_ms": 47, "correct": true, "input_tokens": 98, "output_tokens": 14}, {"item_id": "syn-ea-tec-015", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.0779, "technical": 0.8442, "other": 0.0779}, "confidence": 0.8442, "latency_ms": 109, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-ea-oth-016", "client": "jev", "choice": "other", "probabilities": {"billing": 0.1193, "technical": 0.1193, "other": 0.7614}, "confidence": 0.7614, "latency_ms": 85, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-ea-oth-017", "client": "jev", "choice": "other", "probabilities": {"billing": 0.0253, "technical": 0.0253, "other": 0.9494}, "confidence": 0.9494, "latency_ms": 47, "correct": true, "input_tokens": 99, "output_tokens": 14}, {"item_id": "syn-ea-oth-018", "client": "jev", "choice": "other", "probabilities": {"billing": 0.1671, "technical": 0.1671, "other": 0.6658}, "confidence": 0.6658, "latency_ms": 116, "correct": true, "input_tokens": 100, "output_tokens": 14}, {"item_id": "syn-ha-bil-019", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.1237, "technical": 0.7526, "other": 0.1237}, "confidence": 0.7526, "latency_ms": 92, "correct": false, "input_tokens": 106, "output_tokens": 14}, {"item_id": "syn-ha-bil-020", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.2382, "technical": 0.5236, "other": 0.2382}, "confidence": 0.5236, "latency_ms": 77, "correct": false, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-ha-bil-021", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.2295, "technical": 0.541, "other": 0.2295}, "confidence": 0.541, "latency_ms": 58, "correct": false, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-ha-tec-022", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.0983, "technical": 0.8034, "other": 0.0983}, "confidence": 0.8034, "latency_ms": 80, "correct": true, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-ha-tec-023", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.1252, "technical": 0.7496, "other": 0.1252}, "confidence": 0.7496, "latency_ms": 72, "correct": true, "input_tokens": 103, "output_tokens": 14}, {"item_id": "syn-ha-tec-024", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.2395, "technical": 0.521, "other": 0.2395}, "confidence": 0.521, "latency_ms": 63, "correct": true, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-ha-oth-025", "client": "jev", "choice": "other", "probabilities": {"billing": 0.1413, "technical": 0.1413, "other": 0.7174}, "confidence": 0.7174, "latency_ms": 41, "correct": true, "input_tokens": 103, "output_tokens": 14}, {"item_id": "syn-ha-oth-026", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.685, "technical": 0.1575, "other": 0.1575}, "confidence": 0.685, "latency_ms": 67, "correct": false, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-ha-oth-027", "client": "jev", "choice": "other", "probabilities": {"billing": 0.194, "technical": 0.194, "other": 0.612}, "confidence": 0.612, "latency_ms": 91, "correct": true, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-am-bil-028", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.4851, "technical": 0.2575, "other": 0.2575}, "confidence": 0.4851, "latency_ms": 108, "correct": true, "input_tokens": 107, "output_tokens": 14}, {"item_id": "syn-am-bil-029", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.3824, "technical": 0.3088, "other": 0.3088}, "confidence": 0.3824, "latency_ms": 87, "correct": true, "input_tokens": 106, "output_tokens": 14}, {"item_id": "syn-am-bil-030", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.6026, "technical": 0.1987, "other": 0.1987}, "confidence": 0.6026, "latency_ms": 96, "correct": true, "input_tokens": 106, "output_tokens": 14}, {"item_id": "syn-am-tec-031", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.2847, "technical": 0.4306, "other": 0.2847}, "confidence": 0.4306, "latency_ms": 68, "correct": true, "input_tokens": 106, "output_tokens": 14}, {"item_id": "syn-am-tec-032", "client": "jev", "choice": "technical", "probabilities": {"billing": 0.2107, "technical": 0.5786, "other": 0.2107}, "confidence": 0.5786, "latency_ms": 128, "correct": true, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-am-tec-033", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.6022, "technical": 0.1989, "other": 0.1989}, "confidence": 0.6022, "latency_ms": 126, "correct": false, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-am-oth-034", "client": "jev", "choice": "other", "probabilities": {"billing": 0.2005, "technical": 0.2005, "other": 0.599}, "confidence": 0.599, "latency_ms": 96, "correct": true, "input_tokens": 104, "output_tokens": 14}, {"item_id": "syn-am-oth-035", "client": "jev", "choice": "billing", "probabilities": {"billing": 0.613, "technical": 0.1935, "other": 0.1935}, "confidence": 0.613, "latency_ms": 96, "correct": false, "input_tokens": 105, "output_tokens": 14}, {"item_id": "syn-am-oth-036", "client": "jev", "choice": "other", "probabilities": {"billing": 0.2513, "technical": 0.2513, "other": 0.4974}, "confidence": 0.4974, "latency_ms": 48, "correct": true, "input_tokens": 105, "output_tokens": 14}], "calibration": {"by_tier": {"trivial": {"ece": 0.1707, "accuracy": 0.9091, "n": 11, "bins": [{"index": 0, "lo": 0.0, "hi": 0.1, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 1, "lo": 0.1, "hi": 0.2, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 2, "lo": 0.2, "hi": 0.3, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 3, "lo": 0.3, "hi": 0.4, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 4, "lo": 0.4, "hi": 0.5, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 5, "lo": 0.5, "hi": 0.6, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 6, "lo": 0.6, "hi": 0.7, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 7, "lo": 0.7, "hi": 0.8, "count": 2, "mean_confidence": 0.7567, "accuracy": 1.0, "items": [{"id": "syn-tr-tec-005", "prob": 0.7482, "choice": "technical", "label": "technical", "correct": true}, {"id": "syn-tr-oth-007", "prob": 0.7652, "choice": "other", "label": "other", "correct": true}]}, {"index": 8, "lo": 0.8, "hi": 0.9, "count": 4, "mean_confidence": 0.8424, "accuracy": 1.0, "items": [{"id": "st-001", "prob": 0.8614, "choice": "billing", "label": "billing", "correct": true}, {"id": "st-002", "prob": 0.8006, "choice": "technical", "label": "technical", "correct": true}, {"id": "syn-tr-bil-001", "prob": 0.8386, "choice": "billing", "label": "billing", "correct": true}, {"id": "syn-tr-tec-004", "prob": 0.8688, "choice": "technical", "label": "technical", "correct": true}]}, {"index": 9, "lo": 0.9, "hi": 1.0, "count": 5, "mean_confidence": 0.9521, "accuracy": 0.8, "items": [{"id": "syn-tr-bil-002", "prob": 0.957, "choice": "billing", "label": "billing", "correct": true}, {"id": "syn-tr-bil-003", "prob": 0.9, "choice": "technical", "label": "billing", "correct": false}, {"id": "syn-tr-tec-006", "prob": 0.932, "choice": "technical", "label": "technical", "correct": true}, {"id": "syn-tr-oth-008", "prob": 0.9816, "choice": "other", "label": "other", "correct": true}, {"id": "syn-tr-oth-009", "prob": 0.99, "choice": "other", "label": "other", "correct": true}]}]}, "easy": {"ece": 0.4092, "accuracy": 0.7273, "n": 11, "bins": [{"index": 0, "lo": 0.0, "hi": 0.1, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 1, "lo": 0.1, "hi": 0.2, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 2, "lo": 0.2, "hi": 0.3, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 3, "lo": 0.3, "hi": 0.4, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 4, "lo": 0.4, "hi": 0.5, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 5, "lo": 0.5, "hi": 0.6, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 6, "lo": 0.6, "hi": 0.7, "count": 3, "mean_confidence": 0.6487, "accuracy": 1.0, "items": [{"id": "syn-ea-bil-010", "prob": 0.6584, "choice": "billing", "label": "billing", "correct": true}, {"id": "syn-ea-tec-013", "prob": 0.622, "choice": "technical", "label": "technical", "correct": true}, {"id": "syn-ea-oth-018", "prob": 0.6658, "choice": "other", "label": "other", "correct": true}]}, {"index": 7, "lo": 0.7, "hi": 0.8, "count": 2, "mean_confidence": 0.7616, "accuracy": 1.0, "items": [{"id": "syn-ea-tec-014", "prob": 0.7618, "choice": "technical", "label": "technical", "correct": true}, {"id": "syn-ea-oth-016", "prob": 0.7614, "choice": "other", "label": "other", "correct": true}]}, {"index": 8, "lo": 0.8, "hi": 0.9, "count": 2, "mean_confidence": 0.8427, "accuracy": 1.0, "items": [{"id": "syn-ea-bil-012", "prob": 0.8412, "choice": "billing", "label": "billing", "correct": true}, {"id": "syn-ea-tec-015", "prob": 0.8442, "choice": "technical", "label": "technical", "correct": true}]}, {"index": 9, "lo": 0.9, "hi": 1.0, "count": 4, "mean_confidence": 0.9141, "accuracy": 0.25, "items": [{"id": "st-003", "prob": 0.9, "choice": "billing", "label": "technical", "correct": false}, {"id": "st-004", "prob": 0.9, "choice": "billing", "label": "other", "correct": false}, {"id": "syn-ea-bil-011", "prob": 0.9068, "choice": "technical", "label": "billing", "correct": false}, {"id": "syn-ea-oth-017", "prob": 0.9494, "choice": "other", "label": "other", "correct": true}]}]}, "hard": {"ece": 0.1243, "accuracy": 0.6364, "n": 11, "bins": [{"index": 0, "lo": 0.0, "hi": 0.1, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 1, "lo": 0.1, "hi": 0.2, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 2, "lo": 0.2, "hi": 0.3, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 3, "lo": 0.3, "hi": 0.4, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 4, "lo": 0.4, "hi": 0.5, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 5, "lo": 0.5, "hi": 0.6, "count": 3, "mean_confidence": 0.5285, "accuracy": 0.3333, "items": [{"id": "syn-ha-bil-020", "prob": 0.5236, "choice": "technical", "label": "billing", "correct": false}, {"id": "syn-ha-bil-021", "prob": 0.541, "choice": "technical", "label": "billing", "correct": false}, {"id": "syn-ha-tec-024", "prob": 0.521, "choice": "technical", "label": "technical", "correct": true}]}, {"index": 6, "lo": 0.6, "hi": 0.7, "count": 4, "mean_confidence": 0.6585, "accuracy": 0.75, "items": [{"id": "st-005", "prob": 0.6512, "choice": "billing", "label": "billing", "correct": true}, {"id": "st-006", "prob": 0.686, "choice": "billing", "label": "billing", "correct": true}, {"id": "syn-ha-oth-026", "prob": 0.685, "choice": "billing", "label": "other", "correct": false}, {"id": "syn-ha-oth-027", "prob": 0.612, "choice": "other", "label": "other", "correct": true}]}, {"index": 7, "lo": 0.7, "hi": 0.8, "count": 3, "mean_confidence": 0.7399, "accuracy": 0.6667, "items": [{"id": "syn-ha-bil-019", "prob": 0.7526, "choice": "technical", "label": "billing", "correct": false}, {"id": "syn-ha-tec-023", "prob": 0.7496, "choice": "technical", "label": "technical", "correct": true}, {"id": "syn-ha-oth-025", "prob": 0.7174, "choice": "other", "label": "other", "correct": true}]}, {"index": 8, "lo": 0.8, "hi": 0.9, "count": 1, "mean_confidence": 0.8034, "accuracy": 1.0, "items": [{"id": "syn-ha-tec-022", "prob": 0.8034, "choice": "technical", "label": "technical", "correct": true}]}, {"index": 9, "lo": 0.9, "hi": 1.0, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}]}, "ambiguous": {"ece": 0.3984, "accuracy": 0.7273, "n": 11, "bins": [{"index": 0, "lo": 0.0, "hi": 0.1, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 1, "lo": 0.1, "hi": 0.2, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 2, "lo": 0.2, "hi": 0.3, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 3, "lo": 0.3, "hi": 0.4, "count": 1, "mean_confidence": 0.3824, "accuracy": 1.0, "items": [{"id": "syn-am-bil-029", "prob": 0.3824, "choice": "billing", "label": "billing", "correct": true}]}, {"index": 4, "lo": 0.4, "hi": 0.5, "count": 3, "mean_confidence": 0.471, "accuracy": 1.0, "items": [{"id": "syn-am-bil-028", "prob": 0.4851, "choice": "billing", "label": "billing", "correct": true}, {"id": "syn-am-tec-031", "prob": 0.4306, "choice": "technical", "label": "technical", "correct": true}, {"id": "syn-am-oth-036", "prob": 0.4974, "choice": "other", "label": "other", "correct": true}]}, {"index": 5, "lo": 0.5, "hi": 0.6, "count": 2, "mean_confidence": 0.5888, "accuracy": 1.0, "items": [{"id": "syn-am-tec-032", "prob": 0.5786, "choice": "technical", "label": "technical", "correct": true}, {"id": "syn-am-oth-034", "prob": 0.599, "choice": "other", "label": "other", "correct": true}]}, {"index": 6, "lo": 0.6, "hi": 0.7, "count": 4, "mean_confidence": 0.6139, "accuracy": 0.5, "items": [{"id": "st-007", "prob": 0.6378, "choice": "other", "label": "other", "correct": true}, {"id": "syn-am-bil-030", "prob": 0.6026, "choice": "billing", "label": "billing", "correct": true}, {"id": "syn-am-tec-033", "prob": 0.6022, "choice": "billing", "label": "technical", "correct": false}, {"id": "syn-am-oth-035", "prob": 0.613, "choice": "billing", "label": "other", "correct": false}]}, {"index": 7, "lo": 0.7, "hi": 0.8, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 8, "lo": 0.8, "hi": 0.9, "count": 0, "mean_confidence": null, "accuracy": null, "items": []}, {"index": 9, "lo": 0.9, "hi": 1.0, "count": 1, "mean_confidence": 0.9, "accuracy": 0.0, "items": [{"id": "st-008", "prob": 0.9, "choice": "billing", "label": "other", "correct": false}]}]}}, "model": "jev"}};
+  </script>
+
+
+  <script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef, useId, useCallback } = React;
+const {
+  ResponsiveContainer, ComposedChart, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip
+} = Recharts;
+
+const SERIES = {
+  jev: { label: "Jev", color: "#57C4C9", marker: "●" },
+  adapter: { label: "LLM baseline", color: "#D8A24A", marker: "■" },
+  trivial: { label: "Trivial floor", color: "#8E8A80", marker: "◆" },
+};
+
+const TIER_ORDER = ["trivial", "easy", "hard", "ambiguous"];
+const JEV_INPUT_PER_MTOK = 0.042;
+const ADAPTER_INPUT_PER_MTOK = 0.15;
+
+function queryParams() {
+  const q = new URLSearchParams(window.location.search);
+  const slowRaw = q.get("slow");
+  const slow = slowRaw != null && slowRaw !== "" ? Math.max(1, Number(slowRaw) || 1) : 1;
+  return {
+    chromeOff: q.get("chrome") === "off",
+    slow,
+  };
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function costUsd(client, inputTokens) {
+  const rate = client === "jev" ? JEV_INPUT_PER_MTOK : client === "adapter" ? ADAPTER_INPUT_PER_MTOK : 0;
+  return (inputTokens / 1e6) * rate;
+}
+
+function TabButton({ id, selected, onSelect, children }) {
+  return (
+    <button
+      role="tab"
+      id={`tab-${id}`}
+      aria-selected={selected}
+      aria-controls={`panel-${id}`}
+      tabIndex={selected ? 0 : -1}
+      onClick={() => onSelect(id)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(id); }
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ---------- RACE ---------- */
+function RaceView({ liveKey, reducedMotion, slowFactor }) {
+  const [stateText, setStateText] = useState(
+    "I was charged twice for order A-104. Please refund the duplicate payment."
+  );
+  const [question, setQuestion] = useState("Which team should handle this? billing | technical | other");
+  const [running, setRunning] = useState(false);
+  const [jev, setJev] = useState(null);
+  const [adapter, setAdapter] = useState(null);
+  const [stream, setStream] = useState("");
+  const [status, setStatus] = useState("");
+  const jevTimer = useRef(0);
+  const adTimer = useRef(0);
+  const [jevMs, setJevMs] = useState(0);
+  const [adMs, setAdMs] = useState(0);
+  const raf = useRef(null);
+  const slow = Math.max(1, slowFactor || 1);
+
+  const stopTimers = () => {
+    if (raf.current) cancelAnimationFrame(raf.current);
+    raf.current = null;
+  };
+
+  const fire = async () => {
+    stopTimers();
+    setRunning(true);
+    setJev(null);
+    setAdapter(null);
+    setStream("");
+    setStatus("");
+    setJevMs(0);
+    setAdMs(0);
+    const t0 = performance.now();
+    jevTimer.current = t0;
+    adTimer.current = t0;
+
+    const tick = () => {
+      const now = performance.now();
+      setJevMs(now - jevTimer.current);
+      setAdMs(now - adTimer.current);
+      raf.current = requestAnimationFrame(tick);
+    };
+    raf.current = requestAnimationFrame(tick);
+
+    const jevPromise = (async () => {
+      const start = performance.now();
+      let result;
+      if (liveKey) {
+        try {
+          result = await callJev(liveKey, stateText, question);
+        } catch (err) {
+          setStatus(`Jev API error (falling back to sim): ${err.message}`);
+          result = simulateJev(stateText);
+        }
+      } else {
+        await sleep(reducedMotion ? 0 : 40 + Math.random() * 40);
+        result = simulateJev(stateText);
+      }
+      const ms = performance.now() - start;
+      jevTimer.current = performance.now() - ms;
+      setJevMs(ms);
+      setJev({ ...result, latency_ms: ms });
+    })();
+
+    const adPromise = (async () => {
+      const start = performance.now();
+      const payload = simulateAdapterPayload(stateText);
+      if (reducedMotion) {
+        setStream(payload);
+        setAdapter(parseAdapter(payload));
+        setAdMs(performance.now() - start);
+        return;
+      }
+      let built = "";
+      for (const ch of payload) {
+        built += ch;
+        setStream(built);
+        await sleep((12 + Math.random() * 18) * slow);
+        setAdMs(performance.now() - start);
+      }
+      setAdapter(parseAdapter(built));
+      setAdMs(performance.now() - start);
+    })();
+
+    await Promise.all([jevPromise, adPromise]);
+    stopTimers();
+    setRunning(false);
+  };
+
+  useEffect(() => () => stopTimers(), []);
+
+  return (
+    <section aria-labelledby="race-h">
+      <h2 id="race-h">Race</h2>
+      <p className="muted">
+        Same state, same question — Jev snaps; the baseline crawls.{" "}
+        <span className="badge-demo">Demo — not scored</span>
+      </p>
+      {!liveKey && (
+        <p className="muted">Paste an API key in Live mode to hit the real API (CORS permitting). Without a key, both lanes are simulated for b-roll.</p>
+      )}
+      <div className="race-controls panel">
+        <label>
+          State
+          <textarea rows={3} value={stateText} onChange={(e) => setStateText(e.target.value)} />
+        </label>
+        <label>
+          Question
+          <input value={question} onChange={(e) => setQuestion(e.target.value)} />
+        </label>
+        <div>
+          <button className="btn btn-primary" onClick={fire} disabled={running}>
+            {running ? "Running…" : "Run"}
+          </button>
+          {status && <p className="error" role="status">{status}</p>}
+        </div>
+      </div>
+
+      <div className="lanes" aria-live="polite">
+        <Lane
+          kind="jev"
+          title="Jev"
+          ms={jevMs}
+          cost={jev ? costUsd("jev", jev.input_tokens || 120) : 0}
+          result={jev}
+          snap
+        />
+        <Lane
+          kind="adapter"
+          title="LLM baseline"
+          ms={adMs}
+          cost={adapter ? costUsd("adapter", adapter.input_tokens || 120) : costUsd("adapter", 120) * (stream.length / 80)}
+          result={adapter}
+          stream={stream}
+          snap={false}
+        />
+      </div>
+    </section>
+  );
+}
+
+function Lane({ kind, title, ms, cost, result, stream, snap }) {
+  const s = SERIES[kind] || SERIES.jev;
+  return (
+    <div className={`lane ${kind}`}>
+      <div className="lane-head">
+        <div className="lane-title"><span className="mark" aria-hidden="true" />{s.marker} {title}</div>
+        <div>
+          <div className="timer" aria-label={`${title} latency`}>{ms.toFixed(0)}<span style={{fontSize:"0.45em"}}> ms</span></div>
+          <div className="cost">${cost.toFixed(5)}</div>
+        </div>
+      </div>
+      {result && result.probabilities && (
+        <div className="bars">
+          {Object.entries(result.probabilities).map(([k, v]) => (
+            <div className="bar-row" key={k}>
+              <span>{k}</span>
+              <div className="bar-track" aria-hidden="true">
+                <div
+                  className={`bar-fill ${snap ? "" : "crawl"}`}
+                  style={{
+                    width: `${(v * 100).toFixed(1)}%`,
+                    background: kind === "jev" ? "var(--jev)" : "var(--adapter)",
+                  }}
+                />
+              </div>
+              <span style={{ fontFamily: "var(--mono)", textAlign: "right" }}>{(v * 100).toFixed(1)}%</span>
+            </div>
+          ))}
+          <p className="muted" style={{ marginTop: "0.5rem" }}>
+            choice=<strong>{result.choice}</strong>
+            {result.confidence != null && <> · confidence={result.confidence}</>}
+          </p>
+        </div>
+      )}
+      {kind === "adapter" && stream != null && (
+        <div className="token-stream" aria-label="Baseline token stream">{stream || "…"}</div>
+      )}
+      {!result && kind === "jev" && <p className="muted">Waiting for snap…</p>}
+    </div>
+  );
+}
+
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+function simulateJev(state) {
+  const text = state.toLowerCase();
+  let choice = "other";
+  if (/refund|charg|invoice|vat|seat/.test(text)) choice = "billing";
+  else if (/crash|password|bug|webhook|deploy/.test(text)) choice = "technical";
+  const probabilities = { billing: 0.05, technical: 0.05, other: 0.05 };
+  probabilities[choice] = 0.9;
+  const s = Object.values(probabilities).reduce((a, b) => a + b, 0);
+  Object.keys(probabilities).forEach((k) => { probabilities[k] = +(probabilities[k] / s).toFixed(4); });
+  return { choice, probabilities, confidence: probabilities[choice], input_tokens: 100 + Math.floor(state.length / 4), model: "jev-1.13.0-sim" };
+}
+
+function simulateAdapterPayload(state) {
+  const j = simulateJev(state);
+  return JSON.stringify({ choice: j.choice, probabilities: j.probabilities }, null, 2);
+}
+
+function parseAdapter(text) {
+  try {
+    const j = JSON.parse(text);
+    return { ...j, input_tokens: 140, confidence: j.probabilities ? Math.max(...Object.values(j.probabilities)) : null };
+  } catch {
+    return null;
+  }
+}
+
+async function callJev(apiKey, state, question) {
+  // Best-effort browser call — may fail CORS; caller falls back to sim.
+  const body = {
+    model: "jev-1.13.0",
+    state,
+    questions: {
+      department: {
+        type: "choice",
+        instructions: question,
+        criteria: { billing: "Charges/refunds", technical: "Bugs", other: null },
+      },
+    },
+  };
+  const res = await fetch("https://api.typesafe.ai/v1/systemone", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  const data = await res.json();
+  const ans = data.answers?.department || Object.values(data.answers || {})[0];
+  return {
+    choice: ans.choice,
+    probabilities: ans.probabilities,
+    confidence: ans.confidence,
+    input_tokens: data.usage?.input_tokens || 120,
+    model: data.model,
+  };
+}
+
+/* ---------- CALIBRATION ---------- */
+function CalibrationView({ data }) {
+  const [tier, setTier] = useState("hard");
+  const [activeBin, setActiveBin] = useState(null);
+  const cal = data?.calibration?.by_tier?.[tier];
+
+  const chartData = useMemo(() => {
+    if (!cal) return [];
+    return cal.bins.map((b) => ({
+      mid: +((b.lo + b.hi) / 2).toFixed(3),
+      conf: b.count ? b.mean_confidence : null,
+      acc: b.count ? b.accuracy : null,
+      diag: +((b.lo + b.hi) / 2).toFixed(3),
+      count: b.count || 0,
+      index: b.index,
+      label: `${b.lo.toFixed(1)}–${b.hi.toFixed(1)}`,
+    }));
+  }, [cal]);
+
+  const lineData = useMemo(() => {
+    const pts = chartData.filter((d) => d.count > 0);
+    // Include endpoints so y=x reference spans the unit square
+    return [
+      { mid: 0, diag: 0, conf: null, acc: null, count: 0 },
+      ...pts,
+      { mid: 1, diag: 1, conf: null, acc: null, count: 0 },
+    ];
+  }, [chartData]);
+
+  if (!cal) return <p className="error">No calibration data for tier {tier}</p>;
+
+  const bin = activeBin != null ? cal.bins[activeBin] : null;
+
+  return (
+    <section aria-labelledby="cal-h">
+      <h2 id="cal-h">Calibration</h2>
+      <p className="muted">
+        Reliability with occupancy always underneath. Click a bin to inspect items.
+        ECE={cal.ece.toFixed(3)} · accuracy={cal.accuracy.toFixed(3)} · n={cal.n}
+      </p>
+      <div className="tier-row" role="group" aria-label="Difficulty tier">
+        {TIER_ORDER.map((t) => (
+          <button
+            key={t}
+            className="chip"
+            aria-pressed={tier === t}
+            onClick={() => { setTier(t); setActiveBin(null); }}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+      <div className="panel">
+        <div className="cal-square">
+          <div className="chart-wrap">
+            <ResponsiveContainer>
+              <ComposedChart data={lineData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke="#4A5258" strokeDasharray="3 3" />
+                <XAxis dataKey="mid" type="number" domain={[0, 1]} tickFormatter={(v) => v.toFixed(1)} />
+                <YAxis domain={[0, 1]} tickFormatter={(v) => v.toFixed(1)} />
+                <Tooltip
+                  formatter={(val, name) => [val == null ? "—" : Number(val).toFixed(3), name]}
+                  labelFormatter={(v) => `p≈${Number(v).toFixed(2)}`}
+                  contentStyle={{ background: "#252A2E", border: "1px solid #4A5258", color: "#D9D4C7" }}
+                />
+                <Line
+                  type="linear"
+                  dataKey="diag"
+                  name="perfect (y=x)"
+                  stroke="#F2EDE1"
+                  strokeDasharray="4 4"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="acc"
+                  name="accuracy"
+                  stroke="#57C4C9"
+                  strokeWidth={2}
+                  dot={{ r: 6 }}
+                  connectNulls
+                  isAnimationActive={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="conf"
+                  name="mean prob"
+                  stroke="#D8A24A"
+                  strokeDasharray="6 3"
+                  strokeWidth={2}
+                  dot={{ r: 5 }}
+                  connectNulls
+                  isAnimationActive={false}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <p className="muted" style={{ margin: "0.35rem 0 0.15rem" }}>Occupancy — bin width encodes count (shared x-axis)</p>
+        <div className="occ-bins" role="group" aria-label="Confidence bins by occupancy">
+          {cal.bins.map((b) => {
+            const flex = Math.max(b.count || 0, b.count === 0 ? 0.15 : 0);
+            return (
+              <button
+                key={b.index}
+                type="button"
+                className="occ-bin"
+                style={{ flex: `${flex} 1 0` }}
+                aria-pressed={activeBin === b.index}
+                onClick={() => setActiveBin(b.index)}
+                title={`${b.lo.toFixed(1)}–${b.hi.toFixed(1)} · n=${b.count}`}
+              >
+                <span className="occ-label">{b.lo.toFixed(1)}–{b.hi.toFixed(1)}</span>
+                <span className="occ-n">{b.count}</span>
+                <span className="occ-fill" style={{ opacity: b.count ? 1 : 0.15 }} />
+              </button>
+            );
+          })}
+        </div>
+        <div className="bin-detail">
+          {bin ? (
+            <>
+              <h3>Bin {bin.lo.toFixed(1)}–{bin.hi.toFixed(1)} · n={bin.count}</h3>
+              {bin.count === 0 ? (
+                <p className="muted">Empty bin</p>
+              ) : (
+                <table>
+                  <thead>
+                    <tr><th>id</th><th>prob</th><th>choice</th><th>label</th><th>result</th></tr>
+                  </thead>
+                  <tbody>
+                    {bin.items.map((it) => (
+                      <tr key={it.id}>
+                        <td>{it.id}</td>
+                        <td style={{ fontFamily: "var(--mono)" }}>{it.prob.toFixed(3)}</td>
+                        <td>{it.choice}</td>
+                        <td>{it.label}</td>
+                        <td>
+                          <span className={`pill ${it.correct ? "ok" : "wrong"}`}>
+                            {it.correct ? "correct" : "wrong"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </>
+          ) : (
+            <p className="muted">Select a bin in the occupancy chart to list its items.</p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- GATE ---------- */
+function GateView({ data }) {
+  const [threshold, setThreshold] = useState(0.85);
+  const jevPreds = useMemo(
+    () => (data?.predictions || []).filter((p) => p.client === "jev"),
+    [data]
+  );
+
+  const stats = useMemo(() => {
+    const n = jevPreds.length || 1;
+    // Use probability of chosen class as routing score (not Jev confidence sharpness alone)
+    const scored = jevPreds.map((p) => {
+      const score = p.probabilities?.[p.choice] ?? p.confidence ?? 0;
+      return { score, correct: p.correct };
+    });
+    const auto = scored.filter((x) => x.score >= threshold);
+    const escalated = scored.length - auto.length;
+    const autoAcc = auto.length ? auto.filter((x) => x.correct).length / auto.length : 0;
+    return {
+      pctAuto: auto.length / scored.length,
+      autoAcc,
+      pctEsc: escalated / scored.length,
+      nAuto: auto.length,
+      n: scored.length,
+    };
+  }, [jevPreds, threshold]);
+
+  return (
+    <section aria-labelledby="gate-h">
+      <h2 id="gate-h">Gate</h2>
+      <p className="muted">
+        Drag the threshold on <strong>predicted-class probability</strong> (calibration signal).
+        Watch automation, accuracy, and escalations move together.
+      </p>
+      <div className="slider-wrap panel">
+        <label htmlFor="gate-threshold">
+          Automate when P(choice) ≥ {threshold.toFixed(2)}
+        </label>
+        <input
+          id="gate-threshold"
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={threshold}
+          onChange={(e) => setThreshold(parseFloat(e.target.value))}
+          aria-valuemin={0}
+          aria-valuemax={1}
+          aria-valuenow={threshold}
+          aria-valuetext={`${threshold.toFixed(2)}`}
+        />
+        <div className="slider-readout">{threshold.toFixed(2)}</div>
+      </div>
+      <div className="gate-stats" aria-live="polite">
+        <div className="stat">
+          <span className="num">{(stats.pctAuto * 100).toFixed(0)}%</span>
+          <div className="lbl">automated ({stats.nAuto}/{stats.n})</div>
+        </div>
+        <div className="stat">
+          <span className="num">{(stats.autoAcc * 100).toFixed(0)}%</span>
+          <div className="lbl">accuracy of automated</div>
+        </div>
+        <div className="stat">
+          <span className="num">{(stats.pctEsc * 100).toFixed(0)}%</span>
+          <div className="lbl">escalated to human</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- ITEMS ---------- */
+const FILTERS = [
+  { id: "hc_wrong", label: "High confidence & wrong" },
+  { id: "wrong", label: "Wrong" },
+  { id: "disagree", label: "Primitive disagreements" },
+  { id: "disputed", label: "Disputed labels" },
+  { id: "all", label: "All" },
+];
+
+function ItemsView({ data }) {
+  const [filter, setFilter] = useState("hc_wrong");
+  const [selected, setSelected] = useState(null);
+  const itemsById = useMemo(() => {
+    const m = {};
+    (data?.items || []).forEach((it) => { m[it.id] = it; });
+    return m;
+  }, [data]);
+
+  const rows = useMemo(() => {
+    const preds = data?.predictions || [];
+    const byItem = {};
+    preds.forEach((p) => {
+      byItem[p.item_id] = byItem[p.item_id] || {};
+      byItem[p.item_id][p.client] = p;
+    });
+    return Object.keys(byItem).map((id) => {
+      const it = itemsById[id] || { id, label: "?", tier: "?", state: "" };
+      const jev = byItem[id].jev;
+      const adapter = byItem[id].adapter;
+      const trivial = byItem[id].trivial;
+      const score = jev?.probabilities?.[jev.choice] ?? jev?.confidence ?? 0;
+      const disagree =
+        jev && trivial && jev.choice !== trivial.choice;
+      return {
+        id,
+        item: it,
+        jev,
+        adapter,
+        trivial,
+        score,
+        disagree,
+        hcWrong: jev && !jev.correct && score >= 0.85,
+      };
+    });
+  }, [data, itemsById]);
+
+  const filtered = rows.filter((r) => {
+    if (filter === "all") return true;
+    if (filter === "wrong") return r.jev && !r.jev.correct;
+    if (filter === "hc_wrong") return r.hcWrong;
+    if (filter === "disputed") return r.item.disputed;
+    if (filter === "disagree") return r.disagree;
+    return true;
+  });
+
+  return (
+    <section aria-labelledby="items-h">
+      <h2 id="items-h">Items</h2>
+      <p className="muted">
+        Default filter is <strong>high confidence and wrong</strong> — the project thesis.
+      </p>
+      <div className="filters" role="group" aria-label="Item filters">
+        {FILTERS.map((f) => (
+          <button
+            key={f.id}
+            className="chip"
+            aria-pressed={filter === f.id}
+            onClick={() => setFilter(f.id)}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+      <div className="table-wrap">
+        <table className="items">
+          <thead>
+            <tr>
+              <th>id</th><th>tier</th><th>label</th>
+              <th>Jev ●</th><th>Adapter ■</th><th>Trivial ◆</th>
+              <th>P(choice)</th><th>lat ms</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r) => (
+              <tr
+                key={r.id}
+                tabIndex={0}
+                aria-selected={selected?.id === r.id}
+                onClick={() => setSelected(r)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(r); }
+                }}
+              >
+                <td>{r.id}{r.item.disputed ? " *" : ""}</td>
+                <td><span className="pill">{r.item.tier}</span></td>
+                <td>{r.item.label}</td>
+                <td>
+                  {r.jev?.choice}{" "}
+                  <span className={`pill ${r.jev?.correct ? "ok" : "wrong"}`}>
+                    {r.jev?.correct ? "ok" : "wrong"}
+                  </span>
+                </td>
+                <td>{r.adapter?.choice}</td>
+                <td>{r.trivial?.choice}</td>
+                <td style={{ fontFamily: "var(--mono)" }}>{r.score.toFixed(3)}</td>
+                <td style={{ fontFamily: "var(--mono)" }}>{r.jev?.latency_ms}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {filtered.length === 0 && <p className="muted">No rows for this filter.</p>}
+      {selected && (
+        <div>
+          <h3>Raw — {selected.id}</h3>
+          <p className="muted">{selected.item.state}</p>
+          <pre className="raw-json">{JSON.stringify(selected, null, 2)}</pre>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ---------- APP ---------- */
+function App() {
+  const params = useMemo(() => queryParams(), []);
+  const [mode, setMode] = useState(params.chromeOff ? "live" : "replay");
+  const [view, setView] = useState(params.chromeOff ? "race" : "calibration");
+  const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState("");
+  const [apiKey, setApiKey] = useState(""); // memory only — never persisted
+  const reducedMotion = prefersReducedMotion();
+  const modelVersion = data?.meta?.resolved_model || "jev-1.13.0";
+
+  useEffect(() => {
+    document.body.classList.add("capture-1080");
+    if (params.chromeOff) document.body.classList.add("chrome-off");
+  }, [params.chromeOff]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("data/replay.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`${res.status}`);
+        const json = await res.json();
+        if (!cancelled) setData(json);
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(`Could not fetch data/replay.json (${err.message}). Using embedded fallback.`);
+          setData(window.__JEVBENCH_FALLBACK__);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (mode === "live") setView("race");
+    else if (view === "race") setView("calibration");
+  }, [mode]);
+
+  const downloadDemo = () => {
+    const blob = new Blob(
+      [JSON.stringify({ demo: true, badge: "Demo — not scored", note: "Place under runs/demo/ only", ts: new Date().toISOString() }, null, 2)],
+      { type: "application/json" }
+    );
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `demo-${Date.now()}.json`;
+    a.click();
+  };
+
+  return (
+    <>
+      {params.slow > 1 && (
+        <div className="slow-badge" role="status">{params.slow}× slowed</div>
+      )}
+      <header className="chrome">
+        <div className="brand">jev<span>bench</span></div>
+        <span className="version-badge" title="Resolved model — not jev-latest">{modelVersion}</span>
+        <div className="mode-toggle" role="group" aria-label="Mode">
+          <button aria-pressed={mode === "replay"} onClick={() => setMode("replay")}>Replay</button>
+          <button aria-pressed={mode === "live"} onClick={() => setMode("live")}>Live</button>
+        </div>
+        <div className="tabs" role="tablist" aria-label="Views">
+          {mode === "live" && (
+            <TabButton id="race" selected={view === "race"} onSelect={setView}>Race</TabButton>
+          )}
+          {mode === "replay" && (
+            <>
+              <TabButton id="calibration" selected={view === "calibration"} onSelect={setView}>Calibration</TabButton>
+              <TabButton id="gate" selected={view === "gate"} onSelect={setView}>Gate</TabButton>
+              <TabButton id="items" selected={view === "items"} onSelect={setView}>Items</TabButton>
+            </>
+          )}
+        </div>
+        {mode === "live" && (
+          <div className="key-field">
+            <label className="sr-only" htmlFor="api-key">API key</label>
+            <input
+              id="api-key"
+              type="password"
+              autoComplete="off"
+              placeholder="TYPESAFE_API_KEY (memory only)"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+            />
+          </div>
+        )}
+        {mode === "live" && (
+          <button className="btn" onClick={downloadDemo} title="Cannot write scored runs — download Demo artifact only">
+            Copy raw JSON
+          </button>
+        )}
+        <div className="meta">
+          {data?.meta?.run_id || "No run loaded. Pick a run from runs/."}
+        </div>
+      </header>
+
+      <main>
+        {loadError && <p className="muted" role="status">{loadError}</p>}
+        {!data && <p>No run loaded. Pick a run from runs/.</p>}
+        {data && mode === "live" && view === "race" && (
+          <div id="panel-race" role="tabpanel" aria-labelledby="tab-race">
+            <RaceView liveKey={apiKey.trim() || null} reducedMotion={reducedMotion} slowFactor={params.slow} />
+          </div>
+        )}
+        {data && mode === "replay" && view === "calibration" && (
+          <div id="panel-calibration" role="tabpanel" aria-labelledby="tab-calibration">
+            <CalibrationView data={data} />
+          </div>
+        )}
+        {data && mode === "replay" && view === "gate" && (
+          <div id="panel-gate" role="tabpanel" aria-labelledby="tab-gate">
+            <GateView data={data} />
+          </div>
+        )}
+        {data && mode === "replay" && view === "items" && (
+          <div id="panel-items" role="tabpanel" aria-labelledby="tab-items">
+            <ItemsView data={data} />
+          </div>
+        )}
+
+        <p className="footer-note">
+          Replay is the default and needs no API key. Live mode holds the key in memory only —
+          never localStorage, never sent except to the API. The Arena cannot write to scored
+          <code> runs/</code> directories; Demo downloads belong in <code>runs/demo/</code> only.
+          Capture: <code>?chrome=off</code>, <code>?slow=4</code>. Spec: <code>UI_SPEC.md</code>.
+        </p>
+      </main>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+
+</body>
+</html>

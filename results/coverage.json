@@ -1,0 +1,36 @@
+{
+  "bca": {
+    "empirical_coverage": 0.8882,
+    "empirical_fpr": 0.1118,
+    "empirical_fpr_ci95": [
+      0.10306531283197846,
+      0.12053468716802153
+    ],
+    "empirical_fpr_se": 0.0044564730449089445,
+    "method": "bca",
+    "near_nominal": false,
+    "nominal_alpha": 0.05,
+    "trials": 5000
+  },
+  "claim_95": false,
+  "n_boot": 2000,
+  "n_per_stratum": 750,
+  "null_model": "heterogeneous_calibrated",
+  "percentile": {
+    "empirical_coverage": 0.9214,
+    "empirical_fpr": 0.0786,
+    "empirical_fpr_ci95": [
+      0.07114055620218236,
+      0.08605944379781764
+    ],
+    "empirical_fpr_se": 0.003805838672355937,
+    "method": "percentile",
+    "near_nominal": false,
+    "nominal_alpha": 0.05,
+    "trials": 5000
+  },
+  "primary_method": "percentile",
+  "primary_reason": "Neither reaches nominal; percentile is closer. Report empirical coverage 92.1% \u2014 do not claim 95%.",
+  "schema": "jevbench.coverage.v1",
+  "seed": 20261221
+}

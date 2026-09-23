@@ -1,0 +1,40 @@
+# ChaosNLI labels for EXP-1
+
+Population: ChaosNLI v1.0, SNLI subset (1,514) plus MNLI-matched subset (1,599) = 3,113 items. Each item has 100 annotator labels.
+
+## Why αNLI is out
+
+αNLI is a different task. The input is an observation-start, two hypotheses, and an observation-end, and the label is which hypothesis better explains the transition — a 2-way abductive choice. SNLI and MNLI are 3-way entailment / neutral / contradiction on one premise–hypothesis pair. Entropy is not on the same scale (maximum log2(2) = 1 versus log2(3) ≈ 1.585). ChaosNLI-α (1,532 items) is excluded.
+
+## Strata
+
+Per-item difficulty is the base-2 Shannon entropy of the 100-annotator distribution (order: entailment, neutral, contradiction; 0 log 0 = 0).
+
+Thresholds were fixed from the population quantiles before any Jev call (`thresholds.json`):
+
+- easy: entropy ≤ the 25th percentile (lowest-entropy items)
+- hard: entropy ≥ the 75th percentile (highest-entropy items)
+- the middle half is not in the primary contrast
+
+Each pool was then reduced to n = 750 with `subsample_to_equal_n` (seed 20260923).
+
+## Two scores
+
+- **Soft (primary).** `correct_i` is the share of annotators who chose the model's argmax. ECE bin accuracy is the mean of those shares.
+- **Hard (reported).** `correct_i = 1[argmax == majority label]`. Hard scoring puts label noise in the hard stratum only, which inflates ΔECE in the direction of the hypothesis. The majority on a high-entropy item is a thin mode; misses against that mode are charged only in the hard stratum.
+
+`label` in `labels.jsonl` is the majority. `label_dist` is the soft target.
+
+## Sentences are not in git
+
+ChaosNLI is CC BY-NC 4.0 (Nie, Zhou, Bansal, EMNLP 2020): non-commercial sharing with attribution is allowed for the ChaosNLI material. The premises and hypotheses are not ChaosNLI's to relicense. SNLI is CC BY-SA 4.0 (share-alike). MNLI has no single grant (OANC non-commercial text plus more restrictive fiction sources). This repository is MIT. Committed files therefore contain item ids, counts, entropy, and stratum membership, not the sentences. `scripts/fetch_chaosnli.py` writes a gitignored cache after checking the v1.0 sha256 pins.
+
+The annotation counts in `universe.jsonl` and `labels.jsonl` are an excerpt of ChaosNLI and stay under CC BY-NC 4.0, not under the MIT license that covers the code. Cite Nie, Zhou, and Bansal (2020).
+
+## Contamination paraphrases
+
+SNLI has been public since 2015 and MNLI since 2018. `paraphrases.jsonl` holds 100 items (50 easy, 50 hard), reworded and frozen before any model run. A large drop from the original wording to the paraphrase, reported for every arm, suggests memorisation. Paraphrase rows are `role: paraphrase` and are not in the primary ΔECE sample.
+
+## No Jev output
+
+These files were locked before any Jev call. No Jev output had been observed.

@@ -1,0 +1,115 @@
+name: exp6_stability
+status: ready
+model: jev-1.13.0
+task: support_tickets
+serving_path: native
+pricing_snapshot_date: "2026-09-19"
+geography_note: >
+  Fill in before scored paper runs (city / region / cloud).
+concurrency: 2
+# INTERLEAVE repeats over time (runner should schedule item×repeat as a
+# round-robin over time, not R back-to-back per item) so a silent model swap
+# or cache shows up in the timeline.
+repeats: 10
+description: >
+  EXP-6: separate LABEL, CONFIDENCE, and DISTRIBUTION stability. Reconcile
+  the Zenodo/daf-jev confidence-consistency claim with public-bench reports
+  that answers move — both can be true if labels flip near the boundary while
+  confidence stays put. Never collapse the three into one "stability" number.
+
+questions:
+  department:
+    kind: choice
+    instructions: Which team should handle this support ticket?
+    criteria:
+      billing: Charges, invoices, refunds, taxes, seat billing
+      technical: Bugs, outages, login failures, webhooks, product defects
+      other: Sales questions, feedback with no ask, unclear ownership
+
+clients:
+  - name: jev
+    type: jev
+    model: jev-1.13.0
+    serving_path: native
+  - name: adapter_baseline
+    type: adapter
+    provider: openai
+    model: gpt-4o-mini
+    llm_answer_mode: probabilities
+    extras:
+      temperature: 0
+      note: >
+        Temp-0 is not guaranteed deterministic on batched inference — report
+        what we observe; do not assume it.
+
+hypotheses:
+  - id: H6a
+    statement: >
+      Jev confidence (sharpness) is stable across R>=10 byte-identical repeats
+      (low per-item SD / range), consistent with the Zenodo/daf-jev
+      self-consistency claim.
+    falsified_when: >
+      Mean per-item confidence SD is large (e.g. comparable to the confidence
+      scale itself) on the scored panel after excluding mid-run model-version
+      changes; then H6a is rejected for this serving path and pinned version.
+  - id: H6b
+    statement: >
+      Label / argmax decisions flip on a non-trivial fraction of items across
+      the same repeats — the quantity public benches reported.
+    falsified_when: >
+      Flip-rate 95% CI includes values near zero (and the point estimate is
+      negligible) under the scored protocol; then H6b is rejected for this
+      panel.
+  - id: H6c
+    statement: >
+      RECONCILIATION: flips concentrate near the decision boundary
+      (|mean confidence − threshold| small) while confidence SD stays small —
+      so H6a and H6b can both hold. This reconciles Zenodo/daf-jev with the
+      public benches; it does not refute either group.
+    falsified_when: >
+      Boundary analysis does not show higher flip_rate in near-boundary
+      deciles than far deciles, or confidence is unstable wherever labels
+      flip; then the reconciliation is not supported and the contradiction
+      remains open.
+
+metrics:
+  - "LABEL: flip_rate with item-bootstrap CI; modal label; n distinct labels"
+  - "CONFIDENCE: per-item SD, range, max |dev| from item mean"
+  - "DISTRIBUTION: pairwise TV and Jensen–Shannon (nats, bound ln 2); mean and max"
+  - "Boundary: flip_rate vs |mean confidence − threshold| (deciles + OLS)"
+  - "Stratify all of the above by tier · boundary decile · serving path · resolved model"
+  - "Resolved model string logged every call; mid-run changes surfaced, not averaged"
+  - "Identical protocol on temp-0 LLM baseline; paired Δ flip-rate CI"
+  - "Wall-clock per call; interleaved repeat schedule"
+
+decision_rules:
+  - "Never report a single collapsed 'stability' scalar."
+  - "If resolved model changes mid-run, treat as a publishable finding and stratify."
+  - "State explicitly which prior result the data support, and under what conditions."
+  - "Temp-0 baseline: report observed non-determinism; do not assume determinism."
+  - "Interval crossing zero on comparative Δ flip-rate ⇒ inconclusive, not equivalence."
+
+sample_size:
+  # From results/power_analysis.json — EXP-1 chose n=200 per stratum; EXP-6
+  # uses the same floor for item count (total items >= 200).
+  min_items: 200
+  per_tier: 50
+  repeats: 10
+  notes: >
+    n >= power-analysis chosen n-per-stratum (200). R >= 10. Byte-identical
+    requests. Interleave repeats over time. Raise min_items when the labeled
+    corpus grows; do not drop below the power floor.
+
+stopping_rule: >
+  Stop after every item has R scored interleaved repeats on both Jev and the
+  temp-0 baseline, or when a mid-run model-version change forces a protocol
+  restart under the new pinned version.
+
+extras:
+  interleave_repeats: true
+  decision_threshold: 0.5
+  log_resolved_model_every_call: true
+  baseline_temperature: 0
+  prior_claims:
+    confidence_stable: "Zenodo 22816188 (daf-jev / Jev in Practice)"
+    labels_move: "public Jev benchmark repos (ickma2311, anisselbd, anessbelbati, themsquared, SamuelSacco)"

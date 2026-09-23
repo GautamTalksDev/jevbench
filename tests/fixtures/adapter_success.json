@@ -1,0 +1,22 @@
+{
+  "model": "gpt-4o-mini",
+  "answers": {
+    "positive": {
+      "type": "noul",
+      "noul": 0.91
+    },
+    "topic": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": {
+        "billing": 0.7,
+        "technical": 0.3
+      },
+      "confidence": 0.4
+    }
+  },
+  "usage": {
+    "input_tokens": 100,
+    "output_tokens": 20
+  }
+}

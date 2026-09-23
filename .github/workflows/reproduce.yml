@@ -1,0 +1,41 @@
+name: reproduce
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  offline-reproduce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install -U pip
+          pip install -e ".[dev]"
+
+      - name: Unit tests
+        run: make test
+
+      - name: Regenerate metrics and charts offline
+        run: make reproduce
+
+      - name: Fail if any golden artifact drifted
+        run: |
+          # Reproduce goldens only (bias_floor.json is written by test_ece, committed separately)
+          git add -A results/metrics.json results/finding.json results/SHA256SUMS results/charts/
+          git diff --cached --exit-code -- results/metrics.json results/finding.json results/SHA256SUMS results/charts/ \
+            || (echo "::error::results/ drifted from committed goldens. If intentional, commit make reproduce output."; git diff --cached --stat -- results/; exit 1)
+
+      - name: Checksum gate
+        run: make check-repro
+
+      - name: Bias floor present (from test_ece)
+        run: test -f results/bias_floor.json && python3 -c "import json; json.load(open('results/bias_floor.json'))"

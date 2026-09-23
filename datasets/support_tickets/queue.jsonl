@@ -1,0 +1,3 @@
+{"id": "st-q-001", "state": "Please cancel my subscription and refund the unused portion of this month."}
+{"id": "st-q-002", "state": "SSO login loops forever after we rotated the IdP certificate on Friday."}
+{"id": "st-q-003", "state": "We were billed for 12 seats but only 9 are active, and separately the Slack alert integration stopped posting — which team should we ping first?"}

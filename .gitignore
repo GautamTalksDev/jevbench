@@ -1,0 +1,39 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*_API_KEY*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local caches / notebooks
+.ipynb_checkpoints/
+*.pkl
+*.joblib
+
+# Arena live demo runs only (scored runs/ ARE committed)
+runs/demo/*
+!runs/demo/.gitkeep
+
+# Local ChaosNLI sentence cache (fetched; not redistributed)
+datasets/chaosnli/cache/
+.venv/

@@ -1,0 +1,8 @@
+{"id": "st-001", "state": "Hi, my invoice shows a double charge for order A-104. Please refund the duplicate payment.", "tier": "trivial"}
+{"id": "st-002", "state": "Password reset link expired again. I cannot log in to the dashboard.", "tier": "trivial"}
+{"id": "st-003", "state": "The app crashes when I export a CSV with more than 10k rows. Started after Tuesday's deploy.", "tier": "easy"}
+{"id": "st-004", "state": "Can someone confirm whether plan Pro includes SSO? Sales said yes on the call but docs say Enterprise only.", "tier": "easy"}
+{"id": "st-005", "state": "We were charged for seats we deactivated last month. Also the webhook retries look stuck — not sure which team owns this.", "tier": "hard"}
+{"id": "st-006", "state": "Urgent: production is fine but our CFO wants a VAT invoice reissued for Q2 before Friday close.", "tier": "hard"}
+{"id": "st-007", "state": "This might be feedback more than a ticket — the new UI is confusing and I almost cancelled. No ask.", "tier": "ambiguous"}
+{"id": "st-008", "state": "Following up on nothing in particular. Just checking you're still there.", "tier": "ambiguous"}

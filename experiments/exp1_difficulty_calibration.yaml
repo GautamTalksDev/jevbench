@@ -1,0 +1,124 @@
+name: exp1_difficulty_calibration
+status: ready
+model: jev-1.13.0
+task: chaosnli
+serving_path: native
+pricing_snapshot_date: "2026-09-19"
+geography_note: >
+  Fill in before scored paper runs (city / region / cloud). TypeSafe published
+  latency numbers come from US West Coast laptops.
+concurrency: 2
+repeats: 3
+description: >
+  Difficulty-stratified calibration on ChaosNLI SNLI+MNLI (3,113 items).
+  αNLI is excluded: it is a 2-way abductive task, not 3-way NLI.
+  Easy and hard are the lowest and highest quartiles of annotator-label
+  entropy, then subsampled to n=750 per stratum. Primary endpoint is
+  top-label ΔECE under SOFT scoring (annotator share on the model's argmax).
+  Hard scoring (argmax vs majority) is reported beside it because it puts
+  label noise in the hard stratum only and inflates ΔECE toward H1.
+  Sentence text is fetched locally and is not in the repo.
+
+questions:
+  relation:
+    kind: choice
+    instructions: >
+      Decide whether the hypothesis is entailed by the premise, contradicted
+      by the premise, or neither (neutral). Use only the premise and the
+      hypothesis in the state. Do not use any outside knowledge of the
+      dataset this pair came from.
+    criteria:
+      entailment: The hypothesis must be true if the premise is true.
+      neutral: The hypothesis might be true, but the premise does not require it.
+      contradiction: The hypothesis cannot be true if the premise is true.
+
+clients:
+  - name: jev
+    type: jev
+    model: jev-1.13.0
+    serving_path: native
+  - name: adapter_baseline
+    type: adapter
+    provider: openai
+    model: gpt-4o-mini
+    llm_answer_mode: probabilities
+  # trivial is local/free — useful for harness checks; not a paper baseline
+  - name: trivial
+    type: trivial
+
+hypotheses:
+  - id: H1
+    statement: >
+      Top-label ΔECE = ECE(high-entropy) − ECE(low-entropy) differs from
+      zero (hard less calibrated), under soft scoring, with equal n=750
+      per stratum. Soft correctness is the share of the 100 annotators
+      who chose the model's argmax. Bin accuracy is the mean of that share.
+    falsified_when: >
+      The stratified two-sample bootstrap 95% CI on soft ΔECE (percentile
+      and BCa, n_boot=10000) includes zero — inconclusive, not equivalence —
+      or the study ran underpowered relative to the asymmetric-noise power
+      result in results/power_asymmetric.json.
+  - id: H1a
+    statement: >
+      DESCRIPTIVE: ECE is approximately flat across difficulty after
+      accounting for bin occupancy.
+    falsified_when: >
+      Descriptive only. Never treat the four-point slope as the powered claim.
+  - id: H1b
+    statement: >
+      DESCRIPTIVE: ECE rises as accuracy falls (calibration tracks accuracy).
+    falsified_when: >
+      Descriptive only. Interval crossing zero is inconclusive.
+
+metrics:
+  - "PRIMARY: soft top-label ΔECE (high-entropy vs low-entropy), equal n=750, BCa + percentile, n_boot=10000"
+  - "REPORTED: hard top-label ΔECE (argmax vs majority). Hard scoring puts label noise in the hard stratum only, which inflates ΔECE in the direction of the hypothesis."
+  - "ECE (uniform + quantile) with per-bin occupancy — M in {5,10,15,20} robustness"
+  - "Per-tier reliability diagrams with occupancy"
+  - "DESCRIPTIVE ONLY: ECE-vs-accuracy slope where four tiers exist"
+  - "Same primary analysis on adapter baseline (Jev vs temp-0 LLM at equal items)"
+  - "Contamination: original vs frozen paraphrase accuracy, every arm"
+  - "Accuracy / Brier / MCE per stratum"
+  - "Latency p50/p95/p99 (never mean)"
+
+decision_rules:
+  - "Report soft ΔECE (both BCa and percentile CIs, equal_n flag, occupancy) as primary."
+  - "Always report hard ΔECE beside it, with the label-noise caveat."
+  - "Never report ECE without bin occupancy."
+  - "Calibration metrics use probabilities only — never confidence."
+  - "Interval crossing zero ⇒ inconclusive, not equivalence."
+  - "If the M∈{5,10,15,20} sweep flips the primary conclusion, the conclusion IS the binning — report the sweep."
+  - "Do not score underpowered relative to results/power_asymmetric.json."
+  - "The hand-labelling kappa gate does not apply: agreement is the 100-annotator distribution."
+  - "A large drop from original wording to the frozen paraphrase, on every arm, is a memorisation signal, not a calibration finding."
+
+sample_size:
+  min_items: 1500
+  n_per_stratum: 750
+  per_tier: null
+  repeats: 3
+  notes: >
+    Entropy quartiles on the 3,113 SNLI+MNLI items, then
+    subsample_to_equal_n to 750 per stratum (seed 20260923). Thresholds
+    are in datasets/chaosnli/thresholds.json and were fixed before any
+    Jev call. αNLI is excluded. The old hand-labelling ceiling of 500
+    does not apply: the 100 annotations already exist.
+
+stopping_rule: >
+  Stop after the pre-registered powered sample is scored with the stated
+  repeats. Do not add items because interim ΔECE looks flat or rising.
+  Do not move the entropy thresholds after seeing model output.
+
+rate_limit:
+  headroom: 0.80
+
+strata:
+  hard: [hard]
+  easy: [easy]
+
+label_agreement:
+  fraction: 0.0
+  kappa_floor: null
+  note: >
+    Replaced by the ChaosNLI 100-annotator distribution. Entropy is the
+    agreement measure. No second pass and no kappa gate.

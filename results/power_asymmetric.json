@@ -1,0 +1,65 @@
+{
+  "cells": {
+    "alternative_hard": {
+      "ci_method": "percentile",
+      "mean_point_delta_ece": 0.10442333333333327,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 400,
+      "rate_exclude_zero": 0.99,
+      "scoring": "hard",
+      "setting": "alternative"
+    },
+    "alternative_soft": {
+      "ci_method": "percentile",
+      "mean_point_delta_ece": 0.10526301461342243,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 400,
+      "rate_exclude_zero": 1.0,
+      "scoring": "soft",
+      "setting": "alternative"
+    },
+    "null_hard": {
+      "ci_method": "percentile",
+      "mean_point_delta_ece": 0.016649999999999963,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 400,
+      "rate_exclude_zero": 0.095,
+      "scoring": "hard",
+      "setting": "null"
+    },
+    "null_soft": {
+      "ci_method": "percentile",
+      "mean_point_delta_ece": 0.015179830328288268,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 400,
+      "rate_exclude_zero": 0.27,
+      "scoring": "soft",
+      "setting": "null"
+    }
+  },
+  "entropy_easy": [
+    0.0,
+    0.7357948629753385
+  ],
+  "entropy_hard": [
+    1.1625318905614013,
+    1.584962500721156
+  ],
+  "n_boot": 2000,
+  "n_per_stratum": 750,
+  "n_trials": 400,
+  "noise_rate": "scale * clip(entropy / log2(3), 0, 1)",
+  "noise_scale": 0.5,
+  "note": "Hard scoring puts label noise in the hard stratum only, which inflates \u0394ECE in the direction of the hypothesis. Compare null_mean_delta_ece_hard with null_mean_delta_ece_soft: the hard rule's null mean sits higher when the artifact is present. Soft scoring is primary.",
+  "null_mean_delta_ece_hard": 0.016649999999999963,
+  "null_mean_delta_ece_soft": 0.015179830328288268,
+  "power_hard": 0.99,
+  "power_soft": 1.0,
+  "schema": "jevbench.asymmetric_power.v1",
+  "seed": 20260923,
+  "target_delta_ece": 0.09
+}

@@ -1,0 +1,2909 @@
+{
+  "baseline": {
+    "client": "adapter",
+    "descriptive_calibration_by_tier": {
+      "accuracies": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "by_tier": {
+        "ambiguous": {
+          "accuracy": 1.0,
+          "brier": 0.21660000000000001,
+          "ece_quantile": {
+            "bin_accuracy": [
+              1.0,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bin_counts": [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "bin_edges": [
+              0.0,
+              0.620000000001,
+              0.620000000002,
+              0.6200000000029999,
+              0.6200000000039999,
+              0.6200000000049999,
+              0.6200000000059999,
+              0.6200000000069998,
+              0.6200000000079998,
+              0.6200000000089998,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              0.62,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bins": [
+              {
+                "abs_gap": 0.38,
+                "accuracy": 1.0,
+                "count": 11,
+                "fraction": 1.0,
+                "hi": 0.620000000001,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": 0.62
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.620000000002,
+                "index": 1,
+                "lo": 0.620000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6200000000029999,
+                "index": 2,
+                "lo": 0.620000000002,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6200000000039999,
+                "index": 3,
+                "lo": 0.6200000000029999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6200000000049999,
+                "index": 4,
+                "lo": 0.6200000000039999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6200000000059999,
+                "index": 5,
+                "lo": 0.6200000000049999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6200000000069998,
+                "index": 6,
+                "lo": 0.6200000000059999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6200000000079998,
+                "index": 7,
+                "lo": 0.6200000000069998,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6200000000089998,
+                "index": 8,
+                "lo": 0.6200000000079998,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.6200000000089998,
+                "mean_confidence": NaN
+              }
+            ],
+            "ece": 0.38,
+            "mce": 0.38,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "quantile"
+          },
+          "ece_uniform": {
+            "bin_accuracy": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              1.0,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bin_counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              11,
+              0,
+              0,
+              0
+            ],
+            "bin_edges": [
+              0.0,
+              0.1,
+              0.2,
+              0.30000000000000004,
+              0.4,
+              0.5,
+              0.6000000000000001,
+              0.7000000000000001,
+              0.8,
+              0.9,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.62,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bins": [
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.1,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.2,
+                "index": 1,
+                "lo": 0.1,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.30000000000000004,
+                "index": 2,
+                "lo": 0.2,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.4,
+                "index": 3,
+                "lo": 0.30000000000000004,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.5,
+                "index": 4,
+                "lo": 0.4,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6000000000000001,
+                "index": 5,
+                "lo": 0.5,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.38,
+                "accuracy": 1.0,
+                "count": 11,
+                "fraction": 1.0,
+                "hi": 0.7000000000000001,
+                "index": 6,
+                "lo": 0.6000000000000001,
+                "mean_confidence": 0.62
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.8,
+                "index": 7,
+                "lo": 0.7000000000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9,
+                "index": 8,
+                "lo": 0.8,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9,
+                "mean_confidence": NaN
+              }
+            ],
+            "ece": 0.38,
+            "mce": 0.38,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "uniform"
+          },
+          "n": 11
+        },
+        "easy": {
+          "accuracy": 1.0,
+          "brier": 0.014999999999999993,
+          "ece_quantile": {
+            "bin_accuracy": [
+              1.0,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bin_counts": [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "bin_edges": [
+              0.0,
+              0.900000000001,
+              0.900000000002,
+              0.900000000003,
+              0.9000000000039999,
+              0.9000000000049999,
+              0.9000000000059999,
+              0.9000000000069999,
+              0.9000000000079998,
+              0.9000000000089998,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              0.9,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bins": [
+              {
+                "abs_gap": 0.09999999999999998,
+                "accuracy": 1.0,
+                "count": 11,
+                "fraction": 1.0,
+                "hi": 0.900000000001,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": 0.9
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.900000000002,
+                "index": 1,
+                "lo": 0.900000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.900000000003,
+                "index": 2,
+                "lo": 0.900000000002,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9000000000039999,
+                "index": 3,
+                "lo": 0.900000000003,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9000000000049999,
+                "index": 4,
+                "lo": 0.9000000000039999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9000000000059999,
+                "index": 5,
+                "lo": 0.9000000000049999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9000000000069999,
+                "index": 6,
+                "lo": 0.9000000000059999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9000000000079998,
+                "index": 7,
+                "lo": 0.9000000000069999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9000000000089998,
+                "index": 8,
+                "lo": 0.9000000000079998,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9000000000089998,
+                "mean_confidence": NaN
+              }
+            ],
+            "ece": 0.09999999999999998,
+            "mce": 0.09999999999999998,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "quantile"
+          },
+          "ece_uniform": {
+            "bin_accuracy": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              1.0
+            ],
+            "bin_counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              11
+            ],
+            "bin_edges": [
+              0.0,
+              0.1,
+              0.2,
+              0.30000000000000004,
+              0.4,
+              0.5,
+              0.6000000000000001,
+              0.7000000000000001,
+              0.8,
+              0.9,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.9
+            ],
+            "bins": [
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.1,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.2,
+                "index": 1,
+                "lo": 0.1,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.30000000000000004,
+                "index": 2,
+                "lo": 0.2,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.4,
+                "index": 3,
+                "lo": 0.30000000000000004,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.5,
+                "index": 4,
+                "lo": 0.4,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6000000000000001,
+                "index": 5,
+                "lo": 0.5,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7000000000000001,
+                "index": 6,
+                "lo": 0.6000000000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.8,
+                "index": 7,
+                "lo": 0.7000000000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9,
+                "index": 8,
+                "lo": 0.8,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.09999999999999998,
+                "accuracy": 1.0,
+                "count": 11,
+                "fraction": 1.0,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9,
+                "mean_confidence": 0.9
+              }
+            ],
+            "ece": 0.09999999999999998,
+            "mce": 0.09999999999999998,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "uniform"
+          },
+          "n": 11
+        },
+        "hard": {
+          "accuracy": 1.0,
+          "brier": 0.09375,
+          "ece_quantile": {
+            "bin_accuracy": [
+              1.0,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bin_counts": [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "bin_edges": [
+              0.0,
+              0.750000000001,
+              0.750000000002,
+              0.7500000000029999,
+              0.7500000000039999,
+              0.7500000000049999,
+              0.7500000000059999,
+              0.7500000000069998,
+              0.7500000000079998,
+              0.7500000000089998,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              0.75,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bins": [
+              {
+                "abs_gap": 0.25,
+                "accuracy": 1.0,
+                "count": 11,
+                "fraction": 1.0,
+                "hi": 0.750000000001,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": 0.75
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.750000000002,
+                "index": 1,
+                "lo": 0.750000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000029999,
+                "index": 2,
+                "lo": 0.750000000002,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000039999,
+                "index": 3,
+                "lo": 0.7500000000029999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000049999,
+                "index": 4,
+                "lo": 0.7500000000039999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000059999,
+                "index": 5,
+                "lo": 0.7500000000049999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000069998,
+                "index": 6,
+                "lo": 0.7500000000059999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000079998,
+                "index": 7,
+                "lo": 0.7500000000069998,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000089998,
+                "index": 8,
+                "lo": 0.7500000000079998,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.7500000000089998,
+                "mean_confidence": NaN
+              }
+            ],
+            "ece": 0.25,
+            "mce": 0.25,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "quantile"
+          },
+          "ece_uniform": {
+            "bin_accuracy": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              1.0,
+              NaN,
+              NaN
+            ],
+            "bin_counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              11,
+              0,
+              0
+            ],
+            "bin_edges": [
+              0.0,
+              0.1,
+              0.2,
+              0.30000000000000004,
+              0.4,
+              0.5,
+              0.6000000000000001,
+              0.7000000000000001,
+              0.8,
+              0.9,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.75,
+              NaN,
+              NaN
+            ],
+            "bins": [
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.1,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.2,
+                "index": 1,
+                "lo": 0.1,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.30000000000000004,
+                "index": 2,
+                "lo": 0.2,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.4,
+                "index": 3,
+                "lo": 0.30000000000000004,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.5,
+                "index": 4,
+                "lo": 0.4,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6000000000000001,
+                "index": 5,
+                "lo": 0.5,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7000000000000001,
+                "index": 6,
+                "lo": 0.6000000000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.25,
+                "accuracy": 1.0,
+                "count": 11,
+                "fraction": 1.0,
+                "hi": 0.8,
+                "index": 7,
+                "lo": 0.7000000000000001,
+                "mean_confidence": 0.75
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9,
+                "index": 8,
+                "lo": 0.8,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9,
+                "mean_confidence": NaN
+              }
+            ],
+            "ece": 0.25,
+            "mce": 0.25,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "uniform"
+          },
+          "n": 11
+        },
+        "trivial": {
+          "accuracy": 1.0,
+          "brier": 0.09375,
+          "ece_quantile": {
+            "bin_accuracy": [
+              1.0,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bin_counts": [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "bin_edges": [
+              0.0,
+              0.750000000001,
+              0.750000000002,
+              0.7500000000029999,
+              0.7500000000039999,
+              0.7500000000049999,
+              0.7500000000059999,
+              0.7500000000069998,
+              0.7500000000079998,
+              0.7500000000089998,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              0.75,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN
+            ],
+            "bins": [
+              {
+                "abs_gap": 0.25,
+                "accuracy": 1.0,
+                "count": 11,
+                "fraction": 1.0,
+                "hi": 0.750000000001,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": 0.75
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.750000000002,
+                "index": 1,
+                "lo": 0.750000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000029999,
+                "index": 2,
+                "lo": 0.750000000002,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000039999,
+                "index": 3,
+                "lo": 0.7500000000029999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000049999,
+                "index": 4,
+                "lo": 0.7500000000039999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000059999,
+                "index": 5,
+                "lo": 0.7500000000049999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000069998,
+                "index": 6,
+                "lo": 0.7500000000059999,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000079998,
+                "index": 7,
+                "lo": 0.7500000000069998,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7500000000089998,
+                "index": 8,
+                "lo": 0.7500000000079998,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.7500000000089998,
+                "mean_confidence": NaN
+              }
+            ],
+            "ece": 0.25,
+            "mce": 0.25,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "quantile"
+          },
+          "ece_uniform": {
+            "bin_accuracy": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              1.0,
+              NaN,
+              NaN
+            ],
+            "bin_counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              11,
+              0,
+              0
+            ],
+            "bin_edges": [
+              0.0,
+              0.1,
+              0.2,
+              0.30000000000000004,
+              0.4,
+              0.5,
+              0.6000000000000001,
+              0.7000000000000001,
+              0.8,
+              0.9,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.75,
+              NaN,
+              NaN
+            ],
+            "bins": [
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.1,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.2,
+                "index": 1,
+                "lo": 0.1,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.30000000000000004,
+                "index": 2,
+                "lo": 0.2,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.4,
+                "index": 3,
+                "lo": 0.30000000000000004,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.5,
+                "index": 4,
+                "lo": 0.4,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6000000000000001,
+                "index": 5,
+                "lo": 0.5,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7000000000000001,
+                "index": 6,
+                "lo": 0.6000000000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.25,
+                "accuracy": 1.0,
+                "count": 11,
+                "fraction": 1.0,
+                "hi": 0.8,
+                "index": 7,
+                "lo": 0.7000000000000001,
+                "mean_confidence": 0.75
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9,
+                "index": 8,
+                "lo": 0.8,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9,
+                "mean_confidence": NaN
+              }
+            ],
+            "ece": 0.25,
+            "mce": 0.25,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "uniform"
+          },
+          "n": 11
+        }
+      },
+      "ece_quantile": [
+        0.25,
+        0.09999999999999998,
+        0.25,
+        0.38
+      ],
+      "ece_uniform": [
+        0.25,
+        0.09999999999999998,
+        0.25,
+        0.38
+      ],
+      "note": "DESCRIPTIVE ONLY \u2014 two residual df; not the powered endpoint.",
+      "slope_quantile": NaN,
+      "slope_uniform": NaN,
+      "tier_names": [
+        "trivial",
+        "easy",
+        "hard",
+        "ambiguous"
+      ]
+    },
+    "equal_n": {
+      "applied": false,
+      "discarded_item_ids": [],
+      "target_n": 22
+    },
+    "n_easy": 22,
+    "n_hard": 22,
+    "n_items": 44,
+    "primary_delta_ece": {
+      "bca_acceleration": 6.07518980646503e-19,
+      "bca_z0": -0.03033485385333439,
+      "ci_bca": [
+        0.09590909090909094,
+        0.17909090909090922
+      ],
+      "ci_method_primary": "bca",
+      "ci_percentile": [
+        0.09772727272727275,
+        0.18
+      ],
+      "crosses_zero_bca": false,
+      "crosses_zero_percentile": false,
+      "equal_n": true,
+      "n_bins": 10,
+      "n_boot": 10000,
+      "point": 0.14,
+      "strategy": "uniform"
+    },
+    "robustness_m_sweep": {
+      "cells": [
+        {
+          "ci_high": 0.1818181818181817,
+          "ci_low": 0.09770454545454547,
+          "excludes_zero": true,
+          "n_bins": 5,
+          "point": 0.13999999999999996,
+          "sign": "positive",
+          "strategy": "uniform"
+        },
+        {
+          "ci_high": 0.1818181818181817,
+          "ci_low": 0.09770454545454547,
+          "excludes_zero": true,
+          "n_bins": 5,
+          "point": 0.14,
+          "sign": "positive",
+          "strategy": "quantile"
+        },
+        {
+          "ci_high": 0.1822727272727273,
+          "ci_low": 0.09681818181818178,
+          "excludes_zero": true,
+          "n_bins": 10,
+          "point": 0.14,
+          "sign": "positive",
+          "strategy": "uniform"
+        },
+        {
+          "ci_high": 0.1822727272727273,
+          "ci_low": 0.09681818181818178,
+          "excludes_zero": true,
+          "n_bins": 10,
+          "point": 0.14,
+          "sign": "positive",
+          "strategy": "quantile"
+        },
+        {
+          "ci_high": 0.18409090909090922,
+          "ci_low": 0.09997727272727273,
+          "excludes_zero": true,
+          "n_bins": 15,
+          "point": 0.14,
+          "sign": "positive",
+          "strategy": "uniform"
+        },
+        {
+          "ci_high": 0.18409090909090922,
+          "ci_low": 0.09997727272727273,
+          "excludes_zero": true,
+          "n_bins": 15,
+          "point": 0.14,
+          "sign": "positive",
+          "strategy": "quantile"
+        },
+        {
+          "ci_high": 0.17909090909090922,
+          "ci_low": 0.09681818181818178,
+          "excludes_zero": true,
+          "n_bins": 20,
+          "point": 0.14,
+          "sign": "positive",
+          "strategy": "uniform"
+        },
+        {
+          "ci_high": 0.17909090909090922,
+          "ci_low": 0.09681818181818178,
+          "excludes_zero": true,
+          "n_bins": 20,
+          "point": 0.14,
+          "sign": "positive",
+          "strategy": "quantile"
+        }
+      ],
+      "conclusion_flips_with_M": false,
+      "note": "Primary sign stable across M\u2208{5,10,15,20} and both strategies."
+    }
+  },
+  "gates": {
+    "agreement": {
+      "disagree_ids": [],
+      "disagreement_rate": NaN,
+      "expected_agreement": NaN,
+      "kappa": NaN,
+      "kappa_floor": 0.6,
+      "labeler_primary": null,
+      "labeler_secondary": null,
+      "n_agree": 0,
+      "n_paired": 0,
+      "observed_agreement": NaN,
+      "paired_ids": [],
+      "passes_floor": false
+    },
+    "block_reason": null,
+    "power": {
+      "chosen_n_per_stratum": 750,
+      "underpowered": true
+    },
+    "scored": false
+  },
+  "jev": {
+    "client": "jev",
+    "descriptive_calibration_by_tier": {
+      "accuracies": [
+        0.9090909090909091,
+        0.7272727272727273,
+        0.6363636363636364,
+        0.7272727272727273
+      ],
+      "by_tier": {
+        "ambiguous": {
+          "accuracy": 0.7272727272727273,
+          "brier": 0.5999069481818182,
+          "ece_quantile": {
+            "bin_accuracy": [
+              1.0,
+              1.0,
+              1.0,
+              NaN,
+              1.0,
+              1.0,
+              0.0,
+              1.0,
+              0.0,
+              0.5
+            ],
+            "bin_counts": [
+              1,
+              1,
+              2,
+              0,
+              1,
+              1,
+              1,
+              1,
+              1,
+              2
+            ],
+            "bin_edges": [
+              0.0,
+              0.4306,
+              0.4851,
+              0.49740000000000006,
+              0.5786,
+              0.599,
+              0.6022,
+              0.6026,
+              0.613,
+              0.6378,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              0.3824,
+              0.4306,
+              0.49124999999999996,
+              NaN,
+              0.5786,
+              0.599,
+              0.6022,
+              0.6026,
+              0.613,
+              0.7689
+            ],
+            "bins": [
+              {
+                "abs_gap": 0.6175999999999999,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.4306,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": 0.3824
+              },
+              {
+                "abs_gap": 0.5694,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.4851,
+                "index": 1,
+                "lo": 0.4306,
+                "mean_confidence": 0.4306
+              },
+              {
+                "abs_gap": 0.50875,
+                "accuracy": 1.0,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 0.49740000000000006,
+                "index": 2,
+                "lo": 0.4851,
+                "mean_confidence": 0.49124999999999996
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.5786,
+                "index": 3,
+                "lo": 0.49740000000000006,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.4214,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.599,
+                "index": 4,
+                "lo": 0.5786,
+                "mean_confidence": 0.5786
+              },
+              {
+                "abs_gap": 0.401,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.6022,
+                "index": 5,
+                "lo": 0.599,
+                "mean_confidence": 0.599
+              },
+              {
+                "abs_gap": 0.6022,
+                "accuracy": 0.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.6026,
+                "index": 6,
+                "lo": 0.6022,
+                "mean_confidence": 0.6022
+              },
+              {
+                "abs_gap": 0.3974,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.613,
+                "index": 7,
+                "lo": 0.6026,
+                "mean_confidence": 0.6026
+              },
+              {
+                "abs_gap": 0.613,
+                "accuracy": 0.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.6378,
+                "index": 8,
+                "lo": 0.613,
+                "mean_confidence": 0.613
+              },
+              {
+                "abs_gap": 0.26890000000000003,
+                "accuracy": 0.5,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.6378,
+                "mean_confidence": 0.7689
+              }
+            ],
+            "ece": 0.4706636363636364,
+            "mce": 0.6175999999999999,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "quantile"
+          },
+          "ece_uniform": {
+            "bin_accuracy": [
+              NaN,
+              NaN,
+              NaN,
+              1.0,
+              1.0,
+              1.0,
+              0.5,
+              NaN,
+              NaN,
+              0.0
+            ],
+            "bin_counts": [
+              0,
+              0,
+              0,
+              1,
+              3,
+              2,
+              4,
+              0,
+              0,
+              1
+            ],
+            "bin_edges": [
+              0.0,
+              0.1,
+              0.2,
+              0.30000000000000004,
+              0.4,
+              0.5,
+              0.6000000000000001,
+              0.7000000000000001,
+              0.8,
+              0.9,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              NaN,
+              NaN,
+              NaN,
+              0.3824,
+              0.47103333333333336,
+              0.5888,
+              0.6139,
+              NaN,
+              NaN,
+              0.9
+            ],
+            "bins": [
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.1,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.2,
+                "index": 1,
+                "lo": 0.1,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.30000000000000004,
+                "index": 2,
+                "lo": 0.2,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.6175999999999999,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.4,
+                "index": 3,
+                "lo": 0.30000000000000004,
+                "mean_confidence": 0.3824
+              },
+              {
+                "abs_gap": 0.5289666666666666,
+                "accuracy": 1.0,
+                "count": 3,
+                "fraction": 0.2727272727272727,
+                "hi": 0.5,
+                "index": 4,
+                "lo": 0.4,
+                "mean_confidence": 0.47103333333333336
+              },
+              {
+                "abs_gap": 0.4112,
+                "accuracy": 1.0,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 0.6000000000000001,
+                "index": 5,
+                "lo": 0.5,
+                "mean_confidence": 0.5888
+              },
+              {
+                "abs_gap": 0.1139,
+                "accuracy": 0.5,
+                "count": 4,
+                "fraction": 0.36363636363636365,
+                "hi": 0.7000000000000001,
+                "index": 6,
+                "lo": 0.6000000000000001,
+                "mean_confidence": 0.6139
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.8,
+                "index": 7,
+                "lo": 0.7000000000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9,
+                "index": 8,
+                "lo": 0.8,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.9,
+                "accuracy": 0.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9,
+                "mean_confidence": 0.9
+              }
+            ],
+            "ece": 0.3984090909090908,
+            "mce": 0.9,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "uniform"
+          },
+          "n": 11
+        },
+        "easy": {
+          "accuracy": 0.7272727272727273,
+          "brier": 0.5426278745454545,
+          "ece_quantile": {
+            "bin_accuracy": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              0.0,
+              NaN,
+              0.5
+            ],
+            "bin_counts": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              2,
+              0,
+              2
+            ],
+            "bin_edges": [
+              0.0,
+              0.6584,
+              0.6658,
+              0.7614,
+              0.7618,
+              0.8412,
+              0.8442,
+              0.9,
+              0.900000000001,
+              0.9068,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              0.622,
+              0.6584,
+              0.6658,
+              0.7614,
+              0.7618,
+              0.8412,
+              0.8442,
+              0.9,
+              NaN,
+              0.9281
+            ],
+            "bins": [
+              {
+                "abs_gap": 0.378,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.6584,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": 0.622
+              },
+              {
+                "abs_gap": 0.3416,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.6658,
+                "index": 1,
+                "lo": 0.6584,
+                "mean_confidence": 0.6584
+              },
+              {
+                "abs_gap": 0.33420000000000005,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.7614,
+                "index": 2,
+                "lo": 0.6658,
+                "mean_confidence": 0.6658
+              },
+              {
+                "abs_gap": 0.23860000000000003,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.7618,
+                "index": 3,
+                "lo": 0.7614,
+                "mean_confidence": 0.7614
+              },
+              {
+                "abs_gap": 0.23819999999999997,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.8412,
+                "index": 4,
+                "lo": 0.7618,
+                "mean_confidence": 0.7618
+              },
+              {
+                "abs_gap": 0.15880000000000005,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.8442,
+                "index": 5,
+                "lo": 0.8412,
+                "mean_confidence": 0.8412
+              },
+              {
+                "abs_gap": 0.15580000000000005,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.9,
+                "index": 6,
+                "lo": 0.8442,
+                "mean_confidence": 0.8442
+              },
+              {
+                "abs_gap": 0.9,
+                "accuracy": 0.0,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 0.900000000001,
+                "index": 7,
+                "lo": 0.9,
+                "mean_confidence": 0.9
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.9068,
+                "index": 8,
+                "lo": 0.900000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.42810000000000004,
+                "accuracy": 0.5,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9068,
+                "mean_confidence": 0.9281
+              }
+            ],
+            "ece": 0.40921818181818187,
+            "mce": 0.9,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "quantile"
+          },
+          "ece_uniform": {
+            "bin_accuracy": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              1.0,
+              1.0,
+              1.0,
+              0.25
+            ],
+            "bin_counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              3,
+              2,
+              2,
+              4
+            ],
+            "bin_edges": [
+              0.0,
+              0.1,
+              0.2,
+              0.30000000000000004,
+              0.4,
+              0.5,
+              0.6000000000000001,
+              0.7000000000000001,
+              0.8,
+              0.9,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.6487333333333333,
+              0.7616,
+              0.8427,
+              0.91405
+            ],
+            "bins": [
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.1,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.2,
+                "index": 1,
+                "lo": 0.1,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.30000000000000004,
+                "index": 2,
+                "lo": 0.2,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.4,
+                "index": 3,
+                "lo": 0.30000000000000004,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.5,
+                "index": 4,
+                "lo": 0.4,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6000000000000001,
+                "index": 5,
+                "lo": 0.5,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.3512666666666667,
+                "accuracy": 1.0,
+                "count": 3,
+                "fraction": 0.2727272727272727,
+                "hi": 0.7000000000000001,
+                "index": 6,
+                "lo": 0.6000000000000001,
+                "mean_confidence": 0.6487333333333333
+              },
+              {
+                "abs_gap": 0.23839999999999995,
+                "accuracy": 1.0,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 0.8,
+                "index": 7,
+                "lo": 0.7000000000000001,
+                "mean_confidence": 0.7616
+              },
+              {
+                "abs_gap": 0.1573,
+                "accuracy": 1.0,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 0.9,
+                "index": 8,
+                "lo": 0.8,
+                "mean_confidence": 0.8427
+              },
+              {
+                "abs_gap": 0.66405,
+                "accuracy": 0.25,
+                "count": 4,
+                "fraction": 0.36363636363636365,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9,
+                "mean_confidence": 0.91405
+              }
+            ],
+            "ece": 0.4092181818181818,
+            "mce": 0.66405,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "uniform"
+          },
+          "n": 11
+        },
+        "hard": {
+          "accuracy": 0.6363636363636364,
+          "brier": 0.5068990872727273,
+          "ece_quantile": {
+            "bin_accuracy": [
+              1.0,
+              0.0,
+              0.0,
+              1.0,
+              1.0,
+              0.0,
+              1.0,
+              1.0,
+              1.0,
+              0.5
+            ],
+            "bin_counts": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              2
+            ],
+            "bin_edges": [
+              0.0,
+              0.5236,
+              0.541,
+              0.612,
+              0.6512,
+              0.685,
+              0.686,
+              0.7174,
+              0.7496,
+              0.7526,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              0.521,
+              0.5236,
+              0.541,
+              0.612,
+              0.6512,
+              0.685,
+              0.686,
+              0.7174,
+              0.7496,
+              0.778
+            ],
+            "bins": [
+              {
+                "abs_gap": 0.479,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.5236,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": 0.521
+              },
+              {
+                "abs_gap": 0.5236,
+                "accuracy": 0.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.541,
+                "index": 1,
+                "lo": 0.5236,
+                "mean_confidence": 0.5236
+              },
+              {
+                "abs_gap": 0.541,
+                "accuracy": 0.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.612,
+                "index": 2,
+                "lo": 0.541,
+                "mean_confidence": 0.541
+              },
+              {
+                "abs_gap": 0.388,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.6512,
+                "index": 3,
+                "lo": 0.612,
+                "mean_confidence": 0.612
+              },
+              {
+                "abs_gap": 0.3488,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.685,
+                "index": 4,
+                "lo": 0.6512,
+                "mean_confidence": 0.6512
+              },
+              {
+                "abs_gap": 0.685,
+                "accuracy": 0.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.686,
+                "index": 5,
+                "lo": 0.685,
+                "mean_confidence": 0.685
+              },
+              {
+                "abs_gap": 0.31399999999999995,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.7174,
+                "index": 6,
+                "lo": 0.686,
+                "mean_confidence": 0.686
+              },
+              {
+                "abs_gap": 0.28259999999999996,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.7496,
+                "index": 7,
+                "lo": 0.7174,
+                "mean_confidence": 0.7174
+              },
+              {
+                "abs_gap": 0.25039999999999996,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.7526,
+                "index": 8,
+                "lo": 0.7496,
+                "mean_confidence": 0.7496
+              },
+              {
+                "abs_gap": 0.278,
+                "accuracy": 0.5,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.7526,
+                "mean_confidence": 0.778
+              }
+            ],
+            "ece": 0.3971272727272728,
+            "mce": 0.685,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "quantile"
+          },
+          "ece_uniform": {
+            "bin_accuracy": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.3333333333333333,
+              0.75,
+              0.6666666666666666,
+              1.0,
+              NaN
+            ],
+            "bin_counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              3,
+              4,
+              3,
+              1,
+              0
+            ],
+            "bin_edges": [
+              0.0,
+              0.1,
+              0.2,
+              0.30000000000000004,
+              0.4,
+              0.5,
+              0.6000000000000001,
+              0.7000000000000001,
+              0.8,
+              0.9,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.5285333333333333,
+              0.6585500000000001,
+              0.7398666666666668,
+              0.8034,
+              NaN
+            ],
+            "bins": [
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.1,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.2,
+                "index": 1,
+                "lo": 0.1,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.30000000000000004,
+                "index": 2,
+                "lo": 0.2,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.4,
+                "index": 3,
+                "lo": 0.30000000000000004,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.5,
+                "index": 4,
+                "lo": 0.4,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.19519999999999998,
+                "accuracy": 0.3333333333333333,
+                "count": 3,
+                "fraction": 0.2727272727272727,
+                "hi": 0.6000000000000001,
+                "index": 5,
+                "lo": 0.5,
+                "mean_confidence": 0.5285333333333333
+              },
+              {
+                "abs_gap": 0.09144999999999992,
+                "accuracy": 0.75,
+                "count": 4,
+                "fraction": 0.36363636363636365,
+                "hi": 0.7000000000000001,
+                "index": 6,
+                "lo": 0.6000000000000001,
+                "mean_confidence": 0.6585500000000001
+              },
+              {
+                "abs_gap": 0.07320000000000015,
+                "accuracy": 0.6666666666666666,
+                "count": 3,
+                "fraction": 0.2727272727272727,
+                "hi": 0.8,
+                "index": 7,
+                "lo": 0.7000000000000001,
+                "mean_confidence": 0.7398666666666668
+              },
+              {
+                "abs_gap": 0.1966,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.9,
+                "index": 8,
+                "lo": 0.8,
+                "mean_confidence": 0.8034
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9,
+                "mean_confidence": NaN
+              }
+            ],
+            "ece": 0.12432727272727274,
+            "mce": 0.1966,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "uniform"
+          },
+          "n": 11
+        },
+        "trivial": {
+          "accuracy": 0.9090909090909091,
+          "brier": 0.18695630363636362,
+          "ece_quantile": {
+            "bin_accuracy": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              0.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "bin_counts": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              2
+            ],
+            "bin_edges": [
+              0.0,
+              0.7652,
+              0.8006,
+              0.8386,
+              0.8614,
+              0.8688,
+              0.9,
+              0.932,
+              0.957,
+              0.9816,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              0.7482,
+              0.7652,
+              0.8006,
+              0.8386,
+              0.8614,
+              0.8688,
+              0.9,
+              0.932,
+              0.957,
+              0.9858
+            ],
+            "bins": [
+              {
+                "abs_gap": 0.2518,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.7652,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": 0.7482
+              },
+              {
+                "abs_gap": 0.2348,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.8006,
+                "index": 1,
+                "lo": 0.7652,
+                "mean_confidence": 0.7652
+              },
+              {
+                "abs_gap": 0.19940000000000002,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.8386,
+                "index": 2,
+                "lo": 0.8006,
+                "mean_confidence": 0.8006
+              },
+              {
+                "abs_gap": 0.1614,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.8614,
+                "index": 3,
+                "lo": 0.8386,
+                "mean_confidence": 0.8386
+              },
+              {
+                "abs_gap": 0.13859999999999995,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.8688,
+                "index": 4,
+                "lo": 0.8614,
+                "mean_confidence": 0.8614
+              },
+              {
+                "abs_gap": 0.13119999999999998,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.9,
+                "index": 5,
+                "lo": 0.8688,
+                "mean_confidence": 0.8688
+              },
+              {
+                "abs_gap": 0.9,
+                "accuracy": 0.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.932,
+                "index": 6,
+                "lo": 0.9,
+                "mean_confidence": 0.9
+              },
+              {
+                "abs_gap": 0.06799999999999995,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.957,
+                "index": 7,
+                "lo": 0.932,
+                "mean_confidence": 0.932
+              },
+              {
+                "abs_gap": 0.04300000000000004,
+                "accuracy": 1.0,
+                "count": 1,
+                "fraction": 0.09090909090909091,
+                "hi": 0.9816,
+                "index": 8,
+                "lo": 0.957,
+                "mean_confidence": 0.957
+              },
+              {
+                "abs_gap": 0.01419999999999999,
+                "accuracy": 1.0,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9816,
+                "mean_confidence": 0.9858
+              }
+            ],
+            "ece": 0.19605454545454548,
+            "mce": 0.9,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "quantile"
+          },
+          "ece_uniform": {
+            "bin_accuracy": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              1.0,
+              1.0,
+              0.8
+            ],
+            "bin_counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              2,
+              4,
+              5
+            ],
+            "bin_edges": [
+              0.0,
+              0.1,
+              0.2,
+              0.30000000000000004,
+              0.4,
+              0.5,
+              0.6000000000000001,
+              0.7000000000000001,
+              0.8,
+              0.9,
+              1.0
+            ],
+            "bin_mean_confidence": [
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              NaN,
+              0.7566999999999999,
+              0.8423499999999999,
+              0.9521200000000001
+            ],
+            "bins": [
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.1,
+                "index": 0,
+                "lo": 0.0,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.2,
+                "index": 1,
+                "lo": 0.1,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.30000000000000004,
+                "index": 2,
+                "lo": 0.2,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.4,
+                "index": 3,
+                "lo": 0.30000000000000004,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.5,
+                "index": 4,
+                "lo": 0.4,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.6000000000000001,
+                "index": 5,
+                "lo": 0.5,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": NaN,
+                "accuracy": NaN,
+                "count": 0,
+                "fraction": 0.0,
+                "hi": 0.7000000000000001,
+                "index": 6,
+                "lo": 0.6000000000000001,
+                "mean_confidence": NaN
+              },
+              {
+                "abs_gap": 0.24330000000000007,
+                "accuracy": 1.0,
+                "count": 2,
+                "fraction": 0.18181818181818182,
+                "hi": 0.8,
+                "index": 7,
+                "lo": 0.7000000000000001,
+                "mean_confidence": 0.7566999999999999
+              },
+              {
+                "abs_gap": 0.15765000000000007,
+                "accuracy": 1.0,
+                "count": 4,
+                "fraction": 0.36363636363636365,
+                "hi": 0.9,
+                "index": 8,
+                "lo": 0.8,
+                "mean_confidence": 0.8423499999999999
+              },
+              {
+                "abs_gap": 0.15212000000000003,
+                "accuracy": 0.8,
+                "count": 5,
+                "fraction": 0.45454545454545453,
+                "hi": 1.0,
+                "index": 9,
+                "lo": 0.9,
+                "mean_confidence": 0.9521200000000001
+              }
+            ],
+            "ece": 0.17070909090909098,
+            "mce": 0.24330000000000007,
+            "n": 11,
+            "n_bins": 10,
+            "strategy": "uniform"
+          },
+          "n": 11
+        }
+      },
+      "ece_quantile": [
+        0.19605454545454548,
+        0.40921818181818187,
+        0.3971272727272728,
+        0.4706636363636364
+      ],
+      "ece_uniform": [
+        0.17070909090909098,
+        0.4092181818181818,
+        0.12432727272727274,
+        0.3984090909090908
+      ],
+      "note": "DESCRIPTIVE ONLY \u2014 two residual df; not the powered endpoint.",
+      "slope_quantile": -0.8644473684210526,
+      "slope_uniform": -0.13564736842105213,
+      "tier_names": [
+        "trivial",
+        "easy",
+        "hard",
+        "ambiguous"
+      ]
+    },
+    "equal_n": {
+      "applied": false,
+      "discarded_item_ids": [],
+      "target_n": 22
+    },
+    "n_easy": 22,
+    "n_hard": 22,
+    "n_items": 44,
+    "primary_delta_ece": {
+      "bca_acceleration": 0.00018739220086713053,
+      "bca_z0": -0.9789594819140071,
+      "ci_bca": [
+        -0.3900564505824348,
+        -0.01805506490175077
+      ],
+      "ci_method_primary": "bca",
+      "ci_percentile": [
+        -0.21459806818181823,
+        0.17334090909090885
+      ],
+      "crosses_zero_bca": false,
+      "crosses_zero_percentile": true,
+      "equal_n": true,
+      "n_bins": 10,
+      "n_boot": 10000,
+      "point": -0.11508636363636365,
+      "strategy": "uniform"
+    },
+    "robustness_m_sweep": {
+      "cells": [
+        {
+          "ci_high": 0.2058636363636362,
+          "ci_low": -0.2093929545454546,
+          "excludes_zero": false,
+          "n_bins": 5,
+          "point": -0.047031818181818286,
+          "sign": "inconclusive",
+          "strategy": "uniform"
+        },
+        {
+          "ci_high": 0.19168534090909084,
+          "ci_low": -0.20750147727272727,
+          "excludes_zero": false,
+          "n_bins": 5,
+          "point": -0.09730454545454548,
+          "sign": "inconclusive",
+          "strategy": "quantile"
+        },
+        {
+          "ci_high": 0.17786681818181793,
+          "ci_low": -0.20547113636363626,
+          "excludes_zero": false,
+          "n_bins": 10,
+          "point": -0.11508636363636365,
+          "sign": "inconclusive",
+          "strategy": "uniform"
+        },
+        {
+          "ci_high": 0.27017874999999997,
+          "ci_low": -0.08565090909090904,
+          "excludes_zero": false,
+          "n_bins": 10,
+          "point": 0.05964090909090908,
+          "sign": "inconclusive",
+          "strategy": "quantile"
+        },
+        {
+          "ci_high": 0.1931218181818181,
+          "ci_low": -0.1941573863636365,
+          "excludes_zero": false,
+          "n_bins": 15,
+          "point": -0.08868636363636367,
+          "sign": "inconclusive",
+          "strategy": "uniform"
+        },
+        {
+          "ci_high": 0.2963409090909089,
+          "ci_low": -0.030966477272727302,
+          "excludes_zero": false,
+          "n_bins": 15,
+          "point": 0.12787727272727273,
+          "sign": "inconclusive",
+          "strategy": "quantile"
+        },
+        {
+          "ci_high": 0.2419328409090908,
+          "ci_low": -0.13440215909090916,
+          "excludes_zero": false,
+          "n_bins": 20,
+          "point": -0.019886363636363646,
+          "sign": "inconclusive",
+          "strategy": "uniform"
+        },
+        {
+          "ci_high": 0.3059330681818181,
+          "ci_low": 0.017810568181818198,
+          "excludes_zero": true,
+          "n_bins": 20,
+          "point": 0.15958636363636353,
+          "sign": "positive",
+          "strategy": "quantile"
+        }
+      ],
+      "conclusion_flips_with_M": false,
+      "note": "Primary sign stable across M\u2208{5,10,15,20} and both strategies."
+    }
+  },
+  "jev_vs_baseline": {
+    "accuracy_delta_jev_minus_baseline": {
+      "alpha": 0.05,
+      "crosses_zero": false,
+      "high": -0.13636363636363635,
+      "interpretation": "interval excludes zero",
+      "low": -0.38636363636363635,
+      "n_resamples": 10000,
+      "point": -0.25
+    },
+    "baseline_accuracy": 1.0,
+    "jev_accuracy": 0.75,
+    "n_common": 44,
+    "question": "Is Jev better calibrated than a temp-0 LLM baseline on the same items? Compare primary_delta_ece across clients; accuracy delta is reported so the reader can see whether the comparison is at roughly equal accuracy."
+  },
+  "schema": "jevbench.exp1.v1",
+  "source": {
+    "n_normalized": 132,
+    "n_raw_records": 132,
+    "raw": "/home/gautamtalksdev/projects/jevbench/runs/offline_fixture/raw.jsonl",
+    "resolved_models": [
+      "jev-1.13.0"
+    ],
+    "scored": false,
+    "serving_paths": []
+  },
+  "strata": {
+    "easy": [
+      "trivial",
+      "easy"
+    ],
+    "hard": [
+      "hard",
+      "ambiguous"
+    ]
+  },
+  "verdict": "The data support a \u0394ECE distinguishable from zero, but not in the pre-specified hard-worse direction (CI excludes zero from below) (point \u0394ECE=-0.11508636363636365, BCa [-0.3900564505824348, -0.01805506490175077], percentile [-0.21459806818181823, 0.17334090909090885], n_hard=22, n_easy=22). The M\u2208{5,10,15,20} sweep does not flip the primary sign. On the adapter baseline under the same items and equal-n rule, \u0394ECE=0.14 (BCa [0.09590909090909094, 0.17909090909090922]). The four-tier ECE-vs-accuracy slope remains descriptive only."
+}

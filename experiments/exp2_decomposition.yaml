@@ -1,0 +1,197 @@
+name: exp2_decomposition
+status: ready
+model: jev-1.13.0
+task: support_tickets
+serving_path: native
+pricing_snapshot_date: "2026-09-19"
+geography_note: >
+  Fill in before scored paper runs (city / region / cloud).
+concurrency: 2
+repeats: 1
+description: >
+  Decomposition study. HONEST CLAIM (do not weaken): "Jev plus N labelled
+  examples outperforms Jev alone AND outperforms a zero-shot frontier LLM,
+  at a fraction of the cost." Arm A (Jev direct) is zero-shot; Arm B
+  (decomposed signals → logistic) is supervised — they are not comparable
+  systems. A vs C is the zero-shot comparison; B vs D is the supervised
+  comparison. Both go in the paper. Reporting only B vs C is the rigged
+  version. Decomposed questions are evaluated in ONE Jev/adapter call
+  (parallel, nearly free extras) — that architectural fact is the point.
+
+# ---------------------------------------------------------------------------
+# Question set — designed and committed BEFORE any scored results.
+# Do not iterate these instructions against measured accuracy (silent
+# overfitting). Extra questions in one System One call are nearly free.
+# ---------------------------------------------------------------------------
+questions:
+  # Direct verdict — Arms A (Jev) and C (LLM) zero-shot heads
+  verdict:
+    kind: choice
+    instructions: Which team should handle this support ticket?
+    criteria:
+      billing: Charges, invoices, refunds, taxes, seat billing
+      technical: Bugs, outages, login failures, webhooks, product defects
+      other: Sales questions, feedback with no ask, unclear ownership
+
+  # Decomposed signals — Arms B / D feature inputs (same schema both models)
+  signal_billing:
+    kind: noul
+    instructions: >
+      Does this ticket primarily concern billing, charges, invoices, refunds,
+      taxes, or seat counts? Answer as a probability that the primary ask is
+      billing-related.
+
+  signal_technical:
+    kind: noul
+    instructions: >
+      Does this ticket primarily concern a product defect, outage, login
+      failure, webhook/API error, or crash? Answer as a probability that the
+      primary ask is technical.
+
+  signal_other:
+    kind: noul
+    instructions: >
+      Does this ticket lack a clear operational ask (sales, feedback, plan
+      questions without a charge dispute, chit-chat)? Answer as a probability
+      that the right department is "other".
+
+  signal_multi_issue:
+    kind: noul
+    instructions: >
+      Does this ticket contain two or more distinct asks that could route to
+      different departments?
+
+  signal_urgency_framing:
+    kind: noul
+    instructions: >
+      Does urgency or crisis language appear that might mislead routing
+      (e.g. "urgent" / "production" when the actual ask is billing)?
+
+clients:
+  # Arm A + feature source for Arm B
+  - name: jev
+    type: jev
+    model: jev-1.13.0
+    serving_path: native
+  # Arm C + feature source for Arm D
+  - name: adapter_baseline
+    type: adapter
+    provider: openai
+    model: gpt-4o-mini
+    llm_answer_mode: probabilities
+  # Arm E — non-AI floor
+  - name: trivial
+    type: trivial
+
+hypotheses:
+  - id: H2_zero_shot
+    statement: >
+      Zero-shot: Jev direct (Arm A) is at least as accurate as a temp-0 LLM
+      direct verdict (Arm C) on identical items, at lower cost.
+    falsified_when: >
+      Paired bootstrap 95% CI on (acc_A − acc_C) lies entirely below zero, or
+      Arm A costs more per 1000 correct decisions than Arm C under the locked
+      pricing snapshot.
+  - id: H2_supervised
+    statement: >
+      Supervised: Jev decomposed signals + logistic (Arm B) with N labelled
+      examples outperforms both Jev alone (Arm A) and the LLM+logistic arm
+      (Arm D) at the same N, at a fraction of LLM cost.
+    falsified_when: >
+      On held-out outer folds, Arm B accuracy is not above Arm A (paired CI
+      on B−A includes zero or is negative) AND not above Arm D at the same N;
+      or the N-sweep never crosses the zero-shot LLM (Arm C) accuracy.
+  - id: H2_label_efficiency
+    statement: >
+      There exists N ∈ {25,50,100,200} such that Arm B exceeds Arm C accuracy
+      on held-out outer folds — the practitioner number ("how many labels to
+      beat a frontier zero-shot model").
+    falsified_when: >
+      Across the N-sweep, Arm B held-out accuracy never exceeds Arm C mean
+      accuracy (point comparison with fold variance reported).
+
+metrics:
+  - "Per arm: accuracy, macro F1, AUROC (OvR), top-label ECE with occupancy"
+  - "Per arm: latency p50/p95/p99 (never mean)"
+  - "Per arm: cost per 1000 correct decisions (pricing snapshot)"
+  - "Paired bootstrap CIs vs Arm A (same items — paired is correct here)"
+  - "Arm B/D: nested CV; ECE on outer held-out folds ONLY"
+  - "N-sweep [25,50,100,200]: Arm B held-out accuracy vs label count"
+  - "Comparisons: A vs C (zero-shot), B vs D (supervised) — both required"
+
+decision_rules:
+  - >-
+    HONEST FRAME: never present "B beats A" alone as "Jev is better than it
+    looks". The claim is "Jev + N labels beats Jev alone AND beats zero-shot
+    frontier LLM, cheaply."
+  - "Always report A vs C AND B vs D. Reporting only B vs C is rigged."
+  - "Never report in-sample ECE for a fitted combiner — outer-fold only."
+  - "Decomposed question text is frozen pre-results; no post-hoc edits."
+  - "Fix seeds; report fold-level variance, not just the mean."
+  - "Calibration metrics use probabilities/noul only — never confidence."
+
+sample_size:
+  min_items: 300
+  n_per_stratum: null
+  per_tier: 75
+  repeats: 1
+  notes: >
+    EXP-2 uses the same labelled support_tickets corpus as EXP-1. Nested CV
+    needs enough per (tier × label) cell to stratify; prefer the powered
+    EXP-1 corpus. repeats=1 for decomposition scoring (signals are
+    deterministic given the model); EXP-1's 3 repeats feed stability (EXP-6).
+
+stopping_rule: >
+  Stop after the pre-registered sample is scored once with the committed
+  question set. Do not add or rewrite decomposed questions after seeing
+  accuracy. New questions require a new preregistration version.
+
+rate_limit:
+  headroom: 0.80
+
+# Analysis-only configuration (consumed by jevbench.exp2)
+arms:
+  A:
+    name: jev_direct
+    client: jev
+    mode: zero_shot
+    head: verdict
+  B:
+    name: jev_decomposed_logistic
+    client: jev
+    mode: supervised
+    features: [signal_billing, signal_technical, signal_other, signal_multi_issue, signal_urgency_framing]
+  C:
+    name: llm_direct
+    client: adapter_baseline
+    mode: zero_shot
+    head: verdict
+  D:
+    name: llm_logistic
+    client: adapter_baseline
+    mode: supervised
+    features: [signal_billing, signal_technical, signal_other, signal_multi_issue, signal_urgency_framing]
+  E:
+    name: non_ai_floor
+    client: trivial
+    mode: zero_shot
+    head: verdict
+
+leakage_controls:
+  outer_folds: 5
+  inner_folds: 3
+  stratify_by: [tier, label]
+  ece_on: outer_held_out_only
+  seed: 20260922
+  note: >
+    Nested CV: outer folds for evaluation; inner folds for C / feature
+    selection. Never fit and evaluate on the same rows.
+
+label_sweep:
+  N: [25, 50, 100, 200]
+  metric: outer_fold_accuracy
+  plot: results/exp2_label_sweep.png
+
+fairness_note: >
+  Arm A is zero-shot; Arm B uses labels. Comparable pairs are A↔C (zero-shot)
+  and B↔D (supervised, same N). Do not headline B vs C alone.

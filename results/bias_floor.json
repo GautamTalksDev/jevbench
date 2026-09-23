@@ -1,0 +1,88 @@
+{
+  "generator": "p ~ Uniform(0.5, 1.0); y ~ Bernoulli(p)",
+  "methods_sentence": "At n=750 per stratum with 10 bins, a perfectly calibrated model yields mean ECE 0.0247; our pre-specified effect size of 0.09 is 3.65x that floor.",
+  "note": "Mean top-label ECE of a perfectly calibrated binary sample (p~U(0.5,1), y~Bern(p)) at each n. This is the finite-sample bias floor: observed \u0394ECE must clear the corresponding band to mean anything. Equal n per stratum is mandatory. Equal-n cancels much of the BIAS between strata but not the VARIANCE.",
+  "operating_n": 750,
+  "pre_specified_effect_size": 0.09,
+  "rows": [
+    {
+      "is_operating_n": false,
+      "mean_ece": 0.10039823291792206,
+      "n": 50,
+      "n_bins": 10,
+      "n_reps": 200,
+      "p025_ece": 0.0408354833909246,
+      "p975_ece": 0.1706868638700887,
+      "std_ece": 0.03250438512754265,
+      "strategy": "uniform"
+    },
+    {
+      "is_operating_n": false,
+      "mean_ece": 0.07167417780326367,
+      "n": 100,
+      "n_bins": 10,
+      "n_reps": 200,
+      "p025_ece": 0.03138519656884758,
+      "p975_ece": 0.12366074485725921,
+      "std_ece": 0.02522097552087927,
+      "strategy": "uniform"
+    },
+    {
+      "is_operating_n": false,
+      "mean_ece": 0.05092876332989118,
+      "n": 200,
+      "n_bins": 10,
+      "n_reps": 200,
+      "p025_ece": 0.02049216024575286,
+      "p975_ece": 0.09027029116512196,
+      "std_ece": 0.01760138335041405,
+      "strategy": "uniform"
+    },
+    {
+      "is_operating_n": false,
+      "mean_ece": 0.030373215201723584,
+      "n": 500,
+      "n_bins": 10,
+      "n_reps": 200,
+      "p025_ece": 0.013665042899032448,
+      "p975_ece": 0.05199581549568791,
+      "std_ece": 0.010050846120304189,
+      "strategy": "uniform"
+    },
+    {
+      "is_operating_n": true,
+      "mean_ece": 0.02467761987625161,
+      "n": 750,
+      "n_bins": 10,
+      "n_reps": 200,
+      "p025_ece": 0.010941615217569685,
+      "p975_ece": 0.046008063560744605,
+      "std_ece": 0.00885798415238466,
+      "strategy": "uniform"
+    },
+    {
+      "is_operating_n": false,
+      "mean_ece": 0.02370246573308557,
+      "n": 1000,
+      "n_bins": 10,
+      "n_reps": 200,
+      "p025_ece": 0.010122182183533366,
+      "p975_ece": 0.041537243230911396,
+      "std_ece": 0.008438864424971868,
+      "strategy": "uniform"
+    },
+    {
+      "is_operating_n": false,
+      "mean_ece": 0.01584512234026362,
+      "n": 2000,
+      "n_bins": 10,
+      "n_reps": 200,
+      "p025_ece": 0.006808985389958355,
+      "p975_ece": 0.02716066262269083,
+      "std_ece": 0.005481250569849051,
+      "strategy": "uniform"
+    }
+  ],
+  "schema": "jevbench.bias_floor.v2",
+  "seed": 20260921
+}

@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use jevbench, please cite it."
+type: software
+title: "jevbench: Difficulty-stratified calibration of TypeSafe Jev"
+version: 0.1.0
+date-released: "2026-09-21"
+license: MIT
+repository-code: "https://github.com/gautamtalksdev/jevbench"
+authors:
+  - family-names: Contributors
+    given-names: jevbench
+    alias: jevbench
+abstract: >
+  Pre-registered independent study of calibration under difficulty for
+  TypeSafe System One (Jev). Metrics and charts regenerate offline from
+  committed JSONL via `make reproduce`. Pin jev-1.13.0; Arena is replay-only
+  for scored numbers.
+keywords:
+  - calibration
+  - expected calibration error
+  - Jev
+  - System One
+  - TypeSafe
+  - selective prediction
+preferred-citation:
+  type: software
+  title: "jevbench: Difficulty-stratified calibration of TypeSafe Jev"
+  version: 0.1.0
+  authors:
+    - family-names: Contributors
+      given-names: jevbench
+  year: 2026
+  license: MIT

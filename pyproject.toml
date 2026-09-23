@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jevbench"
+version = "0.1.0"
+description = "Pre-registered, difficulty-stratified calibration study of TypeSafe Jev"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "jevbench contributors" }]
+dependencies = [
+    "typesafe-sdk>=0.6.0",
+    "system-one-adapter>=0.1.0",
+    "httpx>=0.27",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "scikit-learn>=1.4",
+    "pandas>=2.1",
+    "matplotlib>=3.8",
+    "pydantic>=2.5",
+    "typer>=0.12",
+    "pyyaml>=6.0",
+    "rich>=13.7",
+    "netcal>=1.3",
+    "mapie>=0.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+]
+openai = [
+    "system-one-adapter[openai]",
+]
+anthropic = [
+    "system-one-adapter[anthropic]",
+]
+
+[project.scripts]
+jevbench = "jevbench.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["jevbench"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

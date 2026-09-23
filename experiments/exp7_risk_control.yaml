@@ -1,0 +1,14 @@
+name: exp7_risk_control
+status: stub
+model: jev-1.13.0
+task: support_tickets
+description: Stub — fill hypotheses/metrics/sample_size before preregister.
+hypotheses: []
+metrics: []
+decision_rules: []
+sample_size:
+  min_items: 300
+  per_tier: 75
+  repeats: 3
+stopping_rule: >
+  Stop after the pre-registered sample size is reached.

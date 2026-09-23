@@ -1,0 +1,10 @@
+# Citation File Format — canonical copy at repo root: ../CITATION.cff
+cff-version: 1.2.0
+message: "If you use this artifact, please cite CITATION.cff at the repository root."
+title: "jevbench: Difficulty-stratified calibration and stability of TypeSafe Jev"
+version: 0.1.0
+license: MIT
+abstract: >
+  Pre-registered independent study of calibration under difficulty,
+  confidence-vs-label stability, and workflow-level conformal risk control
+  for TypeSafe System One (Jev). See the root CITATION.cff for the full record.

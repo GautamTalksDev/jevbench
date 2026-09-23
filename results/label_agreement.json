@@ -1,0 +1,16 @@
+{
+  "disagree_ids": [],
+  "disagreement_rate": NaN,
+  "expected_agreement": NaN,
+  "interpretation": "NO DATA \u2014 labels_pass2.jsonl missing or empty overlap.",
+  "kappa": NaN,
+  "kappa_floor": 0.6,
+  "labeler_primary": null,
+  "labeler_secondary": null,
+  "n_agree": 0,
+  "n_paired": 0,
+  "observed_agreement": NaN,
+  "paired_ids": [],
+  "passes_floor": false,
+  "schema": "jevbench.label_agreement.v1"
+}

@@ -1,0 +1,126 @@
+name: exp3_moat_control
+status: ready
+model: jev-1.13.0
+task: support_tickets
+serving_path: native
+pricing_snapshot_date: "2026-09-19"
+geography_note: >
+  Fill in before scored paper runs. Prefill arm is LOCAL GPU — do not mix
+  its wall-clock latency with hosted API latency in any claim.
+concurrency: 1
+repeats: 3
+description: >
+  Moat control (EXP-3). Tests whether an open-weight model with single-token
+  constrained decoding (Goedecke-style JSON prefill + one constrained token)
+  replicates Jev's CALIBRATION. Deciding metric is ECE, not accuracy or
+  latency. If Jev's probabilities are better calibrated than raw softmaxed
+  logprobs from the open model on the same items, RLCD is doing real work
+  and the moat is real; otherwise Goedecke's reading is supported.
+
+questions:
+  department:
+    kind: choice
+    instructions: Which team should handle this support ticket?
+    criteria:
+      billing: Charges, invoices, refunds, taxes, seat billing
+      technical: Bugs, outages, login failures, webhooks, product defects
+      other: Sales questions, feedback with no ask, unclear ownership
+
+clients:
+  - name: jev
+    type: jev
+    model: jev-1.13.0
+    serving_path: native
+  - name: prefill
+    type: prefill
+    model: local-open-weight
+    prefill_backend: vllm
+    # Set prefill_base_url at run time / extras when the local server is up
+    prefill_base_url: "http://127.0.0.1:8000/v1"
+  - name: gliclass
+    type: gliclass
+    model: knowledgator/gliclass-base-v1.0
+  - name: adapter_baseline
+    type: adapter
+    provider: openai
+    model: gpt-4o-mini
+    llm_answer_mode: probabilities
+
+hypotheses:
+  - id: H3_moat
+    statement: >
+      Jev top-label ECE is lower than the prefill control's ECE on identical
+      items (ΔECE = ECE_prefill − ECE_jev > 0), with a paired bootstrap BCa
+      interval excluding zero — evidence that RLCD improves calibration beyond
+      constrained single-token softmax.
+    falsified_when: >
+      Paired BCa 95% CI on ΔECE(prefill − Jev) includes zero or is entirely
+      negative (prefill better/equal calibrated). An inconclusive interval is
+      not evidence the moat is absent — report it as inconclusive.
+  - id: H3_positional_bias
+    statement: >
+      Prefill accuracy is stable under sentinel↔option order permutation across
+      repeats (no numeric/positional bias in the control).
+    falsified_when: >
+      Accuracy (or ECE) moves materially across pass_idx permutations —
+      report as a finding about the CONTROL, not about Jev.
+
+metrics:
+  - "DECIDING: paired ΔECE(Jev, prefill) with BCa + percentile, n_boot=10000"
+  - "ECE with occupancy for Jev, prefill, GLiClass, adapter — same items"
+  - "Accuracy / macro F1 secondary only — not the deciding metric"
+  - "Latency wall_clock (FLAGGED unfair) + compute_only_ms for local prefill"
+  - "Sentinel mapping + token-id assertion recorded in manifest"
+  - "Order-permutation stability across repeats"
+
+decision_rules:
+  - "Deciding metric is ECE / ΔECE — not accuracy, not latency."
+  - "ΔECE is PAIRED (same items). Report BCa and percentile."
+  - "Latency is NOT a fair comparison (local GPU vs hosted API). Flag it. Do not use EXP-3 for video latency claims — those come from EXP-1 matched serving path."
+  - "Sentinel single-token assertion must pass before scoring; fail loudly if not."
+  - "If accuracy moves under sentinel permutation, that is a control finding — report it."
+  - "Calibration metrics use probabilities only — never confidence."
+
+sample_size:
+  min_items: 300
+  per_tier: 75
+  n_per_stratum: 75
+  repeats: 3
+  notes: >
+    Prefer the powered EXP-1 labelled corpus. repeats=3 enables the
+    order-permutation control on the prefill arm.
+
+stopping_rule: >
+  Stop after the pre-registered sample is scored with the stated repeats.
+  Do not change the open-weight model, tokenizer, or sentinel alphabet after
+  seeing ECE. New control configurations require a new preregistration version.
+
+rate_limit:
+  headroom: 0.80
+
+moat_control:
+  deciding_metric: paired_delta_ece_jev_vs_prefill
+  json_prefix: '{"choice": "'
+  sentinel_alphabet: "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  order_permutation: true
+  latency_fair: false
+  latency_note: >
+    Local GPU inference and a hosted API are not comparable latency
+    measurements. Network RTT, batching, cold start and queueing all differ.
+    Report wall-clock for completeness (flagged unfair) and compute-only
+    generation time for the local model. Do NOT use this experiment for any
+    latency claim in the video.
+
+arms:
+  jev:
+    client: jev
+    role: treatment
+  prefill:
+    client: prefill
+    role: goedecke_control
+  gliclass:
+    client: gliclass
+    role: off_the_shelf_zeroshot
+  adapter_baseline:
+    client: adapter_baseline
+    role: frontier_structured_baseline

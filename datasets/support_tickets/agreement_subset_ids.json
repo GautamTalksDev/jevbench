@@ -1,0 +1,9 @@
+{
+  "fraction": 0.15,
+  "ids": [
+    "st-002"
+  ],
+  "instruction": "Second labeler: run tools/label.py --pass 2 --labeler <other> --id <id> for each id (or label the queue filtered to these ids).",
+  "n": 1,
+  "seed": 20260922
+}

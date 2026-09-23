@@ -1,0 +1,71 @@
+{
+  "delta_ece": {
+    "bca": {
+      "empirical_coverage": 0.8922,
+      "empirical_fpr": 0.1078,
+      "empirical_fpr_ci95": [
+        0.09920370008601376,
+        0.11639629991398626
+      ],
+      "empirical_fpr_se": 0.004385867303054209,
+      "method": "bca",
+      "near_nominal": false,
+      "nominal_alpha": 0.05,
+      "trials": 5000
+    },
+    "null_model": "heterogeneous_calibrated",
+    "percentile": {
+      "empirical_coverage": 0.9228,
+      "empirical_fpr": 0.0772,
+      "empirical_fpr_ci95": [
+        0.06980167318029273,
+        0.08459832681970728
+      ],
+      "empirical_fpr_se": 0.003774656540666978,
+      "method": "percentile",
+      "near_nominal": false,
+      "nominal_alpha": 0.05,
+      "trials": 5000
+    }
+  },
+  "explanation": {
+    "delta_ece_coverage_bca": 0.8922,
+    "delta_ece_coverage_percentile": 0.9228,
+    "explanation": "delta_ece_statistic",
+    "mean_coverage_bca": 0.9498,
+    "mean_coverage_percentile": 0.9504,
+    "text": "The mean of a stratum is near nominal under BCa (coverage 95.0%, percentile 95.0%), while \u0394ECE BCa coverage is 89.2% (percentile 92.3%). The data support the \u0394ECE explanation: BCa on a simple mean is fine, and the shortfall is in the binned \u0394ECE statistic."
+  },
+  "mean": {
+    "bca": {
+      "empirical_coverage": 0.9498,
+      "empirical_fpr": 0.05020000000000002,
+      "empirical_fpr_se": 0.003088040155179334,
+      "method": "bca",
+      "near_nominal": true,
+      "nominal_alpha": 0.05,
+      "statistic": "mean",
+      "trials": 5000
+    },
+    "n": 750,
+    "n_boot": 2000,
+    "null_model": "heterogeneous_calibrated_stratum_mean",
+    "percentile": {
+      "empirical_coverage": 0.9504,
+      "empirical_fpr": 0.04959999999999998,
+      "empirical_fpr_se": 0.0030704996336101387,
+      "method": "percentile",
+      "near_nominal": true,
+      "nominal_alpha": 0.05,
+      "statistic": "mean",
+      "trials": 5000
+    },
+    "seed": 20260934,
+    "truth": 0.63
+  },
+  "n_boot": 2000,
+  "n_per_stratum": 750,
+  "n_trials": 5000,
+  "schema": "jevbench.bca_diagnostic.v1",
+  "seed": 20260934
+}

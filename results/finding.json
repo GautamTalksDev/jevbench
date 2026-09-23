@@ -1,0 +1,9 @@
+{
+  "actual_cost_usd": 0.0,
+  "chart": "results/charts/ece_vs_accuracy_by_tier_1080p.png",
+  "headline": "On the committed offline fixture (n=44 Jev items, not a scored live run), the OLS slope of uniform ECE vs tier accuracy is -0.1356 (95% bootstrap CI [-1.4201, 0.8411], 10000 resamples, seed=20260919). Inspect per-tier occupancy before interpreting ECE; this pack is a harness check, not the EXP-1 claim.",
+  "n": 44,
+  "slope_ci_high": 0.841052655302,
+  "slope_ci_low": -1.420074614448,
+  "slope_point": -0.135647368421
+}
