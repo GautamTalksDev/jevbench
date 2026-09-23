@@ -2,11 +2,11 @@
 
 **Status:** LOCKED (amended — see Amendments)
 **Experiment:** `exp1_difficulty_calibration`
-**Task:** `datasets/support_tickets/`
+**Task:** `datasets/chaosnli/`
 **Pinned model:** `jev-1.13.0`
 **Serving path:** `native`
 **Locked at (UTC):** 2026-09-20T02:59:57+00:00
-**Amendments dated (UTC):** 2026-09-22
+**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendment 6)
 
 This document locks hypotheses, metrics, and decision rules **before**
 scored API calls. Analyses that diverge are labelled exploratory.
@@ -30,79 +30,94 @@ Scored runs **must refuse** if either hash changes.
 
 | File | SHA-256 |
 |---|---|
-| `datasets/support_tickets/items.jsonl` | `8053abd2c46cd892c4f48e870bf74bfa91427a78f858c4b1c0549c864de64c23` |
-| `datasets/support_tickets/labels.jsonl` | `9705aa795ff798ccaa5f8ebded8b27d2caa647245966fce803f70a3839fe041c` |
+| `datasets/chaosnli/items.jsonl` | `38c8c5b204de7306d6c4bc4a9fcd4c815144e04ceed38191da505726cf66f549` |
+| `datasets/chaosnli/labels.jsonl` | `efadb35ac7472d18d25ee325b0582d4632a393ea7e024b7ff09c5ce164fe84ad` |
+
+Supporting lock files (not hashed by the runner, but fixed before any call):
+
+| File | SHA-256 |
+|---|---|
+| `datasets/chaosnli/universe.jsonl` | `afde068d643bf5e6d915d428849adf27938cb827badd2d023837719af129e3ca` |
+| `datasets/chaosnli/thresholds.json` | `145b2434eb95f9e1322e98ed7eeca4caaa60c6e888ab3d01963959ce09297e67` |
+| `datasets/chaosnli/paraphrases.jsonl` | `945d2ae0eb8dd0d5ce21b2f2a20095ea97ff4f28e37997aebe86943a84c5f590` |
 
 Machine-readable lock: `preregistration.lock.json`
 
-- Items currently locked: **8** (demo corpus)
-- Labels: **8**
-- Tier counts: `{'trivial': 2, 'easy': 2, 'hard': 2, 'ambiguous': 2}`
+- Items locked: **1600** (1500 primary + 100 frozen paraphrases)
+- Labels: **1600**
+- Primary tier counts: `{'easy': 750, 'hard': 750}` (paraphrases add 50 per tier and are excluded from ΔECE)
+- Entropy thresholds (locked before any Jev call): `q_easy = 0.7357948629753385`, `q_hard = 1.1625318905614013`
 
-**Labeling obligation (Amendment 4):** before the first paid call, grow the
-corpus to **n ≥ 200 per pooled stratum** (easy = trivial∪easy, hard =
-hard∪ambiguous), equal n, as required by `results/power_analysis.json`.
-Re-lock content hashes after labeling; do not score until hashes match the
-amended sample-size rule.
+**No hand-labelling kappa gate.** Agreement is the ChaosNLI 100-annotator
+distribution. Entropy is the difficulty measure. Soft scoring uses
+`label_dist`; hard scoring uses the majority in `label`.
 
 ---
 
 ## Description
 
-Flagship difficulty-stratified calibration study. Same label schema across
-four tiers (trivial, easy, hard, ambiguous). **Primary endpoint (amended):**
-whether top-label ΔECE between pooled hard and pooled easy strata differs
-from zero. The four-tier ECE-vs-accuracy slope is retained as a
-**descriptive** figure only.
+Difficulty-stratified calibration on **ChaosNLI SNLI + MNLI** (3,113 items).
+αNLI is excluded: it is a 2-way abductive task (observation-start / two
+hypotheses / observation-end), not 3-way entailment–neutral–contradiction;
+entropy is not on the same scale. Easy and hard are the lowest and highest
+quartiles of per-item Shannon entropy of the 100-annotator label
+distribution, then reduced to **n = 750** per stratum by
+`subsample_to_equal_n` (seed 20260923).
+
+**Primary endpoint:** soft top-label ΔECE =
+ECE(high-entropy) − ECE(low-entropy). Soft correctness is the share of
+annotators who chose the model's argmax; ECE bin accuracy is the mean of
+that share. Hard scoring (argmax vs majority) is always reported beside it.
+
+Sentence text is **not** in the repository. ChaosNLI is CC BY-NC 4.0; SNLI
+is CC BY-SA 4.0; MNLI has mixed terms. This MIT tree ships item IDs +
+annotator counts + a fetch script (`scripts/fetch_chaosnli.py`).
 
 ---
 
 ## Hypotheses & falsification rules
 
-### H1 — primary (amended)
+### H1 — primary (amended: soft ΔECE on ChaosNLI)
 
-**Statement:** Top-label ΔECE = ECE(hard∪ambiguous) − ECE(trivial∪easy) is
-distinguishable from zero in the direction implied by the literature gap
-(hard less calibrated), with equal n per pooled stratum and occupancy
-reported on every ECE.
+**Statement:** Soft top-label ΔECE = ECE(high-entropy) − ECE(low-entropy) is
+distinguishable from zero in the literature direction (hard less
+calibrated), with equal n = 750 per stratum and occupancy reported on every
+ECE.
 
-**Falsified when:** The stratified two-sample bootstrap 95% CI on ΔECE
-includes zero (inconclusive — not equivalence), or the powered sample fails
-to exclude zero at the pre-specified effect size. Never interpret an
-underpowered inconclusive interval as a substantive finding.
+**Falsified when:** The stratified two-sample bootstrap 95% CI on soft ΔECE
+(percentile and BCa, n_boot = 10 000) includes zero (inconclusive — not
+equivalence), or the powered sample fails to exclude zero at the
+pre-specified effect size. Never interpret an underpowered inconclusive
+interval as a substantive finding.
 
-### H1a — descriptive (original slope; retained)
+### H1a — descriptive (retained)
 
-**Statement:** ECE is approximately flat across difficulty tiers after
-accounting for bin occupancy (calibration is independent of accuracy).
+**Statement:** ECE is approximately flat across difficulty after accounting
+for bin occupancy.
 
-**Falsified when:** The bootstrap CI (10k paired resamples) on the slope of
-ECE vs tier accuracy excludes zero in the positive direction (ECE rises as
-accuracy falls), with adequate occupancy in every tier; then prefer H1b.
-**Note:** the slope has two residual df and is underpowered by construction;
-it is not the primary endpoint (Amendment 1).
+**Falsified when:** Descriptive only. Never the powered claim.
 
-### H1b — descriptive (original slope; retained)
+### H1b — descriptive (retained)
 
-**Statement:** ECE rises as tier accuracy falls (calibration tracks accuracy).
+**Statement:** ECE rises as accuracy falls (calibration tracks accuracy).
 
-**Falsified when:** The bootstrap CI on the ECE-vs-accuracy slope includes
-zero and every tier has adequate bin occupancy; then prefer H1a. An interval
-crossing zero is inconclusive, not equivalence.
+**Falsified when:** Descriptive only. Interval crossing zero is inconclusive.
 
 ---
 
 ## Metrics
 
-- **Primary:** top-label ΔECE (hard∪ambiguous vs trivial∪easy), uniform and
+- **Primary:** soft top-label ΔECE (high-entropy vs low-entropy), uniform and
   quantile binning (M=10), stratified two-sample bootstrap CI (10 000
-  resamples for scored analysis), equal n enforced
+  resamples), equal n enforced
+- **Reported:** hard top-label ΔECE (argmax vs majority). **Hard scoring puts
+  label noise in the hard stratum only, which inflates ΔECE in the direction
+  of the hypothesis.** Soft scoring is primary for that reason.
 - ECE (uniform / quantile) with per-bin occupancy — netcal-cross-checked
-- Bias floor / null band: `results/bias_floor.json` (Amendment 2)
-- MCE, Brier, reliability diagrams per tier
-- Accuracy per tier
-- **Descriptive:** ECE-vs-accuracy OLS slope across four tiers (not powered)
-- Automation@0.90 accuracy
+- Bias floor / null band: `results/bias_floor.json`
+- MCE, Brier, reliability diagrams per stratum
+- Accuracy per stratum
+- Contamination: original vs frozen paraphrase accuracy (~100 items), every arm
 - Latency p50/p95/p99 (never mean)
 - Paired bootstrap CIs when comparing two models on the **same** items
 
@@ -110,47 +125,55 @@ crossing zero is inconclusive, not equivalence.
 
 ## Decision rules
 
-- Report **ΔECE** (with CI, equal-n flag, occupancy) as the primary result.
-- Retain the ECE-vs-accuracy curve as a descriptive figure only.
+- Report **soft ΔECE** (with CI, equal-n flag, occupancy) as the primary result.
+- Always report hard ΔECE beside it, with the label-noise caveat above.
 - Never report ECE without bin occupancy.
-- Calibration metrics use probabilities/noul only — never confidence.
-- Interval crossing zero ⇒ inconclusive, not evidence of equivalence.
-- Do not run EXP-1 underpowered; if labeling capacity is below the power
-  floor, prefer a larger pre-specified detectable effect or add domains —
-  do not publish an underpowered inconclusive as a finding.
+- Calibration metrics use probabilities only — never confidence.
+- Interval crossing zero ⇒ inconclusive, not equivalence.
+- Do not run EXP-1 underpowered relative to `results/power_asymmetric.json`.
+- Report the BCa coverage diagnostic in `results/bca_diagnostic.json`: the
+  data support the **ΔECE statistic** explanation (mean coverage near
+  nominal; ΔECE BCa undercovers). Do not claim a 95% ΔECE interval.
+- A large accuracy drop from original wording to the frozen paraphrase,
+  reported for every arm, is a memorisation signal — not a calibration finding.
 
 ---
 
 ## Sample size
 
-- **n per pooled stratum:** **200** (from `results/power_analysis.json`,
-  Amendment 4) — power ≥ 0.80 to detect ΔECE = 0.09 (Amendment 3)
-- **Total items to label (two pooled strata):** ≥ 400, equal n
-- **repeats:** 3 (scored EXP-1)
-- **Bootstrap (scored):** n_boot = 10 000
-- **notes:** Demo lock still has 8 items; paper protocol requires meeting
-  the power floor before the first paid call. Mean null FPR in the power
-  analysis was ~0.07 (near 0.05); if FPR were materially above 0.05, stop
-  and fix the estimator before spending.
+- **n per stratum:** **750** (entropy pools → `subsample_to_equal_n`)
+- **Total primary items:** 1500
+- **repeats:** 3 (scored EXP-1; feeds EXP-6)
+- **Bootstrap (scored):** n_boot = 10 000; report **BCa and percentile**
+- **Asymmetric-noise power (n=750, 400 trials):** soft power = 1.00; hard
+  power = 0.99 (`results/power_asymmetric.json`). Soft scoring remains
+  primary; hard scoring's null mean ΔECE sits slightly higher (label-noise
+  artifact). Soft null FPR under this simulator is elevated — report
+  empirical coverage, do not claim 95%.
+- **BCa diagnostic (5000 trials):** stratum-mean coverage ≈ 95.0% (percentile
+  and BCa); ΔECE coverage percentile ≈ 92.3%, BCa ≈ 89.2%. Supported
+  explanation: `delta_ece_statistic`.
 
 ---
 
 ## Stopping rule
 
 Stop after the pre-registered powered sample is scored with the stated
-repeats. Do not add items because interim ΔECE looks flat or rising. New
-items require a new preregistration version and exploratory labelling of
-prior runs.
+repeats. Do not add items because interim ΔECE looks flat or rising. Do not
+move the entropy thresholds after seeing model output. New items require a
+new preregistration version and exploratory labelling of prior runs.
 
 ---
 
 ## Contamination guard
 
-1. Labels are fixed at lock time (hash above); re-lock after labeling to n.
-2. `jevbench verify-labels` fails if `labels.jsonl` changes after
-   the first scored run under `runs/`.
-3. Adjudicating a label after seeing model output is a protocol
-   breach — the tool makes accidental contamination fail CI.
+1. Labels and strata are fixed at lock time (hashes above).
+2. `jevbench verify-labels` fails if `labels.jsonl` changes after the first
+   scored run under `runs/`.
+3. Adjudicating a label after seeing model output is a protocol breach.
+4. SNLI / MNLI have been public since 2015 / 2018. Compare every arm's
+   accuracy on ChaosNLI items vs the frozen paraphrase subset (~100 items,
+   reworded before any run). A large drop suggests memorisation.
 
 ---
 
@@ -167,6 +190,8 @@ explicitly marked not scored).
 | Amendment | Date (UTC) | Binding commit |
 |---|---|---|
 | 1–4 (this section) | 2026-09-22 | `70be25f7baf91daa748cec11c38f26f17315b17c` |
+| 5 (F1 n=750; BCa; kappa) | 2026-09-22 | recorded in-file before paid calls |
+| 6 (ChaosNLI) | 2026-09-23 | see `AMENDMENT_6_COMMIT` below |
 
 ### Amendment 1 — primary endpoint → ΔECE
 
@@ -208,15 +233,75 @@ about the study — options in order: keep two pooled strata (already the
 plan), accept a larger pre-specified detectable effect, or add domains.
 Do not proceed underpowered.
 
+### Amendment 5 — F1 hardened power → n = 750; BCa; kappa gate
+
+**Change:** After adding label_noise / difficulty_sd / tier_leakage to the
+simulator (Prompt F1), the pessimistic corner requires **n = 750** per
+stratum for power ≥ 0.80 at ΔECE = 0.09. Scored analysis reports **BCa and
+percentile** intervals. A 15% double-label agreement pass with Cohen's
+κ ≥ 0.6 is required before paid runs; measured disagreement is fed back
+into the F1 sweep.
+
+**Reason:** the clean-simulator n=200 answered an easier question than the
+study runs. Coverage study (`results/coverage.json`) shows empirical
+coverage ~92% — do not claim 95%. If labelling capacity stays below 750,
+the study is **underpowered** and must not be scored as a finding.
+
+### Amendment 6 — switch EXP-1 to ChaosNLI (soft scoring primary)
+
+**Change:**
+
+1. **Dataset.** EXP-1 task is `datasets/chaosnli/` (ChaosNLI SNLI + MNLI =
+   3,113 items). αNLI is excluded because it is a different task format
+   (2-way abductive, not 3-way NLI). Sentence text is not redistributed;
+   the repo ships item IDs, annotator counts, entropy, and
+   `scripts/fetch_chaosnli.py` (ChaosNLI CC BY-NC 4.0; SNLI CC BY-SA 4.0;
+   MNLI mixed terms — incompatible with shipping text under this MIT tree).
+2. **Difficulty.** Per-item entropy of the 100-annotator distribution.
+   Easy = lowest entropy quartile (`entropy ≤ q_easy`); hard = highest
+   (`entropy ≥ q_hard`). Thresholds fixed from population quantiles
+   **before any Jev call** and committed in
+   `datasets/chaosnli/thresholds.json`. Equal n = 750 via
+   `subsample_to_equal_n` (seed 20260923).
+3. **Scoring.** Soft scoring is primary (`correct_i` = annotator share on
+   the model's argmax; bin accuracy = mean soft correctness). Hard scoring
+   (argmax vs majority) is always reported. Hard scoring puts label noise
+   in the hard stratum only, which inflates ΔECE in the direction of the
+   hypothesis.
+4. **Simulator.** Asymmetric label noise (flip rate = f(entropy)) re-run at
+   n=750 under both scoring rules (`results/power_asymmetric.json`).
+5. **BCa diagnostic.** 5000-trial null on the mean of a stratum vs ΔECE,
+   percentile and BCa side by side (`results/bca_diagnostic.json`). The
+   data support the **ΔECE statistic** explanation: mean coverage is near
+   nominal; ΔECE BCa undercovers.
+6. **Contamination.** SNLI/MNLI public since 2015/2018. Frozen paraphrase
+   subset (~100 items) locked before any run; compare accuracy for all arms.
+7. **Kappa gate removed** for this task: the 100-annotator distribution
+   replaces double-labelling. The hand-labelling ceiling of 500 no longer
+   applies.
+
+**Reason:** self-labelled support tickets could not reach the powered n
+without months of labelling. ChaosNLI already supplies 100 labels per item
+and an entropy that is an external difficulty measure, fixed before any
+model call.
+
+**No Jev output had been observed.** This amendment, the entropy
+thresholds, the paraphrase freeze, and the soft/hard scoring rules were
+written from ChaosNLI metadata and offline simulators only. Verify with:
+
+```bash
+git log --oneline -- PREREGISTRATION.md
+find runs -name raw.jsonl ! -path 'runs/offline_fixture/*'
+```
+
 ### Amendment commit hash (binding timestamp)
 
 ```
 AMENDMENT_COMMIT=70be25f7baf91daa748cec11c38f26f17315b17c
+AMENDMENT_6_COMMIT=<filled after the Amendment-6 commit>
 ```
 
-This SHA is the commit that introduced Amendments 1–4 and the publication
-commitment. It precedes any paid API call and any scored `runs/<id>/`
-artifact. Verify with:
+Verify with:
 
 ```bash
 git log --oneline -- PREREGISTRATION.md
@@ -230,4 +315,6 @@ git log --oneline -- PREREGISTRATION.md
 > Large language models were used for literature search, prose drafting,
 > and code scaffolding under the author's direction. All experimental
 > design, claims, analysis, and errors are the author's own. Every
-> factual claim was verified against the cited primary source.
+> factual claim was verified against the cited primary source. The ~100
+> contamination paraphrases were authored for this study and frozen before
+> any model run.
