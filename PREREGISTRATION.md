@@ -6,7 +6,7 @@
 **Pinned model:** `jev-1.13.0`
 **Serving path:** `native`
 **Locked at (UTC):** 2026-09-20T02:59:57+00:00
-**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendment 6)
+**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendments 6–7)
 
 This document locks hypotheses, metrics, and decision rules **before**
 scored API calls. Analyses that diverge are labelled exploratory.
@@ -146,13 +146,15 @@ for bin occupancy.
 - **repeats:** 3 (scored EXP-1; feeds EXP-6)
 - **Bootstrap (scored):** n_boot = 10 000; report **BCa and percentile**
 - **Asymmetric-noise power (n=750, 400 trials):** soft power = 1.00; hard
-  power = 0.998 (`results/power_asymmetric.json`). Soft scoring remains
-  primary. Soft null FPR = **0.000** when the null is soft-calibrated
-  (perfect soft calibration: top probability equals the expected annotator
-  share of the pick). Hard null FPR = **0.085** (hard scoring puts label
-  noise only in the hard stratum — an artifact). v1 soft null FPR ≈ 0.27
-  was from hard-label-calibrating soft scores (definition mismatch, not
-  estimator failure).
+  power ≈ 1.00 (`results/power_asymmetric.json`). Soft scoring remains
+  primary. Soft null is the **Beta–Binomial** null of Amendment 7
+  (`results/soft_null_kappa.json`); operating κ = 20; empirical soft null
+  FPR ≈ **0.101** at κ=20 over 2000 trials (≈0.10–0.11 across κ∈{5…200};
+  asymmetric refresh null_fpr_soft = 0.110) — outside [0.03, 0.08]; reported
+  honestly. Hard null FPR = **0.085** (hard scoring puts label noise only in
+  the hard stratum — an artifact). v1 soft null FPR ≈ 0.27 was from
+  hard-label-calibrating soft scores (definition mismatch). v2 soft null
+  FPR = 0.000 was degenerate (share locked to p per item; see Amendment 7).
 - **BCa diagnostic (5000 trials):** stratum-mean coverage ≈ 95.0% (percentile
   and BCa); ΔECE coverage percentile ≈ 92.3%, BCa ≈ 89.2%. Supported
   explanation: `delta_ece_statistic` (ECE binning non-smoothness, not a bug).
@@ -195,6 +197,7 @@ explicitly marked not scored).
 | 1–4 (this section) | 2026-09-22 | `70be25f7baf91daa748cec11c38f26f17315b17c` |
 | 5 (F1 n=750; BCa; kappa) | 2026-09-22 | recorded in-file before paid calls |
 | 6 (ChaosNLI) | 2026-09-23 | see `AMENDMENT_6_COMMIT` below |
+| 7 (soft null Beta–Binomial) | 2026-09-23 | see `AMENDMENT_7_COMMIT` below |
 
 ### Amendment 1 — primary endpoint → ΔECE
 
@@ -297,11 +300,58 @@ git log --oneline -- PREREGISTRATION.md
 find runs -name raw.jsonl ! -path 'runs/offline_fixture/*'
 ```
 
+### Amendment 7 — soft-scoring null → Beta–Binomial (κ sweep)
+
+**Change:**
+
+1. **Definition.** Under soft scoring, correctness **is** the annotator
+   share of the model's pick — there is no Bernoulli label draw.
+   Calibration means \(E[\mathrm{share}\mid p]=p\), **not** share \(= p\)
+   per item. The soft null therefore draws, per item:
+   - \(p_i\) from the certificate specimen top-probability shape (seed
+     20260919), with **separate** easy and hard pools of 750 (same
+     generative sketch as `arena/index.html` `specimen()`; not Jev
+     output);
+   - true share \(s_i\sim\mathrm{Beta}(\kappa p_i,\kappa(1-p_i))\);
+   - observed share \(=\mathrm{Binomial}(100,s_i)/100\);
+   - soft correctness = observed share; reported confidence = \(p_i\)
+     under the null.
+2. **κ range.** Sweep \(\kappa\in\{5,10,20,50,200\}\) over 2000 trials
+   each (SE ≈ 0.007); see `results/soft_null_kappa.json`.
+3. **Operating κ.** **κ = 20** (midpoint of the realistic band 10–50).
+   Empirical null FPR ≈ **0.101** at κ=20 (and ≈ 0.10–0.11 across the
+   band) — outside [0.03, 0.08]; reported honestly under the same rule
+   as hard-scoring ~92% coverage. Power at n=750 for ΔECE=0.09 is
+   **1.00** at every κ, including the pessimistic realistic end.
+4. **Proof of cause.** \(\kappa\to\infty\) with no binomial step
+   reproduces FPR = 0.000, confirming the v2 constant-confidence soft
+   null was **degenerate** (share locked to \(p\) per item ⇒ ECE≈0 with
+   ~no variance in both strata), not that the ECE estimator is
+   conservative. Methods one-liner: when soft correctness equals
+   reported confidence with no item-level scatter, the soft ΔECE null is
+   degenerate and the false-positive rate is exactly zero.
+
+**Reason:** Amendment 6's soft-calibrated null set top probability equal
+to the expected share with constant confidence, which forced FPR=0.000
+and blocked a trustworthy soft primary endpoint. Item-level Beta–
+Binomial scatter restores a non-degenerate null; separate easy/hard
+specimen \(p\)-pools match the EXP-1 design (different confidence shapes
+across strata, both calibrated under the null).
+
+**No Jev output observed.** Offline simulators and the certificate
+specimen generator only. Verify with:
+
+```bash
+git log --oneline -- PREREGISTRATION.md
+find runs -name raw.jsonl ! -path 'runs/offline_fixture/*'
+```
+
 ### Amendment commit hash (binding timestamp)
 
 ```
 AMENDMENT_COMMIT=70be25f7baf91daa748cec11c38f26f17315b17c
 AMENDMENT_6_COMMIT=bf03af91ecd08efa927cea9d1a8eb5adfc941634
+AMENDMENT_7_COMMIT=<fill after this commit>
 ```
 
 Verify with:

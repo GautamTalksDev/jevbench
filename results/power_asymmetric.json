@@ -12,9 +12,11 @@
       "setting": "alternative"
     },
     "alternative_soft": {
-      "calibration": "soft",
+      "calibration": "soft_beta_binomial_kappa_20.0",
       "ci_method": "percentile",
-      "mean_point_delta_ece": 0.08999999999999997,
+      "conf_shift_hard": 0.1,
+      "kappa": 20.0,
+      "mean_point_delta_ece": 0.09272453292756491,
       "n_boot": 2000,
       "n_per_stratum": 750,
       "n_trials": 400,
@@ -34,13 +36,15 @@
       "setting": "null"
     },
     "null_soft": {
-      "calibration": "soft",
+      "calibration": "soft_beta_binomial_kappa_20.0",
       "ci_method": "percentile",
-      "mean_point_delta_ece": 0.0,
+      "conf_shift_hard": 0.0,
+      "kappa": 20.0,
+      "mean_point_delta_ece": 0.003354883472257607,
       "n_boot": 2000,
       "n_per_stratum": 750,
       "n_trials": 400,
-      "rate_exclude_zero": 0.0,
+      "rate_exclude_zero": 0.11,
       "scoring": "soft",
       "setting": "null"
     }
@@ -58,15 +62,25 @@
   "n_trials": 400,
   "noise_rate": "scale * clip(entropy / log2(3), 0, 1)",
   "noise_scale": 0.5,
-  "note": "Hard scoring puts label noise in the hard stratum only, which inflates \u0394ECE in the direction of the hypothesis. Soft scoring is primary. Soft null uses soft calibration; hard null uses hard calibration. null_fpr_soft=0.000, null_fpr_hard=0.085.",
+  "note": "Hard scoring puts label noise in the hard stratum only, which inflates \u0394ECE in the direction of the hypothesis. Soft scoring is primary and uses the Beta\u2013Binomial soft null (PROMPT O). null_fpr_soft=0.110, null_fpr_hard=0.085.",
   "null_fpr_hard": 0.085,
-  "null_fpr_soft": 0.0,
+  "null_fpr_soft": 0.11,
   "null_mean_delta_ece_hard": 0.0155033333333333,
-  "null_mean_delta_ece_soft": 0.0,
+  "null_mean_delta_ece_soft": 0.003354883472257607,
+  "operating_kappa_from_sweep": {
+    "kappa": 20,
+    "null_fpr": 0.1005,
+    "power": 1.0,
+    "reason": "No \u03ba in 10\u201350 landed FPR in [0.03, 0.08]. Operating at \u03ba=20 with empirical FPR=0.101 and power=1.000 \u2014 report honestly (same rule as hard-scoring 92.1% coverage)."
+  },
   "power_hard": 0.9975,
   "power_soft": 1.0,
-  "schema": "jevbench.asymmetric_power.v2",
+  "schema": "jevbench.asymmetric_power.v3",
   "seed": 20260923,
-  "soft_calibration": "Perfect soft calibration: top probability equals the expected annotator share of the pick (c = mean(soft) when miscalibration=0). v1 soft null FPR was elevated because confidence targeted hard-label accuracy; that was a definition mismatch, not an estimator failure.",
+  "soft_calibration": "Soft null v3 (PROMPT O): calibration means E[share|p]=p, not share=p per item. Draw p_i from the certificate specimen top-prob shape; s_i~Beta(\u03ba p_i, \u03ba(1-p_i)); observed share = Binomial(100,s_i)/100. The v2 constant-conf soft null (c=mean(soft)) was degenerate \u2014 FPR=0.000 with no item-level scatter. See results/soft_null_kappa.json.",
+  "soft_conf_shift_hard": 0.1,
+  "soft_kappa": 20.0,
+  "soft_null_kappa_ref": "results/soft_null_kappa.json",
+  "soft_p_source": "certificate specimen top-probability shape (seed 20260919): separate easy and hard pools of 750 each \u2014 same generative sketch as arena/index.html specimen(); not Jev output",
   "target_delta_ece": 0.09
 }

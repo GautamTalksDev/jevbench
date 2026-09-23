@@ -1363,6 +1363,503 @@ def _entropy_ranges_from_lock(repo: Path | None = None) -> tuple[tuple[float, fl
     return (0.0, q_easy), (q_hard, NLI_ENTROPY_MAX)
 
 
+# ---------------------------------------------------------------------------
+# PROMPT O — soft null with item-level scatter (Beta–Binomial)
+# ---------------------------------------------------------------------------
+
+SOFT_NULL_KAPPA_SWEEP = (5, 10, 20, 50, 200)
+SOFT_NULL_ANNOTATOR_N = 100
+# Operating κ chosen after the sweep (realistic band 10–50); see soft_null_kappa.json.
+SOFT_NULL_OPERATING_KAPPA = 20
+SOFT_NULL_P_SOURCE = (
+    "certificate specimen top-probability shape (seed 20260919): separate easy "
+    "and hard pools of 750 each — same generative sketch as arena/index.html "
+    "specimen(); not Jev output"
+)
+
+
+def specimen_top_prob_pools(
+    *,
+    seed: int = 20260919,
+    n_easy: int = 750,
+    n_hard: int = 750,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Easy/hard top-probability pools matching the certificate specimen.
+
+    Not Jev output — the page's specimen generator, reimplemented so the soft
+    null's p_i distributions are stated and reproducible offline. Easy and hard
+    are kept separate: the EXP-1 design compares strata with different
+    confidence shapes, both calibrated under the null.
+    """
+    rng = np.random.default_rng(seed)
+    pools: dict[str, list[float]] = {"easy": [], "hard": []}
+    for stratum, n in (("easy", n_easy), ("hard", n_hard)):
+        for _ in range(n):
+            if stratum == "easy":
+                m = 0.70 + 0.30 * (rng.random() ** 0.6)
+            else:
+                m = 0.36 + 0.26 * rng.random()
+            k = int(rng.integers(0, 3))
+            others = [j for j in range(3) if j != k]
+            v = float(rng.random())
+            human = [0.0, 0.0, 0.0]
+            human[k] = m
+            human[others[0]] = (1.0 - m) * v
+            human[others[1]] = (1.0 - m) * (1.0 - v)
+            if rng.random() < (0.94 if stratum == "easy" else 0.60):
+                pick = k
+            else:
+                w = human[others[0]] + human[others[1]]
+                pick = (
+                    others[0]
+                    if w > 0 and rng.random() < human[others[0]] / w
+                    else others[1]
+                )
+            agree = human[pick]
+            if stratum == "easy":
+                top = float(np.clip(agree + 0.01 + 0.05 * rng.normal(), 0.34, 0.995))
+            else:
+                top = float(np.clip(agree + 0.13 + 0.08 * rng.normal(), 0.34, 0.995))
+                if pick != k and rng.random() < 0.3:
+                    top = float(0.80 + 0.17 * rng.random())
+            pools[stratum].append(top)
+    return np.asarray(pools["easy"], dtype=float), np.asarray(pools["hard"], dtype=float)
+
+
+def specimen_top_prob_pool(
+    *,
+    seed: int = 20260919,
+    n_easy: int = 750,
+    n_hard: int = 750,
+) -> np.ndarray:
+    """Combined specimen top-prob pool (tests / summaries)."""
+    easy, hard = specimen_top_prob_pools(seed=seed, n_easy=n_easy, n_hard=n_hard)
+    return np.concatenate([easy, hard])
+
+
+@dataclass(frozen=True)
+class SoftNullDraw:
+    """One stratum under the Beta–Binomial soft null / alternative."""
+
+    conf: np.ndarray  # reported top probability p̂_i
+    soft_correct: np.ndarray  # observed annotator share of the pick
+    true_p: np.ndarray  # latent calibration target E[share]=true_p
+    kappa: float
+
+
+def simulate_soft_beta_binomial_stratum(
+    n: int,
+    rng: np.random.Generator,
+    *,
+    kappa: float,
+    p_pool: np.ndarray,
+    conf_shift: float = 0.0,
+    annotator_n: int = SOFT_NULL_ANNOTATOR_N,
+    infinite_kappa: bool = False,
+    apply_binomial: bool = True,
+) -> SoftNullDraw:
+    """Calibrated soft stratum with item-level scatter.
+
+    1. Draw ``true_p_i`` from ``p_pool`` (specimen top-prob shape).
+    2. ``s_i ~ Beta(κ·p_i, κ·(1−p_i))`` — mean ``p_i``, so E[share|p]=p.
+    3. Observed share = ``Binomial(annotator_n, s_i) / annotator_n`` unless
+       ``apply_binomial`` is False.
+    4. Reported confidence = ``clip(true_p + conf_shift, …)``. Soft null uses
+       ``conf_shift=0``; the soft alternative shifts hard-stratum confidence.
+
+    ``infinite_kappa`` with ``apply_binomial=False`` forces ``share = true_p``
+    (and confidence = true_p when shift is 0) — the degenerate proof-of-cause.
+    """
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    if not infinite_kappa and kappa <= 0:
+        raise ValueError(f"kappa must be > 0, got {kappa!r}")
+    pool = np.asarray(p_pool, dtype=float)
+    if pool.size < 1:
+        raise ValueError("p_pool is empty")
+    true_p = rng.choice(pool, size=n, replace=True)
+    true_p = np.clip(true_p, 1e-4, 1.0 - 1e-4)
+
+    if infinite_kappa:
+        s = true_p.copy()
+        kappa_used = float("inf")
+    else:
+        a = kappa * true_p
+        b = kappa * (1.0 - true_p)
+        s = rng.beta(a, b)
+        kappa_used = float(kappa)
+
+    if apply_binomial:
+        obs = rng.binomial(int(annotator_n), s).astype(float) / float(annotator_n)
+    else:
+        obs = s
+
+    conf = np.clip(true_p + float(conf_shift), 1e-4, 1.0 - 1e-4)
+    return SoftNullDraw(
+        conf=conf.astype(float),
+        soft_correct=obs.astype(float),
+        true_p=true_p.astype(float),
+        kappa=kappa_used,
+    )
+
+
+def _soft_ece_uniform(conf: np.ndarray, soft: np.ndarray, n_bins: int = 10) -> float:
+    """Top-label ECE with soft correctness; uniform bins on confidence."""
+    n = len(conf)
+    if n == 0:
+        return float("nan")
+    idx = np.minimum(n_bins - 1, (conf * n_bins).astype(int))
+    ece = 0.0
+    for b in range(n_bins):
+        mask = idx == b
+        count = int(mask.sum())
+        if count:
+            ece += (count / n) * abs(float(soft[mask].mean()) - float(conf[mask].mean()))
+    return float(ece)
+
+
+def soft_delta_ece_percentile(
+    conf_h: np.ndarray,
+    soft_h: np.ndarray,
+    conf_e: np.ndarray,
+    soft_e: np.ndarray,
+    *,
+    n_boot: int,
+    rng: np.random.Generator,
+    n_bins: int = 10,
+) -> dict[str, float | bool]:
+    """Fast stratified percentile CI for soft ΔECE = ECE(hard) − ECE(easy)."""
+    point = _soft_ece_uniform(conf_h, soft_h, n_bins) - _soft_ece_uniform(
+        conf_e, soft_e, n_bins
+    )
+    n_h, n_e = len(soft_h), len(soft_e)
+    # Pre-draw all indices — big speed win over per-trial Python loops.
+    ih = rng.integers(0, n_h, size=(n_boot, n_h))
+    ie = rng.integers(0, n_e, size=(n_boot, n_e))
+    samples = np.empty(n_boot, dtype=float)
+    for b in range(n_boot):
+        samples[b] = _soft_ece_uniform(
+            conf_h[ih[b]], soft_h[ih[b]], n_bins
+        ) - _soft_ece_uniform(conf_e[ie[b]], soft_e[ie[b]], n_bins)
+    low = float(np.quantile(samples, 0.025))
+    high = float(np.quantile(samples, 0.975))
+    return {
+        "point": float(point),
+        "ci_low": low,
+        "ci_high": high,
+        "excludes_zero": bool(high < 0.0 or low > 0.0),
+    }
+
+
+def _calibrate_soft_alt_shift(
+    p_pool_easy: np.ndarray,
+    p_pool_hard: np.ndarray,
+    *,
+    kappa: float,
+    n: int = 750,
+    target: float = TARGET_DELTA_ECE,
+    seed: int = 0,
+    n_probe: int = 40,
+) -> float:
+    """Pick a hard-stratum confidence shift so mean point ΔECE ≈ target."""
+    rng = np.random.default_rng(seed)
+    best_shift, best_err = 0.12, 1e9
+    for shift in np.linspace(0.04, 0.28, 13):
+        pts: list[float] = []
+        for _ in range(n_probe):
+            trial = np.random.default_rng(int(rng.integers(0, 2**31 - 1)))
+            hard = simulate_soft_beta_binomial_stratum(
+                n, trial, kappa=kappa, p_pool=p_pool_hard, conf_shift=float(shift)
+            )
+            easy = simulate_soft_beta_binomial_stratum(
+                n, trial, kappa=kappa, p_pool=p_pool_easy, conf_shift=0.0
+            )
+            pts.append(
+                _soft_ece_uniform(hard.conf, hard.soft_correct)
+                - _soft_ece_uniform(easy.conf, easy.soft_correct)
+            )
+        mean_pt = float(np.mean(pts))
+        err = abs(mean_pt - target)
+        if err < best_err:
+            best_err, best_shift = err, float(shift)
+    return best_shift
+
+
+def _soft_null_worker(payload: dict[str, Any]) -> dict[str, Any]:
+    """One (setting, κ) cell — process-pool worker."""
+    setting = payload["setting"]
+    kappa = float(payload["kappa"])
+    n = int(payload["n"])
+    n_trials = int(payload["n_trials"])
+    n_boot = int(payload["n_boot"])
+    seed = int(payload["seed"])
+    conf_shift = float(payload["conf_shift"])
+    infinite_kappa = bool(payload["infinite_kappa"])
+    apply_binomial = bool(payload["apply_binomial"])
+    p_easy = np.asarray(payload["p_pool_easy"], dtype=float)
+    p_hard = np.asarray(payload["p_pool_hard"], dtype=float)
+
+    rng = np.random.default_rng(seed)
+    points: list[float] = []
+    excl = 0
+    for _ in range(n_trials):
+        trial = np.random.default_rng(int(rng.integers(0, 2**31 - 1)))
+        hard = simulate_soft_beta_binomial_stratum(
+            n,
+            trial,
+            kappa=kappa,
+            p_pool=p_hard,
+            conf_shift=conf_shift if setting == "alternative" else 0.0,
+            infinite_kappa=infinite_kappa,
+            apply_binomial=apply_binomial,
+        )
+        easy = simulate_soft_beta_binomial_stratum(
+            n,
+            trial,
+            kappa=kappa,
+            p_pool=p_easy,
+            conf_shift=0.0,
+            infinite_kappa=infinite_kappa,
+            apply_binomial=apply_binomial,
+        )
+        iv = soft_delta_ece_percentile(
+            hard.conf,
+            hard.soft_correct,
+            easy.conf,
+            easy.soft_correct,
+            n_boot=n_boot,
+            rng=trial,
+        )
+        points.append(float(iv["point"]))
+        excl += int(iv["excludes_zero"])
+    return {
+        "setting": setting,
+        "kappa": None if infinite_kappa else kappa,
+        "infinite_kappa": infinite_kappa,
+        "apply_binomial": apply_binomial,
+        "conf_shift_hard": conf_shift if setting == "alternative" else 0.0,
+        "n_per_stratum": n,
+        "n_trials": n_trials,
+        "n_boot": n_boot,
+        "rate_exclude_zero": excl / n_trials,
+        "mean_point_delta_ece": float(np.mean(points)),
+        "se_rate": float(np.sqrt((excl / n_trials) * (1 - excl / n_trials) / max(n_trials, 1))),
+    }
+
+
+def run_soft_null_kappa_sweep(
+    *,
+    n: int = 750,
+    n_trials: int = 2000,
+    n_boot: int = N_BOOT_POWER,
+    seed: int = 20260923,
+    kappas: tuple[float, ...] = SOFT_NULL_KAPPA_SWEEP,
+    max_workers: int = 8,
+    include_proof_of_cause: bool = True,
+) -> dict[str, Any]:
+    """FPR and power vs κ under the Beta–Binomial soft null (PROMPT O).
+
+    Proof-of-cause: κ→∞ with no binomial step must give FPR = 0.000 — confirming
+    the v2 constant-conf soft null was degenerate (share locked to p per item
+    with no scatter), not that the ECE estimator is conservative.
+    """
+    p_easy, p_hard = specimen_top_prob_pools()
+    mid_kappa = 20.0 if 20.0 in kappas else float(kappas[len(kappas) // 2])
+    conf_shift = _calibrate_soft_alt_shift(
+        p_easy,
+        p_hard,
+        kappa=mid_kappa,
+        n=n,
+        target=TARGET_DELTA_ECE,
+        seed=seed + 7,
+    )
+
+    jobs: list[dict[str, Any]] = []
+    job_i = 0
+    for kappa in kappas:
+        for setting in ("null", "alternative"):
+            jobs.append(
+                {
+                    "setting": setting,
+                    "kappa": float(kappa),
+                    "n": n,
+                    "n_trials": n_trials,
+                    "n_boot": n_boot,
+                    "seed": seed + 1000 * job_i + 17,
+                    "conf_shift": conf_shift,
+                    "infinite_kappa": False,
+                    "apply_binomial": True,
+                    "p_pool_easy": p_easy,
+                    "p_pool_hard": p_hard,
+                }
+            )
+            job_i += 1
+    if include_proof_of_cause:
+        jobs.append(
+            {
+                "setting": "null",
+                "kappa": 1e18,
+                "n": n,
+                "n_trials": n_trials,
+                "n_boot": n_boot,
+                "seed": seed + 99991,
+                "conf_shift": 0.0,
+                "infinite_kappa": True,
+                "apply_binomial": False,
+                "p_pool_easy": p_easy,
+                "p_pool_hard": p_hard,
+            }
+        )
+
+    cells: list[dict[str, Any]] = []
+    if max_workers <= 1 or len(jobs) == 1:
+        for job in jobs:
+            cells.append(_soft_null_worker(job))
+    else:
+        with ProcessPoolExecutor(max_workers=max_workers) as pool:
+            futs = [pool.submit(_soft_null_worker, job) for job in jobs]
+            for fut in as_completed(futs):
+                cells.append(fut.result())
+
+    def _sort_key(c: dict[str, Any]) -> tuple:
+        k = c["kappa"]
+        k_ord = 1e18 if c["infinite_kappa"] else float(k)
+        return (0 if c["setting"] == "null" else 1, k_ord, not c["apply_binomial"])
+
+    cells.sort(key=_sort_key)
+
+    proof = next(
+        (
+            c
+            for c in cells
+            if c["setting"] == "null" and c["infinite_kappa"] and not c["apply_binomial"]
+        ),
+        None,
+    )
+    proof_ok = proof is not None and float(proof["rate_exclude_zero"]) == 0.0
+
+    by_kappa: dict[str, Any] = {}
+    for kappa in kappas:
+        null_c = next(
+            c
+            for c in cells
+            if c["setting"] == "null" and c["kappa"] == float(kappa)
+        )
+        alt_c = next(
+            c
+            for c in cells
+            if c["setting"] == "alternative" and c["kappa"] == float(kappa)
+        )
+        by_kappa[str(int(kappa) if float(kappa).is_integer() else kappa)] = {
+            "kappa": float(kappa),
+            "null_fpr": null_c["rate_exclude_zero"],
+            "null_fpr_se": null_c["se_rate"],
+            "power": alt_c["rate_exclude_zero"],
+            "power_se": alt_c["se_rate"],
+            "mean_null_delta_ece": null_c["mean_point_delta_ece"],
+            "mean_alt_delta_ece": alt_c["mean_point_delta_ece"],
+        }
+
+    operating = None
+    for kappa in (10, 20, 50, 5, 200):
+        if kappa not in kappas:
+            continue
+        row = by_kappa[str(kappa)]
+        fpr, pow_ = row["null_fpr"], row["power"]
+        if 0.03 <= fpr <= 0.08 and pow_ >= POWER_THRESHOLD:
+            operating = {
+                "kappa": kappa,
+                "null_fpr": fpr,
+                "power": pow_,
+                "reason": (
+                    f"κ={kappa} in the realistic band with FPR={fpr:.3f} in "
+                    f"[0.03, 0.08] and power={pow_:.3f} ≥ {POWER_THRESHOLD}."
+                ),
+            }
+            break
+    if operating is None:
+        band = [by_kappa[str(k)] for k in (10, 20, 50) if k in kappas]
+        if not band:
+            band = list(by_kappa.values())
+        best = max(band, key=lambda r: (r["power"], -abs(r["null_fpr"] - 0.05)))
+        operating = {
+            "kappa": int(best["kappa"]),
+            "null_fpr": best["null_fpr"],
+            "power": best["power"],
+            "reason": (
+                f"No κ in 10–50 landed FPR in [0.03, 0.08]. Operating at "
+                f"κ={int(best['kappa'])} with empirical FPR={best['null_fpr']:.3f} "
+                f"and power={best['power']:.3f} — report honestly (same rule as "
+                f"hard-scoring 92.1% coverage)."
+            ),
+        }
+
+    return {
+        "schema": "jevbench.soft_null_kappa.v1",
+        "n_per_stratum": n,
+        "n_trials": n_trials,
+        "n_boot": n_boot,
+        "seed": seed,
+        "annotator_n": SOFT_NULL_ANNOTATOR_N,
+        "p_source": SOFT_NULL_P_SOURCE,
+        "p_pool_easy_n": int(p_easy.size),
+        "p_pool_hard_n": int(p_hard.size),
+        "p_pool_quantiles": {
+            "easy": {
+                "p10": float(np.quantile(p_easy, 0.10)),
+                "p50": float(np.quantile(p_easy, 0.50)),
+                "p90": float(np.quantile(p_easy, 0.90)),
+                "mean": float(p_easy.mean()),
+            },
+            "hard": {
+                "p10": float(np.quantile(p_hard, 0.10)),
+                "p50": float(np.quantile(p_hard, 0.50)),
+                "p90": float(np.quantile(p_hard, 0.90)),
+                "mean": float(p_hard.mean()),
+            },
+        },
+        "conf_shift_hard_alternative": conf_shift,
+        "target_delta_ece": TARGET_DELTA_ECE,
+        "diagnosis": (
+            "Under soft scoring, correctness is the annotator share — there is "
+            "no Bernoulli label draw. Setting top probability exactly equal to "
+            "the expected share with constant confidence (v2) makes ECE≈0 with "
+            "~no variance in both strata; the test is degenerate, not "
+            "conservative. Calibration means E[share|p]=p, not share=p per item."
+        ),
+        "proof_of_cause": {
+            "required": "κ→∞ and no binomial step ⇒ FPR = 0.000",
+            "observed_fpr": None if proof is None else proof["rate_exclude_zero"],
+            "confirmed": proof_ok,
+            "methods_sentence": (
+                "When soft correctness equals reported confidence with no "
+                "item-level scatter (κ→∞, no annotator binomial noise), the "
+                "soft ΔECE null is degenerate and the false-positive rate is "
+                "exactly zero — confirming that a non-zero FPR under the "
+                "Beta–Binomial soft null is sampling variance, not estimator bias."
+                if proof_ok
+                else (
+                    "PROOF FAILED: κ→∞ without binomial did not yield FPR=0. "
+                    "Stop and find another cause before EXP-1."
+                )
+            ),
+        },
+        "by_kappa": by_kappa,
+        "cells": cells,
+        "operating": operating,
+        "acceptance": {
+            "fpr_band_ok": any(
+                0.03 <= by_kappa[str(k)]["null_fpr"] <= 0.08
+                for k in (10, 20, 50)
+                if k in kappas
+            ),
+            "power_ok_at_operating": operating["power"] >= POWER_THRESHOLD,
+            "power_threshold": POWER_THRESHOLD,
+        },
+        "jev_data_observed": False,
+    }
+
+
 def run_asymmetric_power(
     *,
     n: int = 750,
@@ -1385,6 +1882,16 @@ def run_asymmetric_power(
     if entropy_easy is None or entropy_hard is None:
         entropy_easy, entropy_hard = _entropy_ranges_from_lock()
     rng = np.random.default_rng(seed)
+    p_easy, p_hard = specimen_top_prob_pools()
+    soft_kappa = float(SOFT_NULL_OPERATING_KAPPA)
+    soft_shift = _calibrate_soft_alt_shift(
+        p_easy,
+        p_hard,
+        kappa=soft_kappa,
+        n=n,
+        target=TARGET_DELTA_ECE,
+        seed=seed + 7,
+    )
     cells: dict[str, Any] = {}
     for setting, mis_h, mis_e in (
         ("alternative", HARD_ECE, EASY_ECE),
@@ -1395,28 +1902,58 @@ def run_asymmetric_power(
             excl = 0
             for _ in range(n_trials):
                 trial = np.random.default_rng(int(rng.integers(0, 2**31 - 1)))
-                hard = simulate_asymmetric_stratum(
-                    n, HARD_ACCURACY, mis_h, trial,
-                    entropy_range=entropy_hard, noise_scale=noise_scale,
-                    calibration=scoring,
-                )
-                easy = simulate_asymmetric_stratum(
-                    n, EASY_ACCURACY, mis_e, trial,
-                    entropy_range=entropy_easy, noise_scale=noise_scale,
-                    calibration=scoring,
-                )
-                ch = hard.labels_hard.astype(float) if scoring == "hard" else hard.soft_correct
-                ce = easy.labels_hard.astype(float) if scoring == "hard" else easy.soft_correct
-                iv = _constant_conf_delta(
-                    ch, float(hard.probs[0]), ce, float(easy.probs[0]),
-                    n_boot=n_boot, rng=trial,
-                )
+                if scoring == "soft":
+                    hard = simulate_soft_beta_binomial_stratum(
+                        n,
+                        trial,
+                        kappa=soft_kappa,
+                        p_pool=p_hard,
+                        conf_shift=soft_shift if setting == "alternative" else 0.0,
+                    )
+                    easy = simulate_soft_beta_binomial_stratum(
+                        n,
+                        trial,
+                        kappa=soft_kappa,
+                        p_pool=p_easy,
+                        conf_shift=0.0,
+                    )
+                    iv = soft_delta_ece_percentile(
+                        hard.conf,
+                        hard.soft_correct,
+                        easy.conf,
+                        easy.soft_correct,
+                        n_boot=n_boot,
+                        rng=trial,
+                    )
+                else:
+                    hard = simulate_asymmetric_stratum(
+                        n, HARD_ACCURACY, mis_h, trial,
+                        entropy_range=entropy_hard, noise_scale=noise_scale,
+                        calibration="hard",
+                    )
+                    easy = simulate_asymmetric_stratum(
+                        n, EASY_ACCURACY, mis_e, trial,
+                        entropy_range=entropy_easy, noise_scale=noise_scale,
+                        calibration="hard",
+                    )
+                    iv = _constant_conf_delta(
+                        hard.labels_hard.astype(float),
+                        float(hard.probs[0]),
+                        easy.labels_hard.astype(float),
+                        float(easy.probs[0]),
+                        n_boot=n_boot,
+                        rng=trial,
+                    )
                 points.append(float(iv["point"]))
                 excl += int(iv["excludes_zero"])
             cells[f"{setting}_{scoring}"] = {
                 "setting": setting,
                 "scoring": scoring,
-                "calibration": scoring,
+                "calibration": (
+                    f"soft_beta_binomial_kappa_{soft_kappa}"
+                    if scoring == "soft"
+                    else "hard"
+                ),
                 "n_per_stratum": n,
                 "n_trials": n_trials,
                 "n_boot": n_boot,
@@ -1424,6 +1961,11 @@ def run_asymmetric_power(
                 "rate_exclude_zero": excl / n_trials,
                 "mean_point_delta_ece": float(np.mean(points)),
             }
+            if scoring == "soft":
+                cells[f"{setting}_{scoring}"]["kappa"] = soft_kappa
+                cells[f"{setting}_{scoring}"]["conf_shift_hard"] = (
+                    soft_shift if setting == "alternative" else 0.0
+                )
     hard_alt = cells["alternative_hard"]["rate_exclude_zero"]
     soft_alt = cells["alternative_soft"]["rate_exclude_zero"]
     hard_null = cells["null_hard"]["mean_point_delta_ece"]
@@ -1431,7 +1973,7 @@ def run_asymmetric_power(
     null_fpr_hard = cells["null_hard"]["rate_exclude_zero"]
     null_fpr_soft = cells["null_soft"]["rate_exclude_zero"]
     return {
-        "schema": "jevbench.asymmetric_power.v2",
+        "schema": "jevbench.asymmetric_power.v3",
         "n_per_stratum": n,
         "n_trials": n_trials,
         "n_boot": n_boot,
@@ -1441,11 +1983,15 @@ def run_asymmetric_power(
         "entropy_easy": list(entropy_easy),
         "entropy_hard": list(entropy_hard),
         "target_delta_ece": TARGET_DELTA_ECE,
+        "soft_kappa": soft_kappa,
+        "soft_conf_shift_hard": soft_shift,
+        "soft_p_source": SOFT_NULL_P_SOURCE,
         "soft_calibration": (
-            "Perfect soft calibration: top probability equals the expected "
-            "annotator share of the pick (c = mean(soft) when miscalibration=0). "
-            "v1 soft null FPR was elevated because confidence targeted hard-label "
-            "accuracy; that was a definition mismatch, not an estimator failure."
+            "Soft null v3 (PROMPT O): calibration means E[share|p]=p, not "
+            "share=p per item. Draw p_i from the certificate specimen top-prob "
+            "shape; s_i~Beta(κ p_i, κ(1-p_i)); observed share = Binomial(100,s_i)/100. "
+            "The v2 constant-conf soft null (c=mean(soft)) was degenerate — "
+            "FPR=0.000 with no item-level scatter. See results/soft_null_kappa.json."
         ),
         "cells": cells,
         "power_hard": hard_alt,
@@ -1457,8 +2003,8 @@ def run_asymmetric_power(
         "note": (
             "Hard scoring puts label noise in the hard stratum only, which "
             "inflates ΔECE in the direction of the hypothesis. Soft scoring "
-            "is primary. Soft null uses soft calibration; hard null uses hard "
-            f"calibration. null_fpr_soft={null_fpr_soft:.3f}, "
+            "is primary and uses the Beta–Binomial soft null (PROMPT O). "
+            f"null_fpr_soft={null_fpr_soft:.3f}, "
             f"null_fpr_hard={null_fpr_hard:.3f}."
         ),
     }

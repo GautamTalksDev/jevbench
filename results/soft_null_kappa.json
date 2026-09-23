@@ -1,0 +1,238 @@
+{
+  "acceptance": {
+    "fpr_band_ok": false,
+    "power_ok_at_operating": true,
+    "power_threshold": 0.8
+  },
+  "annotator_n": 100,
+  "by_kappa": {
+    "10": {
+      "kappa": 10.0,
+      "mean_alt_delta_ece": 0.09119761758332535,
+      "mean_null_delta_ece": 0.004482196816058562,
+      "null_fpr": 0.1085,
+      "null_fpr_se": 0.006954414065900879,
+      "power": 1.0,
+      "power_se": 0.0
+    },
+    "20": {
+      "kappa": 20.0,
+      "mean_alt_delta_ece": 0.09274029131257829,
+      "mean_null_delta_ece": 0.0032002351248697734,
+      "null_fpr": 0.1005,
+      "null_fpr_se": 0.006723085229267884,
+      "power": 1.0,
+      "power_se": 0.0
+    },
+    "200": {
+      "kappa": 200.0,
+      "mean_alt_delta_ece": 0.09490561576916459,
+      "mean_null_delta_ece": 0.001682193656346785,
+      "null_fpr": 0.105,
+      "null_fpr_se": 0.006854742883580682,
+      "power": 1.0,
+      "power_se": 0.0
+    },
+    "5": {
+      "kappa": 5.0,
+      "mean_alt_delta_ece": 0.08888040073926025,
+      "mean_null_delta_ece": 0.00564909695830332,
+      "null_fpr": 0.107,
+      "null_fpr_se": 0.0069119823495145,
+      "power": 1.0,
+      "power_se": 0.0
+    },
+    "50": {
+      "kappa": 50.0,
+      "mean_alt_delta_ece": 0.09388185936885833,
+      "mean_null_delta_ece": 0.0023647508794434322,
+      "null_fpr": 0.1125,
+      "null_fpr_se": 0.0070655413805312895,
+      "power": 1.0,
+      "power_se": 0.0
+    }
+  },
+  "cells": [
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.0,
+      "infinite_kappa": false,
+      "kappa": 5.0,
+      "mean_point_delta_ece": 0.00564909695830332,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 0.107,
+      "se_rate": 0.0069119823495145,
+      "setting": "null"
+    },
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.0,
+      "infinite_kappa": false,
+      "kappa": 10.0,
+      "mean_point_delta_ece": 0.004482196816058562,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 0.1085,
+      "se_rate": 0.006954414065900879,
+      "setting": "null"
+    },
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.0,
+      "infinite_kappa": false,
+      "kappa": 20.0,
+      "mean_point_delta_ece": 0.0032002351248697734,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 0.1005,
+      "se_rate": 0.006723085229267884,
+      "setting": "null"
+    },
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.0,
+      "infinite_kappa": false,
+      "kappa": 50.0,
+      "mean_point_delta_ece": 0.0023647508794434322,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 0.1125,
+      "se_rate": 0.0070655413805312895,
+      "setting": "null"
+    },
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.0,
+      "infinite_kappa": false,
+      "kappa": 200.0,
+      "mean_point_delta_ece": 0.001682193656346785,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 0.105,
+      "se_rate": 0.006854742883580682,
+      "setting": "null"
+    },
+    {
+      "apply_binomial": false,
+      "conf_shift_hard": 0.0,
+      "infinite_kappa": true,
+      "kappa": null,
+      "mean_point_delta_ece": 0.0,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 0.0,
+      "se_rate": 0.0,
+      "setting": "null"
+    },
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.1,
+      "infinite_kappa": false,
+      "kappa": 5.0,
+      "mean_point_delta_ece": 0.08888040073926025,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 1.0,
+      "se_rate": 0.0,
+      "setting": "alternative"
+    },
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.1,
+      "infinite_kappa": false,
+      "kappa": 10.0,
+      "mean_point_delta_ece": 0.09119761758332535,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 1.0,
+      "se_rate": 0.0,
+      "setting": "alternative"
+    },
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.1,
+      "infinite_kappa": false,
+      "kappa": 20.0,
+      "mean_point_delta_ece": 0.09274029131257829,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 1.0,
+      "se_rate": 0.0,
+      "setting": "alternative"
+    },
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.1,
+      "infinite_kappa": false,
+      "kappa": 50.0,
+      "mean_point_delta_ece": 0.09388185936885833,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 1.0,
+      "se_rate": 0.0,
+      "setting": "alternative"
+    },
+    {
+      "apply_binomial": true,
+      "conf_shift_hard": 0.1,
+      "infinite_kappa": false,
+      "kappa": 200.0,
+      "mean_point_delta_ece": 0.09490561576916459,
+      "n_boot": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "rate_exclude_zero": 1.0,
+      "se_rate": 0.0,
+      "setting": "alternative"
+    }
+  ],
+  "conf_shift_hard_alternative": 0.1,
+  "diagnosis": "Under soft scoring, correctness is the annotator share \u2014 there is no Bernoulli label draw. Setting top probability exactly equal to the expected share with constant confidence (v2) makes ECE\u22480 with ~no variance in both strata; the test is degenerate, not conservative. Calibration means E[share|p]=p, not share=p per item.",
+  "jev_data_observed": false,
+  "n_boot": 2000,
+  "n_per_stratum": 750,
+  "n_trials": 2000,
+  "operating": {
+    "kappa": 20,
+    "null_fpr": 0.1005,
+    "power": 1.0,
+    "reason": "No \u03ba in 10\u201350 landed FPR in [0.03, 0.08]. Operating at \u03ba=20 with empirical FPR=0.101 and power=1.000 \u2014 report honestly (same rule as hard-scoring 92.1% coverage)."
+  },
+  "p_pool_easy_n": 750,
+  "p_pool_hard_n": 750,
+  "p_pool_quantiles": {
+    "easy": {
+      "mean": 0.8585494861574395,
+      "p10": 0.7177590827227579,
+      "p50": 0.8982352726102021,
+      "p90": 0.995
+    },
+    "hard": {
+      "mean": 0.6219324079134724,
+      "p10": 0.3927435813773423,
+      "p50": 0.6082477496168478,
+      "p90": 0.8727585552377847
+    }
+  },
+  "p_source": "certificate specimen top-probability shape (seed 20260919): separate easy and hard pools of 750 each \u2014 same generative sketch as arena/index.html specimen(); not Jev output",
+  "proof_of_cause": {
+    "confirmed": true,
+    "methods_sentence": "When soft correctness equals reported confidence with no item-level scatter (\u03ba\u2192\u221e, no annotator binomial noise), the soft \u0394ECE null is degenerate and the false-positive rate is exactly zero \u2014 confirming that a non-zero FPR under the Beta\u2013Binomial soft null is sampling variance, not estimator bias.",
+    "observed_fpr": 0.0,
+    "required": "\u03ba\u2192\u221e and no binomial step \u21d2 FPR = 0.000"
+  },
+  "schema": "jevbench.soft_null_kappa.v1",
+  "seed": 20260923,
+  "target_delta_ece": 0.09
+}
