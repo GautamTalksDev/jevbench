@@ -351,7 +351,7 @@ find runs -name raw.jsonl ! -path 'runs/offline_fixture/*'
 ```
 AMENDMENT_COMMIT=70be25f7baf91daa748cec11c38f26f17315b17c
 AMENDMENT_6_COMMIT=bf03af91ecd08efa927cea9d1a8eb5adfc941634
-AMENDMENT_7_COMMIT=<fill after this commit>
+AMENDMENT_7_COMMIT=3891afac56818bed1dc64850d9775e65d64f613c
 ```
 
 Verify with:
