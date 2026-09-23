@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Copy the latest scored run summary into arena/data/ for Replay mode.
+"""Copy certificate / replay packs into arena/data/.
 
 Never copies into scored run directories. Arena itself cannot write runs/.
+Prefer ``jevbench export-certificate`` → ``results/<run_id>/certificate.json``,
+then copy that file to ``arena/data/`` when publishing a non-specimen page.
 """
 
 import json

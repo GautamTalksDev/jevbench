@@ -296,6 +296,46 @@ def analyze_exp3_cmd(
     raise typer.Exit(code=subprocess.call(cmd))
 
 
+@app.command("export-certificate")
+def export_certificate_cmd(
+    run_id: Annotated[str, typer.Argument(help="Run id under runs/ (or 'specimen')")],
+    synthetic: bool = typer.Option(
+        False,
+        "--synthetic",
+        help="Write a synthetic specimen (ignores run artifacts).",
+    ),
+) -> None:
+    """Write results/<run_id>/certificate.json for the Arena certificate page.
+
+    Copies ΔECE fields from the harness. Never recomputes them in the exporter.
+    """
+    from jevbench.certificate import export_certificate, match_check, write_arena_specimen
+    import json
+
+    root = repo_root()
+    try:
+        path = export_certificate(root, run_id, synthetic=synthetic)
+    except (FileNotFoundError, KeyError, ValueError) as exc:
+        console.print(f"[red]export-certificate failed:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    check = match_check(doc)
+    if doc["meta"].get("synthetic"):
+        write_arena_specimen(root)
+    console.print(f"[green]wrote[/green] {path.relative_to(root)}")
+    console.print(
+        f"  match check {check['symbol']}  "
+        f"ΔECE={doc['result']['delta_ece']:.6f}  "
+        f"synthetic={doc['meta'].get('synthetic')}"
+    )
+    if not check["ok"]:
+        console.print(
+            "[red]Page ECE from items would disagree with stamped result.[/red]"
+        )
+        raise typer.Exit(code=1)
+
+
 def main(argv: list[str] | None = None) -> None:
     app(args=argv)
 

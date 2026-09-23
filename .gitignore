@@ -37,3 +37,5 @@ runs/demo/*
 # Local ChaosNLI sentence cache (fetched; not redistributed)
 datasets/chaosnli/cache/
 .venv/
+
+.cache/

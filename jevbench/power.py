@@ -1249,18 +1249,28 @@ def simulate_asymmetric_stratum(
     *,
     entropy_range: tuple[float, float],
     noise_scale: float = ASYMMETRIC_NOISE_SCALE,
+    calibration: Literal["hard", "soft"] = "hard",
 ) -> AsymmetricDraw:
     """Constant-confidence stratum plus asymmetric label noise.
 
-    The model predicts class 1 at confidence ``c = confidence_for_target``.
-    A latent label equals that class on ``round(n * accuracy)`` items.
-    Each item draws an entropy uniformly from ``entropy_range`` and:
+    Entropy is drawn uniformly from ``entropy_range``. Annotator mass on
+    the predicted class is :func:`majority_share_from_entropy` (the pick
+    is the majority side). Hard labels equal that majority, then flip with
+    probability :func:`noise_rate_from_entropy`.
 
-    * hard label — the latent label, flipped with probability
-      :func:`noise_rate_from_entropy` (the asymmetric noise);
-    * soft correctness — annotator mass on the predicted class, from
-      :func:`majority_share_from_entropy`. Soft correctness does not use
-      the flipped hard label.
+    Calibration mode
+    ----------------
+    ``hard`` :
+        Confidence targets the pre-noise latent accuracy
+        (``c = confidence_for_target(accuracy, miscalibration)``). Soft
+        correctness is still returned, but a soft-scored ECE against this
+        ``c`` is **not** a soft-calibrated null — mean annotator share is
+        not ``accuracy``.
+    ``soft`` :
+        Perfect soft calibration means top probability equals the expected
+        annotator share of the pick. Confidence is
+        ``c = confidence_for_target(mean(soft), miscalibration)``. Use this
+        for soft-scored power and null FPR.
 
     Because the flip rate is higher where entropy is higher, hard scoring
     puts label noise in the hard stratum only, which inflates ΔECE in the
@@ -1268,27 +1278,41 @@ def simulate_asymmetric_stratum(
     """
     if n < 1:
         raise ValueError("n must be >= 1")
+    if calibration not in ("hard", "soft"):
+        raise ValueError(f"calibration must be 'hard' or 'soft', got {calibration!r}")
     lo, hi = float(entropy_range[0]), float(entropy_range[1])
     if not 0.0 <= lo <= hi <= NLI_ENTROPY_MAX + 1e-9:
         raise ValueError(f"entropy_range {entropy_range} outside [0, log2(3)]")
-    c = confidence_for_target(accuracy, miscalibration)
-    n_latent = int(round(n * accuracy))
-    n_latent = min(max(n_latent, 0), n)
-    latent = np.zeros(n, dtype=int)
-    if n_latent:
-        latent[rng.choice(n, size=n_latent, replace=False)] = 1
+
     entropy = rng.uniform(lo, hi, n)
     rate = noise_rate_from_entropy(entropy, scale=noise_scale)
-    flip = rng.random(n) < rate
-    labels = latent.copy()
-    labels[flip] = 1 - labels[flip]
-    share = majority_share_from_entropy(entropy)
-    # Predicted class is 1 (c >= 0.5 by confidence_for_target's range).
-    soft = np.where(latent == 1, share, 1.0 - share)
+    share = majority_share_from_entropy(entropy).astype(float)
+
+    if calibration == "soft":
+        # Pick = majority class (1). Soft correctness = annotator mass on the pick.
+        soft = share
+        labels = np.ones(n, dtype=int)
+        labels[rng.random(n) < rate] = 0
+        true_rate = float(np.clip(soft.mean(), 0.5, 1.0))
+        c = confidence_for_target(true_rate, miscalibration)
+    else:
+        # Latent hard correctness at ``accuracy``, then entropy-dependent flips.
+        n_latent = int(round(n * accuracy))
+        n_latent = min(max(n_latent, 0), n)
+        latent = np.zeros(n, dtype=int)
+        if n_latent:
+            latent[rng.choice(n, size=n_latent, replace=False)] = 1
+        labels = latent.copy()
+        flip = rng.random(n) < rate
+        labels[flip] = 1 - labels[flip]
+        # Soft = annotator mass on the model's predicted class (always 1 here).
+        soft = np.where(latent == 1, share, 1.0 - share)
+        c = confidence_for_target(accuracy, miscalibration)
+
     return AsymmetricDraw(
         probs=np.full(n, c, dtype=float),
         labels_hard=labels,
-        soft_correct=soft.astype(float),
+        soft_correct=soft,
         entropy=entropy.astype(float),
         noise_rate=rate.astype(float),
     )
@@ -1353,8 +1377,10 @@ def run_asymmetric_power(
 
     Alternative: latent ΔECE target 0.09 (same literature anchor as the rest
     of this module), then entropy-dependent flips. Null: both strata
-    calibrated to their latent labels (miscalibration 0) with the same
-    asymmetric noise, so any positive ΔECE is the scoring artifact.
+    calibrated under the scoring rule being tested — hard null against hard
+    labels, soft null against expected annotator share of the pick — with the
+    same asymmetric noise. Soft null FPR must use soft calibration; a hard-
+    calibrated soft null is a definition mismatch, not an estimator failure.
     """
     if entropy_easy is None or entropy_hard is None:
         entropy_easy, entropy_hard = _entropy_ranges_from_lock()
@@ -1372,10 +1398,12 @@ def run_asymmetric_power(
                 hard = simulate_asymmetric_stratum(
                     n, HARD_ACCURACY, mis_h, trial,
                     entropy_range=entropy_hard, noise_scale=noise_scale,
+                    calibration=scoring,
                 )
                 easy = simulate_asymmetric_stratum(
                     n, EASY_ACCURACY, mis_e, trial,
                     entropy_range=entropy_easy, noise_scale=noise_scale,
+                    calibration=scoring,
                 )
                 ch = hard.labels_hard.astype(float) if scoring == "hard" else hard.soft_correct
                 ce = easy.labels_hard.astype(float) if scoring == "hard" else easy.soft_correct
@@ -1388,6 +1416,7 @@ def run_asymmetric_power(
             cells[f"{setting}_{scoring}"] = {
                 "setting": setting,
                 "scoring": scoring,
+                "calibration": scoring,
                 "n_per_stratum": n,
                 "n_trials": n_trials,
                 "n_boot": n_boot,
@@ -1399,8 +1428,10 @@ def run_asymmetric_power(
     soft_alt = cells["alternative_soft"]["rate_exclude_zero"]
     hard_null = cells["null_hard"]["mean_point_delta_ece"]
     soft_null = cells["null_soft"]["mean_point_delta_ece"]
+    null_fpr_hard = cells["null_hard"]["rate_exclude_zero"]
+    null_fpr_soft = cells["null_soft"]["rate_exclude_zero"]
     return {
-        "schema": "jevbench.asymmetric_power.v1",
+        "schema": "jevbench.asymmetric_power.v2",
         "n_per_stratum": n,
         "n_trials": n_trials,
         "n_boot": n_boot,
@@ -1410,17 +1441,25 @@ def run_asymmetric_power(
         "entropy_easy": list(entropy_easy),
         "entropy_hard": list(entropy_hard),
         "target_delta_ece": TARGET_DELTA_ECE,
+        "soft_calibration": (
+            "Perfect soft calibration: top probability equals the expected "
+            "annotator share of the pick (c = mean(soft) when miscalibration=0). "
+            "v1 soft null FPR was elevated because confidence targeted hard-label "
+            "accuracy; that was a definition mismatch, not an estimator failure."
+        ),
         "cells": cells,
         "power_hard": hard_alt,
         "power_soft": soft_alt,
+        "null_fpr_hard": null_fpr_hard,
+        "null_fpr_soft": null_fpr_soft,
         "null_mean_delta_ece_hard": hard_null,
         "null_mean_delta_ece_soft": soft_null,
         "note": (
             "Hard scoring puts label noise in the hard stratum only, which "
-            "inflates ΔECE in the direction of the hypothesis. Compare "
-            "null_mean_delta_ece_hard with null_mean_delta_ece_soft: the hard "
-            "rule's null mean sits higher when the artifact is present. "
-            "Soft scoring is primary."
+            "inflates ΔECE in the direction of the hypothesis. Soft scoring "
+            "is primary. Soft null uses soft calibration; hard null uses hard "
+            f"calibration. null_fpr_soft={null_fpr_soft:.3f}, "
+            f"null_fpr_hard={null_fpr_hard:.3f}."
         ),
     }
 

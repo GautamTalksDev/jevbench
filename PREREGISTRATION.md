@@ -146,13 +146,16 @@ for bin occupancy.
 - **repeats:** 3 (scored EXP-1; feeds EXP-6)
 - **Bootstrap (scored):** n_boot = 10 000; report **BCa and percentile**
 - **Asymmetric-noise power (n=750, 400 trials):** soft power = 1.00; hard
-  power = 0.99 (`results/power_asymmetric.json`). Soft scoring remains
-  primary; hard scoring's null mean ΔECE sits slightly higher (label-noise
-  artifact). Soft null FPR under this simulator is elevated — report
-  empirical coverage, do not claim 95%.
+  power = 0.998 (`results/power_asymmetric.json`). Soft scoring remains
+  primary. Soft null FPR = **0.000** when the null is soft-calibrated
+  (perfect soft calibration: top probability equals the expected annotator
+  share of the pick). Hard null FPR = **0.085** (hard scoring puts label
+  noise only in the hard stratum — an artifact). v1 soft null FPR ≈ 0.27
+  was from hard-label-calibrating soft scores (definition mismatch, not
+  estimator failure).
 - **BCa diagnostic (5000 trials):** stratum-mean coverage ≈ 95.0% (percentile
   and BCa); ΔECE coverage percentile ≈ 92.3%, BCa ≈ 89.2%. Supported
-  explanation: `delta_ece_statistic`.
+  explanation: `delta_ece_statistic` (ECE binning non-smoothness, not a bug).
 
 ---
 

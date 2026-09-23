@@ -1,18 +1,20 @@
 {
   "cells": {
     "alternative_hard": {
+      "calibration": "hard",
       "ci_method": "percentile",
-      "mean_point_delta_ece": 0.10442333333333327,
+      "mean_point_delta_ece": 0.10416666666666659,
       "n_boot": 2000,
       "n_per_stratum": 750,
       "n_trials": 400,
-      "rate_exclude_zero": 0.99,
+      "rate_exclude_zero": 0.9975,
       "scoring": "hard",
       "setting": "alternative"
     },
     "alternative_soft": {
+      "calibration": "soft",
       "ci_method": "percentile",
-      "mean_point_delta_ece": 0.10526301461342243,
+      "mean_point_delta_ece": 0.08999999999999997,
       "n_boot": 2000,
       "n_per_stratum": 750,
       "n_trials": 400,
@@ -21,22 +23,24 @@
       "setting": "alternative"
     },
     "null_hard": {
+      "calibration": "hard",
       "ci_method": "percentile",
-      "mean_point_delta_ece": 0.016649999999999963,
+      "mean_point_delta_ece": 0.0155033333333333,
       "n_boot": 2000,
       "n_per_stratum": 750,
       "n_trials": 400,
-      "rate_exclude_zero": 0.095,
+      "rate_exclude_zero": 0.085,
       "scoring": "hard",
       "setting": "null"
     },
     "null_soft": {
+      "calibration": "soft",
       "ci_method": "percentile",
-      "mean_point_delta_ece": 0.015179830328288268,
+      "mean_point_delta_ece": 0.0,
       "n_boot": 2000,
       "n_per_stratum": 750,
       "n_trials": 400,
-      "rate_exclude_zero": 0.27,
+      "rate_exclude_zero": 0.0,
       "scoring": "soft",
       "setting": "null"
     }
@@ -54,12 +58,15 @@
   "n_trials": 400,
   "noise_rate": "scale * clip(entropy / log2(3), 0, 1)",
   "noise_scale": 0.5,
-  "note": "Hard scoring puts label noise in the hard stratum only, which inflates \u0394ECE in the direction of the hypothesis. Compare null_mean_delta_ece_hard with null_mean_delta_ece_soft: the hard rule's null mean sits higher when the artifact is present. Soft scoring is primary.",
-  "null_mean_delta_ece_hard": 0.016649999999999963,
-  "null_mean_delta_ece_soft": 0.015179830328288268,
-  "power_hard": 0.99,
+  "note": "Hard scoring puts label noise in the hard stratum only, which inflates \u0394ECE in the direction of the hypothesis. Soft scoring is primary. Soft null uses soft calibration; hard null uses hard calibration. null_fpr_soft=0.000, null_fpr_hard=0.085.",
+  "null_fpr_hard": 0.085,
+  "null_fpr_soft": 0.0,
+  "null_mean_delta_ece_hard": 0.0155033333333333,
+  "null_mean_delta_ece_soft": 0.0,
+  "power_hard": 0.9975,
   "power_soft": 1.0,
-  "schema": "jevbench.asymmetric_power.v1",
+  "schema": "jevbench.asymmetric_power.v2",
   "seed": 20260923,
+  "soft_calibration": "Perfect soft calibration: top probability equals the expected annotator share of the pick (c = mean(soft) when miscalibration=0). v1 soft null FPR was elevated because confidence targeted hard-label accuracy; that was a definition mismatch, not an estimator failure.",
   "target_delta_ece": 0.09
 }
