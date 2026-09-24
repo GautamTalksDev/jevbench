@@ -105,6 +105,11 @@ def test_locked_population_has_no_sentences_and_equal_n():
         assert "premise" not in state and "hypothesis" not in state
         assert li.label.label_dist is not None
         assert abs(sum(li.label.label_dist) - 1.0) < 1e-9
+    for li in para:
+        state = li.item.state
+        assert isinstance(state, dict)
+        assert "premise" not in state and "hypothesis" not in state
+        assert state.get("text_status") == "local_paraphrase_required"
 
 
 def test_entropy_matches_readme_example():

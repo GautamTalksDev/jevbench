@@ -1,5 +1,7 @@
 # jevbench
 
+Independent study. Not affiliated with or endorsed by TypeSafe AI.
+
 On the committed offline fixture (n=44 Jev items — **not** a scored live API
 run), the OLS slope of uniform ECE versus tier accuracy is **−0.136**
 (95% bootstrap CI **[−1.420, 0.841]**, 10 000 resamples, seed `20260919`).

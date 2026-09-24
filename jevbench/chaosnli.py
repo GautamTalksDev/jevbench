@@ -275,6 +275,7 @@ def primary_label(row: dict[str, Any]) -> dict[str, Any]:
 def paraphrase_item(
     row: dict[str, Any], premise: str, hypothesis: str, *, tier: str
 ) -> dict[str, Any]:
+    """Build a paraphrase row. Callers persist text only under local/ (gitignored)."""
     if premise.strip() == row["premise"].strip() or hypothesis.strip() == row["hypothesis"].strip():
         raise ValueError(f"{row['id']}: paraphrase copies the source sentence")
     if tier not in ("easy", "hard"):
@@ -283,12 +284,28 @@ def paraphrase_item(
         "id": f"{row['id']}::paraphrase",
         "role": "paraphrase",
         "state": {
-            "hypothesis": hypothesis,
             "pair_id": row["id"],
-            "premise": premise,
             "source": row["source"],
             "source_item_id": row["id"],
-            "text_status": "frozen_paraphrase",
+            "text_status": "local_paraphrase_required",
+            "frozen_before_any_model_run": True,
+        },
+        "tier": tier,
+    }
+
+
+def public_paraphrase_item(source_id: str, *, tier: str, source: str) -> dict[str, Any]:
+    """Committed paraphrase stub — IDs only; text in datasets/chaosnli/local/."""
+    if tier not in ("easy", "hard"):
+        raise ValueError(f"paraphrase tier must be easy or hard, got {tier!r}")
+    return {
+        "id": f"{source_id}::paraphrase",
+        "role": "paraphrase",
+        "state": {
+            "pair_id": source_id,
+            "source": source,
+            "source_item_id": source_id,
+            "text_status": "local_paraphrase_required",
             "frozen_before_any_model_run": True,
         },
         "tier": tier,
@@ -331,12 +348,10 @@ def build_thresholds(
 
 
 def assert_no_source_sentences(rows: list[dict[str, Any]]) -> None:
-    """Primary and universe rows must not carry premise/hypothesis text."""
+    """No committed row may carry premise/hypothesis text (incl. paraphrases)."""
     for row in rows:
         blob = json.dumps(row)
         if '"premise"' in blob or '"hypothesis"' in blob:
-            if row.get("role") == "paraphrase":
-                continue
             raise ValueError(f"source sentence leaked into committed row {row.get('id')}")
 
 
@@ -373,42 +388,88 @@ def cache_text_rows(records: list[dict[str, Any]]) -> list[dict[str, str]]:
     ]
 
 
-def hydrate_dataset(dataset: Any, cache_path: Path) -> int:
-    """Fill premise/hypothesis on in-memory primary items. Does not touch the hashed file."""
-    if not cache_path.is_file():
-        return 0
-    by_id: dict[str, dict[str, str]] = {}
-    with cache_path.open(encoding="utf-8") as f:
+LOCAL_PARAPHRASES = Path("datasets/chaosnli/local/paraphrases.jsonl")
+
+
+def load_local_paraphrases(repo_root: Path) -> dict[str, dict[str, str]]:
+    """Load frozen paraphrase sentences from the gitignored local path."""
+    path = repo_root / "datasets" / "chaosnli" / "local" / "paraphrases.jsonl"
+    if not path.is_file():
+        return {}
+    out: dict[str, dict[str, str]] = {}
+    with path.open(encoding="utf-8") as f:
         for line in f:
-            line = line.strip()
-            if not line:
+            if not line.strip():
                 continue
             obj = json.loads(line)
-            by_id[str(obj["id"])] = obj
+            out[str(obj["id"])] = obj
+    return out
+
+
+def hydrate_dataset(dataset: Any, cache_path: Path) -> int:
+    """Fill premise/hypothesis in memory. Does not touch hashed committed files.
+
+    Primary items: ``datasets/chaosnli/cache/text.jsonl`` (fetched ChaosNLI).
+    Paraphrase items: ``datasets/chaosnli/local/paraphrases.jsonl`` (gitignored).
+    """
+    by_id: dict[str, dict[str, str]] = {}
+    if cache_path.is_file():
+        with cache_path.open(encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                obj = json.loads(line)
+                by_id[str(obj["id"])] = obj
+    # Paraphrases keyed by source item id in local/paraphrases.jsonl
+    chaos_root = cache_path.resolve().parent.parent  # .../chaosnli
+    para_path = chaos_root / "local" / "paraphrases.jsonl"
+    para_by_src: dict[str, dict[str, str]] = {}
+    if para_path.is_file():
+        with para_path.open(encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                obj = json.loads(line)
+                para_by_src[str(obj["id"])] = obj
+
     filled = 0
     for li in dataset.by_id.values():
         state = li.item.state
         if not isinstance(state, dict):
             continue
-        if state.get("text_status") != "fetch_required":
-            continue
-        hit = by_id.get(li.id)
-        if hit is None:
-            continue
-        state["premise"] = hit["premise"]
-        state["hypothesis"] = hit["hypothesis"]
-        state["text_status"] = "fetched"
-        filled += 1
+        status = state.get("text_status")
+        if status == "fetch_required":
+            hit = by_id.get(li.id)
+            if hit is None:
+                continue
+            state["premise"] = hit["premise"]
+            state["hypothesis"] = hit["hypothesis"]
+            state["text_status"] = "fetched"
+            filled += 1
+        elif status == "local_paraphrase_required":
+            src = str(state.get("source_item_id") or state.get("pair_id") or "")
+            hit = para_by_src.get(src)
+            if hit is None:
+                continue
+            state["premise"] = hit["premise"]
+            state["hypothesis"] = hit["hypothesis"]
+            state["text_status"] = "local_paraphrase_hydrated"
+            filled += 1
     return filled
 
 
 def logged_state(state: Any) -> Any:
-    """Drop fetched SNLI/MNLI sentences from run logs. Paraphrases are ours and stay."""
-    if isinstance(state, dict) and state.get("text_status") == "fetched":
+    """Drop sentence text from run logs (fetched ChaosNLI and local paraphrases)."""
+    if not isinstance(state, dict):
+        return state
+    status = state.get("text_status")
+    if status in ("fetched", "local_paraphrase_hydrated", "frozen_paraphrase"):
         return {
             "pair_id": state.get("pair_id"),
             "source": state.get("source"),
-            "text_status": "fetched_not_logged",
+            "source_item_id": state.get("source_item_id"),
+            "text_status": "text_not_logged",
         }
     return state
 

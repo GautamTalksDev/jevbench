@@ -46,6 +46,11 @@ from jevbench.clients.trivial import (  # noqa: E402
 )
 from jevbench.cost import DEFAULT_PILOT  # noqa: E402
 from jevbench.exp1 import NOUL_SUM_FLOOR, normalize_noul_triplet  # noqa: E402
+from jevbench.request_canon import (  # noqa: E402
+    build_request_body,
+    request_body_sha256,
+    strip_row_for_public,
+)
 
 PILOT_SEED = 20260924
 PILOT_N = 20
@@ -282,8 +287,13 @@ def main() -> int:
 
     out_dir = ROOT / "pilot"
     out_dir.mkdir(parents=True, exist_ok=True)
+    full_dir = out_dir / "full"
+    stripped_dir = out_dir / "stripped"
+    full_dir.mkdir(parents=True, exist_ok=True)
+    stripped_dir.mkdir(parents=True, exist_ok=True)
     run_id = datetime.now(UTC).strftime("pilot_%Y%m%dT%H%M%SZ")
-    raw_path = out_dir / f"{run_id}.jsonl"
+    raw_path = full_dir / f"{run_id}.jsonl"
+    stripped_path = stripped_dir / f"{run_id}.jsonl"
 
     forbidden = analysis_ids(ROOT)
     pool = mid_pool(ROOT, forbidden)
@@ -553,6 +563,49 @@ def main() -> int:
                 continue
             break  # budget stop
 
+    # Enrich full log with request bodies; write stripped public twin.
+    if raw_path.is_file():
+        enriched: list[dict[str, Any]] = []
+        stripped_rows: list[dict[str, Any]] = []
+        for line in raw_path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            iid = str(row.get("item_id") or "")
+            hit = text.get(iid)
+            if hit is None:
+                enriched.append(row)
+                continue
+            state = {
+                "premise": hit["premise"],
+                "hypothesis": hit["hypothesis"],
+                "pair_id": iid,
+                "source": hit.get("source", ""),
+            }
+            body = build_request_body(
+                item_id=iid,
+                client=str(row.get("client") or ""),
+                model=str(row.get("model_requested") or ""),
+                state=state,
+                questions=questions,
+            )
+            digest = request_body_sha256(body)
+            full_row = dict(row)
+            full_row["request_body"] = body
+            full_row["request_body_sha256"] = digest
+            enriched.append(full_row)
+            stripped_rows.append(
+                strip_row_for_public(row, request_body_sha256_hex=digest)
+            )
+        raw_path.write_text(
+            "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in enriched),
+            encoding="utf-8",
+        )
+        stripped_path.write_text(
+            "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in stripped_rows),
+            encoding="utf-8",
+        )
+
     defaults_updated = False
     if tok_in:
         mean_in, mean_out = float(np.mean(tok_in)), float(np.mean(tok_out))
@@ -612,7 +665,8 @@ def main() -> int:
         "pilot_ids": pilot_ids,
         "pilot_analysis_overlap": len(overlap),
         "item_guard_ok": len(overlap) == 0,
-        "raw_path": str(raw_path.relative_to(ROOT)),
+        "raw_path": str(stripped_path.relative_to(ROOT)),
+        "raw_full_path": str(raw_path.relative_to(ROOT)),
         "blockers": blockers,
         "ledger_spent": run_spent,
         "ledger_remaining": ledger.remaining_global(),

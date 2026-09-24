@@ -34,10 +34,10 @@ _SNAPSHOTS: dict[str, dict[str, dict[str, float]]] = {
     },
 }
 
-# Default pilot means (from a notional 20-call structured-output pilot).
+# Default pilot means — measured pilot_20260924T190111Z (mid-entropy PROMPT S).
 # Replace with measured counts before claiming a budget in the README.
 DEFAULT_PILOT: dict[str, dict[str, float]] = {
-    "jev": {"input_tokens": 180.0, "output_tokens": 24.0},
+    "jev": {"input_tokens": 588.2, "output_tokens": 103.5},
     # Structured JSON + system prompt overhead — ~500 in / ~80 out is realistic
     "openai/gpt-4o-mini": {"input_tokens": 500.0, "output_tokens": 80.0},
     "anthropic/claude-haiku": {"input_tokens": 500.0, "output_tokens": 80.0},

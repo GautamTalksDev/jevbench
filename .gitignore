@@ -30,12 +30,17 @@ venv/
 *.pkl
 *.joblib
 
-# Arena live demo runs only (scored runs/ ARE committed)
-runs/demo/*
+# Runs: keep offline fixture + demo placeholder only
+runs/*
+!runs/offline_fixture/
+!runs/offline_fixture/**
+!runs/demo/
 !runs/demo/.gitkeep
 
 # Local ChaosNLI sentence cache (fetched; not redistributed)
 datasets/chaosnli/cache/
+# Frozen paraphrase sentence text (SHA-256 is public; text is not)
+datasets/chaosnli/local/
 .venv/
 
 .cache/
@@ -43,7 +48,16 @@ datasets/chaosnli/cache/
 # Pilot secrets / raw logs
 pilot/.env.local
 pilot/*.jsonl
-
+# Unstripped pilot logs keep ChaosNLI premise/hypothesis — never commit
+pilot/full/
+# Stripped public logs: responses + item IDs + request_body_sha256 only
+!pilot/stripped/
+!pilot/stripped/*.jsonl
 
 # Spend ledger (runtime)
 budget.json
+
+# Sealed local overnight status / logs
+runs/SEALED_LOCAL*
+logs/
+pilot/run.log

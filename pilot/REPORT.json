@@ -1,0 +1,74 @@
+{
+  "balance_check": "pending \u2014 compare TypeSafe console \u0394 to ledger",
+  "blockers": [],
+  "checks": {
+    "1_resolved_model": {
+      "ok": true,
+      "values": [
+        "jev-1.13.0"
+      ]
+    },
+    "2_shapes": {
+      "choice_all_three": true,
+      "noul_no_confidence": true
+    },
+    "3_noul_floor": {
+      "noul_calls": 20,
+      "triggers": 0
+    },
+    "4_probability_source": "Amendment 10: paid adapter baselines removed. Prefill probabilities are logprob-derived (TransformersPrefillBackend / single constrained token). GLiClass scores are classifier logits\u2192softmax, not verbalised.",
+    "5_tokens": {
+      "defaults_updated": true,
+      "jev_mean_in": 588.25,
+      "jev_mean_out": 103.5
+    },
+    "6_latency": {
+      "gliclass_p50": 148.06685800067498,
+      "gliclass_p95": 208.41311100048188,
+      "jev_p50": 125.25144400024146,
+      "jev_p95": 266.09809399997175,
+      "network_p50": 62.93193099918426,
+      "network_p95": 207.7366539997456,
+      "prefill_p50": NaN,
+      "prefill_p95": NaN
+    },
+    "7_errors": {},
+    "8_baselines": {
+      "gliclass_resolved": [
+        "knowledgator/gliclass-base-v1.0"
+      ],
+      "prefill_resolved": []
+    }
+  },
+  "credit_expiry": "unknown",
+  "item_guard_ok": true,
+  "ledger_remaining": 2.49950588,
+  "ledger_spent": 0.00049412,
+  "n_items": 20,
+  "pilot_analysis_overlap": 0,
+  "pilot_ids": [
+    "109443n",
+    "110061n",
+    "115173n",
+    "116176c",
+    "1368082221.jpg#4r1c",
+    "21147e",
+    "23280e",
+    "2370481277.jpg#0r1n",
+    "24789e",
+    "27587n",
+    "2904739724.jpg#0r1e",
+    "372570543.jpg#0r1e",
+    "3822535114.jpg#2r1e",
+    "3970646119.jpg#0r1n",
+    "448658518.jpg#0r1c",
+    "4637931300.jpg#2r1c",
+    "4695720306.jpg#3r1n",
+    "476477265.jpg#0r1n",
+    "507035997.jpg#2r1c",
+    "83145n"
+  ],
+  "raw_path": "pilot/pilot_20260924T190111Z.jsonl",
+  "run_id": "pilot_20260924T190111Z",
+  "utc": "2026-09-24T19:01:36.020154+00:00"
+}

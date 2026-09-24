@@ -1,11 +1,7 @@
 name: Deploy arena to GitHub Pages
 
+# Manual only until EXP-1 results exist. Do not auto-deploy on push.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "arena/**"
-      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:

@@ -155,10 +155,13 @@ class TransformersPrefillBackend:
                 "transformers+torch required for backend='transformers'. "
                 "pip install transformers accelerate"
             ) from exc
+        # float16 ~halves RSS vs float32. On a ~10 GB WSL box, float32
+        # Qwen2.5-1.5B (~6.5 GB weights + activations) gets OOM-killed mid-load.
         self._tok = AutoTokenizer.from_pretrained(self.model_id, trust_remote_code=True)
         self._model = AutoModelForCausalLM.from_pretrained(
             self.model_id,
-            torch_dtype=torch.float32,
+            dtype=torch.float16,
+            low_cpu_mem_usage=True,
             trust_remote_code=True,
         )
         self._model.to(self.device)

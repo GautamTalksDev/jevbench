@@ -33,7 +33,14 @@ The annotation counts in `universe.jsonl` and `labels.jsonl` are an excerpt of C
 
 ## Contamination paraphrases
 
-SNLI has been public since 2015 and MNLI since 2018. `paraphrases.jsonl` holds 100 items (50 easy, 50 hard), reworded and frozen before any model run. A large drop from the original wording to the paraphrase, reported for every arm, suggests memorisation. Paraphrase rows are `role: paraphrase` and are not in the primary ΔECE sample.
+SNLI has been public since 2015 and MNLI since 2018. One hundred items
+(50 easy, 50 hard) were **hand-rewritten** and frozen before any model run
+(see `paper/METHODS_NOTES.md`). Sentence text is **not** in this repository:
+it lives only at gitignored `local/paraphrases.jsonl`, proven by
+`paraphrases.sha256`. IDs are in `paraphrase_ids.json`. A large drop from
+the original wording to the paraphrase, reported for every arm, suggests
+memorisation. Paraphrase rows are `role: paraphrase` and are not in the
+primary ΔECE sample.
 
 ## No Jev output
 

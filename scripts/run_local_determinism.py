@@ -124,21 +124,33 @@ def main() -> int:
                     "hypothesis": hit["hypothesis"],
                     "pair_id": iid,
                 }
+                # Heartbeat before work — proves liveness without printing preds.
+                print(
+                    f"  … {cspec.name} item {checked + 1}/{len(item_ids)} …",
+                    flush=True,
+                )
                 fps = []
                 for r in range(args.repeats):
+                    # Hold pass_idx fixed: sentinel order-permutation is a
+                    # separate bias control, not part of bit-determinism.
                     dec = client.decide(
                         SystemOneRequest(
                             item_id=iid,
                             state=state,
                             questions=questions,
                             model=cspec.model or "",
-                            pass_idx=r,
+                            pass_idx=0,
                         )
                     )
                     fps.append(_fingerprint(dec))
                 checked += 1
                 if len(set(fps)) != 1:
                     mismatches += 1
+                print(
+                    f"  … {cspec.name} checked={checked}/{len(item_ids)} "
+                    f"mismatches={mismatches}",
+                    flush=True,
+                )
         finally:
             rel = getattr(client, "release", None)
             if callable(rel):

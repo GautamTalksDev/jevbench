@@ -30,7 +30,7 @@ Scored runs **must refuse** if either hash changes.
 
 | File | SHA-256 |
 |---|---|
-| `datasets/chaosnli/items.jsonl` | `38c8c5b204de7306d6c4bc4a9fcd4c815144e04ceed38191da505726cf66f549` |
+| `datasets/chaosnli/items.jsonl` | `1fbb1ab363004139b82431f8bf378ba4d43be57cd995c7e64d231770b1c71a19` |
 | `datasets/chaosnli/labels.jsonl` | `efadb35ac7472d18d25ee325b0582d4632a393ea7e024b7ff09c5ce164fe84ad` |
 
 Supporting lock files (not hashed by the runner, but fixed before any call):
@@ -39,7 +39,8 @@ Supporting lock files (not hashed by the runner, but fixed before any call):
 |---|---|
 | `datasets/chaosnli/universe.jsonl` | `afde068d643bf5e6d915d428849adf27938cb827badd2d023837719af129e3ca` |
 | `datasets/chaosnli/thresholds.json` | `145b2434eb95f9e1322e98ed7eeca4caaa60c6e888ab3d01963959ce09297e67` |
-| `datasets/chaosnli/paraphrases.jsonl` | `945d2ae0eb8dd0d5ce21b2f2a20095ea97ff4f28e37997aebe86943a84c5f590` |
+| `datasets/chaosnli/paraphrases.sha256` | `945d2ae0eb8dd0d5ce21b2f2a20095ea97ff4f28e37997aebe86943a84c5f590` (of local `paraphrases.jsonl`) |
+| `datasets/chaosnli/paraphrase_ids.json` | (IDs only — see file) |
 
 Machine-readable lock: `preregistration.lock.json`
 
@@ -560,5 +561,7 @@ git log --oneline -- PREREGISTRATION.md
 > and code scaffolding under the author's direction. All experimental
 > design, claims, analysis, and errors are the author's own. Every
 > factual claim was verified against the cited primary source. The ~100
-> contamination paraphrases were authored for this study and frozen before
-> any model run.
+> contamination paraphrases were **hand-authored** for this study and frozen
+> before any model run. Sentence text is not redistributed; only
+> `paraphrases.sha256` and item IDs are public (see `paper/METHODS_NOTES.md`
+> and `docs/HISTORY_REWRITE.md`).
