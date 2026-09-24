@@ -20,7 +20,7 @@ from jevbench.verdict import decide_verdict
 
 SCHEMA = "jevbench.certificate.v1"
 MATCH_TOL = 1e-6
-PREREG_COMMIT_EXP1 = "bf03af9"  # updated to Amendment 9 binding hash after commit
+PREREG_COMMIT_EXP1 = "6011c75"  # Amendment 9 binding (see PREREGISTRATION.md)
 LABEL_ORDER = NLI_LABEL_ORDER  # entailment, neutral, contradiction
 
 
