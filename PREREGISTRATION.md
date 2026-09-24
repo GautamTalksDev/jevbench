@@ -395,7 +395,7 @@ interval and the margin to the ≤0.02 "holds" zone are not.
 AMENDMENT_COMMIT=70be25f7baf91daa748cec11c38f26f17315b17c
 AMENDMENT_6_COMMIT=bf03af91ecd08efa927cea9d1a8eb5adfc941634
 AMENDMENT_7_COMMIT=3891afac56818bed1dc64850d9775e65d64f613c
-AMENDMENT_8_COMMIT=<fill after this commit>
+AMENDMENT_8_COMMIT=9828641f73666c51a6ced232726049b7ff19e141
 ```
 
 Verify with:
