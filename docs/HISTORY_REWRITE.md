@@ -2,8 +2,9 @@
 
 **When:** 2026-09-24 (UTC).
 **Why:** Remove frozen-paraphrase sentence text from git history before any
-public push. Paraphrases are hand rewrites of ChaosNLI/SNLI/MNLI sentences;
-publishing them would undo the "no sentence text in the repo" decision.
+public push. Paraphrases are AI-generated rewrites of ChaosNLI/SNLI/MNLI
+sentences (specific Cursor model undetermined); publishing them would undo
+the "no sentence text in the repo" decision.
 
 **Credibility:** This rewrite happened **before any public push** and **before
 any scored EXP-1 Jev data**. Local commit hashes cited in earlier amendment

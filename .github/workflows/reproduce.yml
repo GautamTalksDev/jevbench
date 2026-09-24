@@ -24,6 +24,9 @@ jobs:
       - name: Unit tests
         run: make test
 
+      - name: Verify cited commit hashes resolve
+        run: python scripts/verify_citations.py
+
       - name: Regenerate metrics and charts offline
         run: make reproduce
 

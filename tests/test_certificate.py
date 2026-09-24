@@ -108,6 +108,42 @@ const { chromium } = require('playwright');
   if (match !== '✓' || !ok) process.exit(2);
 })().catch((e) => { console.error(e); process.exit(1); });
 """
+    _run_playwright(arena_server, script, "headless_match.cjs")
+
+
+def test_gauge_needle_equals_delta_corrected(arena_server: str) -> None:
+    """Prompt N: gauge needle must track result.delta_corrected, not raw ΔECE."""
+    script = r"""
+const { chromium } = require('playwright');
+(async () => {
+  const url = process.argv[2];
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
+  await page.waitForFunction(() => window.__CERTIFICATE_READY__ === true, null, { timeout: 60000 });
+  const payload = await page.evaluate(() => {
+    const doc = window.JevbenchCertificate.getDoc();
+    const needle = window.JevbenchCertificate.gaugeNeedleDelta();
+    const corrected = Number(doc.result.delta_corrected != null ? doc.result.delta_corrected : doc.result.delta_ece);
+    return {
+      needle,
+      corrected,
+      raw: Number(doc.result.delta_raw != null ? doc.result.delta_raw : doc.result.delta_ece),
+      absDiff: Math.abs(needle - corrected),
+    };
+  });
+  console.log(JSON.stringify(payload));
+  await browser.close();
+  if (!(Number.isFinite(payload.needle) && payload.absDiff <= 1e-9)) process.exit(2);
+})().catch((e) => { console.error(e); process.exit(1); });
+"""
+    out = _run_playwright(arena_server, script, "headless_gauge.cjs")
+    payload = json.loads(out.strip().splitlines()[-1])
+    assert payload["absDiff"] <= 1e-9
+    assert abs(payload["needle"] - payload["corrected"]) <= 1e-9
+
+
+def _run_playwright(arena_server: str, script: str, filename: str) -> str:
     # Install playwright on demand into a cache dir under the repo (dev-only).
     node_dir = ROOT / ".cache" / "certificate-playwright"
     node_dir.mkdir(parents=True, exist_ok=True)
@@ -130,9 +166,7 @@ const { chromium } = require('playwright');
             text=True,
         )
 
-    script_path = node_dir / "headless_match.mjs"
-    # CommonJS require — use .cjs
-    script_path = node_dir / "headless_match.cjs"
+    script_path = node_dir / filename
     script_path.write_text(script, encoding="utf-8")
     proc = subprocess.run(
         ["node", str(script_path), arena_server],
@@ -143,9 +177,7 @@ const { chromium } = require('playwright');
     )
     if proc.returncode != 0:
         pytest.fail(
-            f"headless match failed (code={proc.returncode})\n"
+            f"headless failed (code={proc.returncode})\n"
             f"stdout: {proc.stdout}\nstderr: {proc.stderr}"
         )
-    payload = json.loads(proc.stdout.strip().splitlines()[-1])
-    assert payload["match"] == "✓"
-    assert payload["ok"] is True
+    return proc.stdout

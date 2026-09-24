@@ -509,8 +509,13 @@
     // Expose for headless tests
     window.JevbenchCertificate = {
       softCorrect, eceSoft, recompute, matchStatus, zoneFor, verdictFromHarness,
-      getDoc: () => doc
+      drawGauge, getDoc: () => doc,
+      // Needle tracks corrected ΔECE (same quantity as the verdict).
+      gaugeNeedleDelta: () => lastGauge.corrected,
+      gaugeRawDelta: () => lastGauge.raw,
     };
+
+    let lastGauge = { corrected: NaN, raw: NaN, ciLow: NaN, ciHigh: NaN };
 
     function zoneFor(delta) {
       // Display gauge only — Amendment 9 verdict comes from harness result.verdict.
@@ -575,32 +580,57 @@
       return (x >= 0 && d >= 3 ? "+" : "") + x.toFixed(d);
     }
 
-    function drawGauge(delta) {
+    function drawGauge(corrected, opts) {
+      // Needle = corrected ΔECE (verdict quantity). Raw is a secondary marker.
+      opts = opts || {};
+      const raw = Number(opts.raw);
+      const ciLow = Number(opts.ciLow);
+      const ciHigh = Number(opts.ciHigh);
+      const delta = Number(corrected);
+      lastGauge = { corrected: delta, raw, ciLow, ciHigh };
       const svg = document.getElementById("gaugeSvg");
       const w = 420, h = 160;
       const cx = 210, cy = 140, r = 110;
       const maxX = 0.20; // gauge scale
-      const clamp = Math.max(0, Math.min(maxX, delta));
-      const ang = (v) => Math.PI + (v / maxX) * Math.PI;
+      const clamp = (v) => Math.max(0, Math.min(maxX, Number(v) || 0));
+      const ang = (v) => Math.PI + (clamp(v) / maxX) * Math.PI;
       const pt = (v, rr) => {
         const a = ang(v);
         return [cx + rr * Math.cos(a), cy + rr * Math.sin(a)];
       };
-      const arc = (a0, a1, color) => {
+      const arc = (a0, a1, color, width) => {
         const p0 = pt(a0, r), p1 = pt(a1, r);
         const large = (ang(a1) - ang(a0)) > Math.PI ? 1 : 0;
-        return `<path d="M ${p0[0]} ${p0[1]} A ${r} ${r} 0 ${large} 1 ${p1[0]} ${p1[1]}" fill="none" stroke="${color}" stroke-width="18" />`;
+        return `<path d="M ${p0[0]} ${p0[1]} A ${r} ${r} 0 ${large} 1 ${p1[0]} ${p1[1]}" fill="none" stroke="${color}" stroke-width="${width || 18}" />`;
       };
-      const needle = pt(clamp, r - 8);
+      const needle = pt(delta, r - 8);
+      let ciBand = "";
+      if (Number.isFinite(ciLow) && Number.isFinite(ciHigh) && ciHigh > ciLow) {
+        const lo = clamp(ciLow), hi = clamp(ciHigh);
+        ciBand = arc(lo, hi, "var(--diagonal)", 6);
+      }
+      let rawMark = "";
+      if (Number.isFinite(raw)) {
+        const rm = pt(raw, r + 2);
+        const rmIn = pt(raw, r - 22);
+        rawMark = `
+          <line x1="${rmIn[0]}" y1="${rmIn[1]}" x2="${rm[0]}" y2="${rm[1]}" stroke="var(--bone-dim)" stroke-width="2" stroke-dasharray="3 2" />
+          <circle cx="${rm[0]}" cy="${rm[1]}" r="3.5" fill="none" stroke="var(--bone-dim)" stroke-width="1.5" />
+          <text x="${Math.min(400, Math.max(20, rm[0]))}" y="${Math.max(20, rm[1] - 8)}" text-anchor="middle" fill="var(--bone-dim)" font-family="var(--mono)" font-size="9">raw (biased upward)</text>
+        `;
+      }
       svg.innerHTML = `
-        <title id="gaugeTitle">ΔECE decision gauge</title>
-        <desc id="gaugeDesc">Point estimate ${delta.toFixed(3)}. Zones: holds ≤0.02, inconclusive 0.02–0.09, tracks ≥0.09.</desc>
+        <title id="gaugeTitle">Corrected ΔECE decision gauge</title>
+        <desc id="gaugeDesc">Needle at corrected ΔECE ${Number.isFinite(delta) ? delta.toFixed(3) : "—"}${Number.isFinite(raw) ? "; raw marker " + raw.toFixed(3) + " (biased upward)" : ""}. Zones: holds ≤0.02, inconclusive 0.02–0.09, tracks ≥0.09.</desc>
         ${arc(0, HOLD, "var(--hold)")}
         ${arc(HOLD, TRACKS, "var(--inconclusive)")}
         ${arc(TRACKS, maxX, "var(--tracks)")}
-        <line x1="${cx}" y1="${cy}" x2="${needle[0]}" y2="${needle[1]}" stroke="var(--diagonal)" stroke-width="3" />
+        ${ciBand}
+        ${rawMark}
+        <line x1="${cx}" y1="${cy}" x2="${needle[0]}" y2="${needle[1]}" stroke="var(--diagonal)" stroke-width="3" data-gauge-needle="corrected" />
         <circle cx="${cx}" cy="${cy}" r="6" fill="var(--diagonal)" />
         <text x="${cx}" y="28" text-anchor="middle" fill="var(--bone)" font-family="var(--mono)" font-size="22">${fmt(delta, 3)}</text>
+        <text x="${cx}" y="46" text-anchor="middle" fill="var(--bone-dim)" font-size="10">corrected ΔECE</text>
         <text x="40" y="150" fill="var(--bone-dim)" font-size="11">0</text>
         <text x="200" y="48" fill="var(--bone-dim)" font-size="11">0.10</text>
         <text x="360" y="150" fill="var(--bone-dim)" font-size="11">0.20</text>
@@ -699,10 +729,15 @@
       document.getElementById("modelBadge").textContent = d.meta.model_resolved || "—";
 
       const delta = Number(d.result.delta_corrected != null ? d.result.delta_corrected : d.result.delta_ece);
+      const rawDelta = Number(d.result.delta_raw != null ? d.result.delta_raw : d.result.delta_ece);
       const v = verdictFromHarness(d.result, synthetic);
       document.getElementById("verdictTitle").textContent = v.title;
       document.getElementById("verdictSub").textContent = v.sub;
-      drawGauge(Number(d.result.delta_ece));
+      drawGauge(delta, {
+        raw: rawDelta,
+        ciLow: d.result.ci_low,
+        ciHigh: d.result.ci_high,
+      });
 
       document.getElementById("deltaValue").textContent = fmt(delta, 3);
       if (d.result.p_value != null && Number.isFinite(Number(d.result.p_value))) {
@@ -794,7 +829,13 @@
     let resizeTimer = null;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => { if (doc) { drawGauge(Number(doc.result.delta_ece)); drawScatter(doc.items, !!(doc.meta && doc.meta.synthetic)); } }, 100);
+      resizeTimer = setTimeout(() => {
+        if (!doc) return;
+        const corr = Number(doc.result.delta_corrected != null ? doc.result.delta_corrected : doc.result.delta_ece);
+        const raw = Number(doc.result.delta_raw != null ? doc.result.delta_raw : doc.result.delta_ece);
+        drawGauge(corr, { raw, ciLow: doc.result.ci_low, ciHigh: doc.result.ci_high });
+        drawScatter(doc.items, !!(doc.meta && doc.meta.synthetic));
+      }, 100);
     });
 
     async function boot() {
