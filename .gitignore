@@ -39,3 +39,11 @@ datasets/chaosnli/cache/
 .venv/
 
 .cache/
+
+# Pilot secrets / raw logs
+pilot/.env.local
+pilot/*.jsonl
+
+
+# Spend ledger (runtime)
+budget.json

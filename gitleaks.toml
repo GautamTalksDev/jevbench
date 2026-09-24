@@ -1,0 +1,16 @@
+# Gitleaks — fail if secrets appear in commits
+title = "jevbench"
+[extend]
+useDefault = true
+
+[[rules]]
+id = "typesafe-api-key"
+description = "TypeSafe API key"
+regex = '''(?i)typesafe[_-]?api[_-]?key\s*[=:]\s*['\"]?[a-zA-Z0-9_\-]{16,}'''
+tags = ["key", "typesafe"]
+
+[allowlist]
+paths = [
+  '''\.env\.example$''',
+  '''gitleaks\.toml$''',
+]

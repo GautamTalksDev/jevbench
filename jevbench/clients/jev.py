@@ -105,6 +105,27 @@ class JevClient:
         status = getattr(exc, "status_code", None) or getattr(exc, "status", None)
         return status == 429
 
+    def _http_status(self, exc: BaseException) -> int | None:
+        status = getattr(exc, "status_code", None) or getattr(exc, "status", None)
+        try:
+            return int(status) if status is not None else None
+        except (TypeError, ValueError):
+            return None
+
+    def _is_retryable(self, exc: BaseException) -> bool:
+        """Amendment 10: never retry 4xx (incl. 429). Retry 5xx / connection only."""
+        status = self._http_status(exc)
+        if status is not None and 400 <= status < 500:
+            return False
+        if self._is_rate_limit(exc):
+            return bool(self.retry.retry_429)
+        name = type(exc).__name__.lower()
+        if any(k in name for k in ("timeout", "connection", "network")):
+            return True
+        if status is not None and status >= 500:
+            return True
+        return False
+
     def _retry_after_s(self, exc: BaseException, attempt: int) -> float:
         header = None
         for attr in ("retry_after", "retry-after"):
@@ -147,15 +168,16 @@ class JevClient:
             except Exception as exc:  # noqa: BLE001 — recorded, never silent
                 last_exc = exc
                 latency_so_far = (time.perf_counter() - t0) * 1000.0
-                if self._is_rate_limit(exc) and attempt < self.retry.max_attempts:
+                if self._is_retryable(exc) and attempt < self.retry.max_attempts:
                     delay = self._retry_after_s(exc, attempt)
                     logger.warning(
-                        "RateLimitError on attempt %s/%s; sleeping %.2fs "
-                        "(retry-after honoured when present). item_id=%s",
+                        "Retryable error on attempt %s/%s; sleeping %.2fs "
+                        "(4xx never retried). item_id=%s err=%s",
                         attempt,
                         self.retry.max_attempts,
                         delay,
                         request.item_id,
+                        exc,
                     )
                     self._sleep(delay)
                     continue

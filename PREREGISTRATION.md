@@ -6,7 +6,7 @@
 **Pinned model:** `jev-1.13.0`
 **Serving path:** `native`
 **Locked at (UTC):** 2026-09-20T02:59:57+00:00
-**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendments 6–8); 2026-09-24 (Amendment 9)
+**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendments 6–8); 2026-09-24 (Amendments 9–10)
 
 This document locks hypotheses, metrics, and decision rules **before**
 scored API calls. Analyses that diverge are labelled exploratory.
@@ -211,6 +211,7 @@ explicitly marked not scored).
 | 7 (soft null Beta–Binomial) | 2026-09-23 | see `AMENDMENT_7_COMMIT` below |
 | 8 (structural ECE bias correction) | 2026-09-24 | see `AMENDMENT_8_COMMIT` below |
 | 9 (Choice+Noul; parametric verdict; JSD/TVD) | 2026-09-24 | see `AMENDMENT_9_COMMIT` below |
+| 10 (secondaries S1–S3; local baselines; budget) | 2026-09-24 | see `AMENDMENT_10_COMMIT` below |
 
 ### Amendment 1 — primary endpoint → ΔECE
 
@@ -414,9 +415,10 @@ interval and the margin to the ≤0.02 "holds" zone are not.
    (`noul_entailment` / `noul_neutral` / `noul_contradiction`), normalized
    to sum to 1. Run the identical soft ΔECE + bias-corrected analysis on
    both arms. Report both; neither is "the" result. Motivation: TypeSafe's
-   own docs that Choice and Noul are not interchangeable (verified); see
-   `paper/RELATED_WORK.md`. Specific third-party audit numbers were **not**
-   re-verified to a primary repo at amendment time and are not cited.
+   own docs that Choice and Noul are not interchangeable, and
+   `MohitSV/jev-calibration-audit` (README read 2026-09-24) already comparing
+   Choice vs Noul against ChaosNLI vote distributions. Dual primitives are
+   **not** novelty — they are a confound control. See `paper/RELATED_WORK.md`.
 2. **Verdict rule** (primary = parametric corrected test):
    - tracks = corrected ΔECE ≥ 0.09 AND p < 0.05
    - holds = one-sided reject ΔECE ≥ 0.09 at 0.05 (simulate under true
@@ -435,25 +437,73 @@ interval and the margin to the ≤0.02 "holds" zone are not.
 3. **Secondary.** JSD and TVD from Jev's distribution to the human
    distribution, per stratum, both arms, vs a uniform-guess baseline
    (motivated by Baan et al., EMNLP 2022 / arXiv 2210.16133 — verified).
-4. **Related work.** Credit SamuelSacco/jev-exploration#1 (2026-09-17) as
-   the origin of the difficulty-vs-calibration question (verified; issue
-   later closed on a different synthetic design). Re-trace the 0.09
-   effect-size justification: verified low-accuracy end is phishing ECE
-   0.154 @ 62.6%; the earlier "~0.05–0.07 at ~92%" figure was **not**
-   re-traced to a primary repo — threshold stays; justification discloses
-   that. Claims about jev-frontier-bench / HF ChaosNLI jev-bench /
-   jev-calibration-audit specific numbers were **not** verified and are
-   not cited.
+4. **Related work (PROMPT R permalinks).** SamuelSacco #1 is the origin of
+   the question; the synthetic email-tier answer lives at closing comment
+   https://github.com/SamuelSacco/jev-exploration/issues/1#issuecomment-5723851806
+   and `lab/tiers/FINDINGS.md` @ `6161684f`. Primary ChaosNLI-on-Jev sources
+   read before citing: manjunathshiva/jev-frontier-bench, OmarMujahid/
+   jev-decision-bench, MohitSV/jev-calibration-audit, HF Praveenrajus/jev-bench
+   — see `paper/RELATED_WORK.md`. Effect-size 0.09: verified low-accuracy end
+   is phishing ECE 0.154 @ 62.6%; the earlier "~0.05–0.07 at ~92%" figure was
+   not re-traced — threshold stays with disclosure.
+5. **Composite tracks power curve.** At true ΔECE = 0.09, composite tracks
+   power ≈ 0.52 by construction (median split). Curve across
+   {0.09, 0.11, 0.13, 0.15} in `results/tracks_power_curve.json`.
 
 **Reason:** The landscape moved while the harness was built. The core
-question is no longer unpublished as a question (SamuelSacco #1). Descriptive
-ChaosNLI-on-Jev reports exist elsewhere. Running Choice alone would confound
-model with primitive. The bootstrap interval's near-100% coverage made the
-old interval-based "holds" rule asymmetrically hard. This amendment
-repositions the paper as the first pre-registered, equal-n, bias-corrected
-test, with a methods finding the others lack.
+question already has a prior synthetic answer (SamuelSacco FINDINGS). Descriptive
+ChaosNLI-on-Jev reports and Choice-vs-Noul audits exist. Running Choice alone
+would confound model with primitive. The bootstrap interval's near-100%
+coverage made the old interval-based "holds" rule asymmetrically hard. This
+amendment repositions the paper as the first **pre-registered, equal-n,
+bias-corrected stratified** test we are aware of (search documented) — not
+as the first dual-primitive or first ChaosNLI-on-Jev look.
 
 **No Jev output observed.** Offline only.
+
+### Amendment 10 — secondary analyses; local baselines; budget guard (PROMPT S)
+
+**Change:**
+
+1. **Baselines (zero paid cost).** Drop Haiku / OpenAI adapter baselines.
+   Baselines are local open-weight via `clients/prefill.py` (logprob-derived,
+   single constrained token): **Qwen2.5-1.5B-Instruct**, plus **GLiClass**.
+   A ~7B instruct baseline is **not** used on the study host (WSL2 x86_64,
+   Intel i7-13620H, ~10 GB RAM, no NVIDIA GPU). Frontier LLM comparison is
+   **out of scope**; cite `manjunathshiva/jev-frontier-bench`. Remove
+   `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` from the environment; only
+   `TYPESAFE_API_KEY` is needed for scored Jev calls.
+2. **Repeats.** EXP-1 uses **R = 10** repeats per item (feeds S1/S2).
+3. **Secondary analyses (no extra calls; exploratory unless named primary):**
+   - **S1 Ambiguity detection.** AUROC and Spearman of three Jev signals
+     against human vote entropy: (1) \(1 -\) top probability, (2) JSD between
+     Choice and normalised three Nouls in the same call, (3) repeat
+     instability (flip rate + mean TVD across R=10). Paired bootstrap
+     comparisons between signals. Same where defined for local baselines.
+   - **S2 Stability reconciliation.** Flip rate vs human entropy, not only
+     vs distance from the decision boundary.
+   - **S3 Temperature scaling.** Fit one temperature on a stratified random
+     half; evaluate ECE and JSD on the other half; swap halves; average.
+     Report Choice and Noul arms separately.
+4. **Budget guard (code).** `budget.json` ledger appends every call's
+   `input_tokens` and computed USD. Hard caps: pilot **$0.05** / run,
+   EXP-1 **$1.00** / run, global spendable **$2.50** (50% of a $5 credit
+   reserved and untouchable). Runner refuses to START if projected cost
+   exceeds remaining room; STOPS mid-run on hitting a cap (resumable
+   `raw.jsonl`). Max 3 retries; **never retry HTTP 4xx**. Dry-run prints
+   projected cost; live runs require `--confirm`.
+5. **Key hygiene.** `.env` gitignored; gitleaks pre-commit + CI; rotate
+   TypeSafe key after the study. Never paste keys into chat or commits.
+
+**Reason:** Paid frontier baselines are redundant with published
+jev-frontier-bench and burn the credit that should protect a re-run.
+Ambiguity-detection secondaries use signals already in the EXP-1 calls and
+answer a sharper, pre-registered question. A hard spend guard prevents a
+retry loop from consuming the reserve.
+
+**No Jev output observed at amendment time.** Offline only. Any later code
+change prompted by pilot output on **excluded mid-entropy items only** is
+still this amendment's intent; record the pilot run id in the commit message.
 
 ### Amendment commit hash (binding timestamp)
 
@@ -463,6 +513,7 @@ AMENDMENT_6_COMMIT=bf03af91ecd08efa927cea9d1a8eb5adfc941634
 AMENDMENT_7_COMMIT=3891afac56818bed1dc64850d9775e65d64f613c
 AMENDMENT_8_COMMIT=9828641f73666c51a6ced232726049b7ff19e141
 AMENDMENT_9_COMMIT=6011c75818f851ea99b495776edb7f2be0a8933d
+AMENDMENT_10_COMMIT=PENDING_THIS_COMMIT
 ```
 
 Verify with:

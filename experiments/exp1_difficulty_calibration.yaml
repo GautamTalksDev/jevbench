@@ -8,7 +8,7 @@ geography_note: >
   Fill in before scored paper runs (city / region / cloud). TypeSafe published
   latency numbers come from US West Coast laptops.
 concurrency: 2
-repeats: 3
+repeats: 10
 description: >
   Difficulty-stratified calibration on ChaosNLI SNLI+MNLI (3,113 items).
   αNLI is excluded: it is a 2-way abductive task, not 3-way NLI.
@@ -17,6 +17,8 @@ description: >
   top-label ΔECE under SOFT scoring (annotator share on the model's argmax).
   Hard scoring (argmax vs majority) is reported beside it because it puts
   label noise in the hard stratum only and inflates ΔECE toward H1.
+  Baselines are local open-weight (prefill logprobs) + GLiClass — no paid
+  frontier LLM baselines (cite jev-frontier-bench for that comparison).
   Sentence text is fetched locally and is not in the repo.
 
 questions:
@@ -33,9 +35,9 @@ questions:
       contradiction: The hypothesis cannot be true if the premise is true.
 
   # Amendment 9 — Noul arm in the SAME call (normalize the three probabilities).
-  # Neither Choice nor Noul is "the" result; report both. Motivated by
-  # TypeSafe's own docs that Choice and Noul are not interchangeable, and by
-  # independent reports that the two primitives calibrate differently.
+  # Neither Choice nor Noul is "the" result; report both. Confound control —
+  # MohitSV/jev-calibration-audit already compared Choice vs Noul on ChaosNLI
+  # (README read 2026-09-24). Dual primitives are not novelty.
   noul_entailment:
     kind: noul
     instructions: >
@@ -67,12 +69,16 @@ clients:
     type: jev
     model: jev-1.13.0
     serving_path: native
-  - name: adapter_baseline
-    type: adapter
-    provider: openai
-    model: gpt-4o-mini
-    llm_answer_mode: probabilities
-  # trivial is local/free — useful for harness checks; not a paper baseline
+  # Amendment 10 — local baselines only (CPU-friendly). No paid adapter LLMs.
+  # Prefill: logprob-derived single constrained token (Qwen2.5-1.5B-Instruct).
+  # 7B omitted on this host (WSL2 Intel, ~10GB RAM, no NVIDIA).
+  - name: prefill_qwen15
+    type: prefill
+    model: Qwen/Qwen2.5-1.5B-Instruct
+    prefill_backend: transformers
+  - name: gliclass
+    type: gliclass
+    model: knowledgator/gliclass-base-v1.0
   - name: trivial
     type: trivial
 
@@ -105,14 +111,17 @@ metrics:
   - "PRIMARY ARMS: Choice and normalized three-Noul from the same call — report both"
   - "VERDICT: tracks = corrected≥0.09 AND p<0.05; holds = reject Δ≥0.09 (sim under 0.09) AND corrected≤0.02; else inconclusive"
   - "REPORTED: hard top-label ΔECE (argmax vs majority). Hard scoring puts label noise in the hard stratum only, which inflates ΔECE in the direction of the hypothesis."
+  - "SECONDARY S1 (exploratory): ambiguity detection — AUROC/Spearman of (1−top), Choice↔Noul JSD, repeat instability vs human entropy; paired bootstrap between signals"
+  - "SECONDARY S2 (exploratory): flip rate vs human entropy (stability reconciliation)"
+  - "SECONDARY S3 (exploratory): one-temperature scaling, stratified half/half, Choice and Noul separately"
   - "SECONDARY: JSD and TVD to human distribution per stratum, both arms, vs uniform-guess baseline"
   - "ECE (uniform + quantile) with per-bin occupancy — M in {5,10,15,20} robustness"
   - "Per-tier reliability diagrams with occupancy"
   - "DESCRIPTIVE ONLY: ECE-vs-accuracy slope where four tiers exist"
-  - "Same primary analysis on adapter baseline (Jev vs temp-0 LLM at equal items)"
+  - "Same primary analysis on local prefill + GLiClass baselines (equal items); frontier LLM comparison out of scope — cite jev-frontier-bench"
   - "Contamination: original vs frozen paraphrase accuracy, every arm"
   - "Accuracy / Brier / MCE per stratum"
-  - "Latency p50/p95/p99 (never mean)"
+  - "Latency p50/p95/p99 (never mean); local baselines flagged unfair vs hosted"
 
 decision_rules:
   - "Primary verdict is Amendment 9 on corrected soft ΔECE; certificate uses harness result.verdict."
@@ -129,13 +138,14 @@ sample_size:
   min_items: 1500
   n_per_stratum: 750
   per_tier: null
-  repeats: 3
+  repeats: 10
   notes: >
     Entropy quartiles on the 3,113 SNLI+MNLI items, then
     subsample_to_equal_n to 750 per stratum (seed 20260923). Thresholds
     are in datasets/chaosnli/thresholds.json and were fixed before any
-    Jev call. αNLI is excluded. The old hand-labelling ceiling of 500
-    does not apply: the 100 annotations already exist.
+    Jev call. αNLI is excluded. R=10 repeats feed S1/S2 instability
+    signals (Amendment 10) and EXP-6. Budget: hard cap $1.00 for EXP-1;
+    global spendable $2.50 (50% of $5 reserve untouched).
 
 stopping_rule: >
   Stop after the pre-registered powered sample is scored with the stated

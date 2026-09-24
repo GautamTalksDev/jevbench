@@ -139,7 +139,12 @@ def run_cmd(
     dry_run: bool = typer.Option(
         False,
         "--dry-run",
-        help="Estimate tokens and cost for Jev vs baselines; spend nothing.",
+        help="Estimate tokens and cost; spend nothing. Prints budget check.",
+    ),
+    confirm: bool = typer.Option(
+        False,
+        "--confirm",
+        help="Required for live runs after reviewing --dry-run projection.",
     ),
     geography: str | None = typer.Option(
         None,
@@ -148,6 +153,7 @@ def run_cmd(
     ),
 ) -> None:
     """Execute an experiment: manifest first, stream raw.jsonl, no metrics."""
+    from jevbench.budget import BudgetExceeded
     from jevbench.prereg import PreregistrationError
     from jevbench.runner import Runner, RunnerConfig
 
@@ -159,11 +165,12 @@ def run_cmd(
         concurrency=concurrency,
         resume_run_id=resume,
         dry_run=dry_run,
+        confirm=confirm,
         geography_note=geography,
     )
     try:
         result = Runner(cfg).run()
-    except (PreregistrationError, FileNotFoundError, ValueError) as exc:
+    except (PreregistrationError, FileNotFoundError, ValueError, BudgetExceeded) as exc:
         console.print(f"[red]run failed:[/red] {exc}")
         raise typer.Exit(code=1) from exc
 

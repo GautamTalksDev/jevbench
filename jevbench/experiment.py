@@ -62,7 +62,7 @@ class ClientSpec(BaseModel):
     provider: Literal["openai", "anthropic"] | None = None
     llm_answer_mode: Literal["probabilities", "discrete"] = "probabilities"
     # prefill
-    prefill_backend: str = "vllm"
+    prefill_backend: str = "transformers"
     prefill_base_url: str | None = None
     # trivial — optional keyed specs left to extras / future YAML
     extras: dict[str, Any] = Field(default_factory=dict)

@@ -32,6 +32,12 @@ from rich.progress import (
 )
 from rich.table import Table
 
+from jevbench.budget import (
+    BudgetExceeded,
+    BudgetLedger,
+    classify_run_kind,
+    cost_for_call,
+)
 from jevbench.chaosnli import hydrate_dataset, logged_state, missing_primary_text
 from jevbench.clients.base import DecisionClient, SystemOneRequest
 from jevbench.cost import (
@@ -206,10 +212,10 @@ def build_client(
         from jevbench.clients.prefill import PrefillClient, PrefillClientConfig
 
         cfg = PrefillClientConfig(
-            model=cspec.model or "local-open-weight",
+            model=cspec.model or "Qwen/Qwen2.5-1.5B-Instruct",
             backend=cspec.prefill_backend,
             base_url=cspec.prefill_base_url,
-            # Tests / dry fixtures inject backends; live runs assert tokens
+            device=str(cspec.extras.get("device", "cpu")),
             require_tokenizer_assert=bool(
                 cspec.extras.get("require_tokenizer_assert", True)
             ),
@@ -492,11 +498,13 @@ class RunnerConfig:
     concurrency: int | None = None
     resume_run_id: str | None = None
     dry_run: bool = False
+    confirm: bool = False  # required for live runs after dry-run projection
     geography_note: str | None = None
     skip_lock_check: bool = False  # tests / emergency only
     # Inject clients for offline tests: name -> DecisionClient
     client_factory: Callable[[ClientSpec], DecisionClient] | None = None
     progress: bool = True
+    skip_budget_guard: bool = False  # tests only
 
 
 class Runner:
@@ -650,10 +658,48 @@ class Runner:
                 spec=self.spec, dataset=self.dataset, repeats=self.repeats
             )
             print_dry_run(estimate)
+            if not self.config.skip_budget_guard:
+                ledger = BudgetLedger.load(self.repo_root)
+                kind = classify_run_kind(self.spec.name)
+                try:
+                    ledger.assert_can_start(
+                        kind=kind,
+                        projected_usd=float(estimate["split_usd"]["total"]),
+                        run_id="dry-run",
+                    )
+                    console.print(
+                        f"  [green]budget OK[/green] — {kind} cap "
+                        f"${ledger.run_cap(kind):.2f}; remaining "
+                        f"${ledger.remaining_global():.4f}"
+                    )
+                except BudgetExceeded as exc:
+                    console.print(f"  [red]budget would refuse:[/red] {exc}")
+            console.print(
+                "  Re-run without --dry-run and with --confirm to spend."
+            )
             return estimate
+
+        if not self.config.confirm and not self.config.skip_budget_guard:
+            raise ValueError(
+                "Live runs require --confirm after reviewing a --dry-run "
+                "cost projection (Amendment 10 budget guard)."
+            )
 
         items = sorted(self.dataset.by_id.values(), key=lambda x: x.id)
         units = work_units(items, self.spec.clients, self.repeats)
+
+        ledger = BudgetLedger.load(self.repo_root)
+        run_kind = classify_run_kind(self.spec.name)
+        if not self.config.skip_budget_guard:
+            estimate = dry_run_estimate(
+                spec=self.spec, dataset=self.dataset, repeats=self.repeats
+            )
+            print_dry_run(estimate)
+            ledger.assert_can_start(
+                kind=run_kind,
+                projected_usd=float(estimate["split_usd"]["total"]),
+                run_id="preflight",
+            )
 
         if self.config.resume_run_id:
             run_id = self.config.resume_run_id
@@ -742,7 +788,28 @@ class Runner:
                 cspec.type,
                 cspec.model or self.spec.model,
             )
-            cost = price.cost_usd(in_tok, 0 if cspec.type == "jev" else out_tok)
+            cost = cost_for_call(
+                snapshot_date=self.spec.pricing_snapshot_date,
+                client_type=cspec.type,
+                model=cspec.model or self.spec.model,
+                input_tokens=in_tok,
+                output_tokens=out_tok,
+            )
+            # Keep resolve_price import used for manifest pricing snapshot.
+            _ = price
+
+            if not self.config.skip_budget_guard:
+                ledger.record(
+                    run_id=run_id,
+                    run_kind=run_kind,
+                    client=unit.client_name,
+                    model=cspec.model or self.spec.model or "",
+                    item_id=unit.item_id,
+                    input_tokens=in_tok,
+                    output_tokens=out_tok,
+                    cost_usd=cost,
+                )
+                ledger.check_after_call(run_id=run_id, kind=run_kind)
 
             record = {
                 "run_id": run_id,
@@ -821,6 +888,9 @@ class Runner:
                     for fut in as_completed(futures):
                         try:
                             fut.result()
+                        except BudgetExceeded as exc:
+                            console.print(f"[red]budget stop:[/red] {exc}")
+                            raise
                         except Exception as exc:
                             console.print(f"[red]worker crashed:[/red] {exc}")
                             raise

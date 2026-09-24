@@ -283,6 +283,87 @@ def verify_verdict_size(
     }
 
 
+def tracks_power_curve(
+    *,
+    targets: tuple[float, ...] = (0.09, 0.11, 0.13, 0.15),
+    n_trials: int = 400,
+    n: int = 750,
+    seed: int = 20260924,
+    quick: bool = False,
+) -> dict[str, Any]:
+    """Composite tracks gate power across true corrected ΔECE targets.
+
+    At exactly 0.09 the gate requires corrected ≥ 0.09 when the true mean is
+    0.09 — ≈50% power by construction (median split). Larger true effects
+    show where the composite becomes reliable.
+
+    Uses a lighter inner bootstrap than ``verify_verdict_size`` (n_boot=400)
+    because the curve only needs the tracks/p indicators, not tight CIs.
+    """
+    if quick:
+        n_trials = 80
+        n_boot = n_e0 = n_null = 120
+    else:
+        n_boot = 400
+        n_e0 = 400
+        n_null = 400
+
+    p_easy, p_hard = specimen_top_prob_pools()
+    curve: list[dict[str, Any]] = []
+    for i, target in enumerate(targets):
+        conf_shift = _calibrate_soft_alt_shift_corrected(
+            p_easy,
+            p_hard,
+            kappa=SOFT_NULL_OPERATING_KAPPA,
+            n=n,
+            target=float(target),
+            seed=seed + 100 + i,
+        )
+        alt = simulate_corrected_delta_ece(
+            setting="alternative",
+            n=n,
+            n_trials=n_trials,
+            n_boot=n_boot,
+            n_e0=n_e0,
+            n_null_pval=n_null,
+            seed=seed + 200 + i,
+            conf_shift=float(conf_shift),
+        )
+        tracks = sum(
+            1
+            for j in range(n_trials)
+            if float(alt["corrected"][j]) >= TRACKS_THRESHOLD
+            and float(alt["p_value"][j]) < 0.05
+        )
+        power = tracks / n_trials
+        curve.append(
+            {
+                "true_delta_ece": float(target),
+                "conf_shift": float(conf_shift),
+                "mean_corrected": alt["mean_corrected"],
+                "power_tracks": power,
+                "power_pvalue": float(np.mean(alt["p_value"] < 0.05)),
+            }
+        )
+
+    return {
+        "schema": "jevbench.tracks_power_curve.v1",
+        "n_trials": n_trials,
+        "n_boot_inner": n_boot,
+        "n_per_stratum": n,
+        "seed": seed,
+        "tracks_threshold": TRACKS_THRESHOLD,
+        "rule": "tracks = corrected≥0.09 AND p<0.05",
+        "curve": curve,
+        "note": (
+            "Composite tracks power at true ΔECE=0.09 is a coin flip by "
+            "construction (hard threshold at the true effect). Read the curve "
+            "to see where the gate becomes reliable."
+        ),
+        "jev_data_observed": False,
+    }
+
+
 def verdict_copy(label: VerdictLabel, *, synthetic: bool = False) -> tuple[str, str]:
     """Title and lede for the certificate page (display only)."""
     if synthetic and label == "tracks":

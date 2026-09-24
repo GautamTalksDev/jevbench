@@ -22,6 +22,8 @@ _SNAPSHOTS: dict[str, dict[str, dict[str, float]]] = {
         "jev": {"input": 0.042, "output": 0.0},
         "anthropic/claude-haiku-3.5": {"input": 0.80, "output": 4.00},
         "anthropic/claude-haiku": {"input": 0.80, "output": 4.00},
+        "anthropic/claude-haiku-4-5": {"input": 1.00, "output": 5.00},
+        "anthropic/claude-haiku-4-5-20251001": {"input": 1.00, "output": 5.00},
         "openai/gpt-4o-mini": {"input": 0.15, "output": 0.60},
         "openai/gpt-4o": {"input": 2.50, "output": 10.00},
         "google/gemini-1.5-flash": {"input": 0.075, "output": 0.30},

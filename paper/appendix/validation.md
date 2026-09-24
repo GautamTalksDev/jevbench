@@ -51,6 +51,25 @@ At that corner, power ≥ 0.80 first at **n=750** per stratum — above the
 labelling ceiling of 500. **Do not proceed underpowered**; pre-specify a
 larger detectable effect size or raise labelling capacity before any paid run.
 
+### Composite tracks power curve (Amendment 9 / PROMPT R)
+
+The Amendment 9 **tracks** gate is `corrected ΔECE ≥ 0.09 AND p < 0.05`.
+At a true effect of exactly 0.09, requiring the point estimate to clear 0.09
+is a median split — composite power ≈ **0.52** by construction
+(`results/verdict_size.json`). Parametric p-value power at that effect remains
+≈ 1.0. Do not claim 80% power for the composite gate at the boundary.
+
+Short curve (`results/tracks_power_curve.json`, 200 trials, seed 20260924):
+
+| True ΔECE | P(tracks) | P(p < 0.05) |
+|---|---|---|
+| 0.09 | 0.525 | 1.000 |
+| 0.11 | 1.000 | 1.000 |
+| 0.13 | 1.000 | 1.000 |
+| 0.15 | 1.000 | 1.000 |
+
+Re-run: `python scripts/run_tracks_power_curve.py`.
+
 ## What is checked
 
 1. **Calibrated fixture** (Bernoulli draws from known probs): our uniform

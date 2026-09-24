@@ -106,14 +106,15 @@ class PrefillCompletion:
 
 @dataclass
 class PrefillClientConfig:
-    model: str = "local-open-weight"
-    backend: str = "vllm"  # "vllm" | "mlx" | "inject" (tests)
+    model: str = "Qwen/Qwen2.5-1.5B-Instruct"
+    backend: str = "transformers"  # "transformers" | "vllm" | "mlx" | "inject"
     base_url: str | None = None  # e.g. http://127.0.0.1:8000/v1 for vLLM
     api_key: str = "EMPTY"
     serving_path: str = "prefill"
     noul_true_label: str = "yes"
     noul_false_label: str = "no"
     temperature: float = 0.0
+    device: str = "cpu"
     # Fail startup unless sentinels are verified single-token (or explicitly skipped
     # for injected test backends that cannot provide a tokenizer).
     require_tokenizer_assert: bool = True
@@ -121,6 +122,107 @@ class PrefillClientConfig:
     json_noul_prefix: str = JSON_NOUL_PREFIX
     # Seed mixed with pass_idx for order-permutation control
     permutation_seed: int = 20260922
+
+
+class TransformersPrefillBackend:
+    """Local HuggingFace transformers one-token logprobs (CPU/GPU).
+
+    Used when no NVIDIA GPU / vLLM is available. Logprobs are derived from the
+    next-token distribution — not verbalised by the model.
+    """
+
+    def __init__(
+        self,
+        *,
+        model_id: str,
+        device: str = "cpu",
+        tokenizer: TokenizerLike | None = None,
+    ) -> None:
+        self.model_id = model_id
+        self.device = device
+        self._tokenizer = tokenizer
+        self._model: Any = None
+        self._tok: Any = None
+
+    def _load(self) -> tuple[Any, Any]:
+        if self._model is not None and self._tok is not None:
+            return self._tok, self._model
+        try:
+            import torch
+            from transformers import AutoModelForCausalLM, AutoTokenizer
+        except ImportError as exc:
+            raise ImportError(
+                "transformers+torch required for backend='transformers'. "
+                "pip install transformers accelerate"
+            ) from exc
+        self._tok = AutoTokenizer.from_pretrained(self.model_id, trust_remote_code=True)
+        self._model = AutoModelForCausalLM.from_pretrained(
+            self.model_id,
+            torch_dtype=torch.float32,
+            trust_remote_code=True,
+        )
+        self._model.to(self.device)
+        self._model.eval()
+        return self._tok, self._model
+
+    def get_tokenizer(self) -> TokenizerLike | None:
+        if self._tokenizer is not None:
+            return self._tokenizer
+        tok, _ = self._load()
+        return tok
+
+    def complete_one_token(
+        self,
+        *,
+        messages: list[dict[str, str]],
+        allowed_tokens: list[str],
+        model: str,
+    ) -> PrefillCompletion:
+        import torch
+
+        tok, mdl = self._load()
+        # Build a flat prompt; prefer chat template when available.
+        if hasattr(tok, "apply_chat_template"):
+            # Drop the trailing assistant prefill into the template carefully:
+            # append JSON prefix as the start of the assistant message.
+            chat = [m for m in messages if m["role"] != "assistant"]
+            prefix = next(
+                (m["content"] for m in messages if m["role"] == "assistant"), ""
+            )
+            prompt = tok.apply_chat_template(
+                chat, tokenize=False, add_generation_prompt=True
+            )
+            prompt = prompt + prefix
+        else:
+            prompt = "\n".join(f"{m['role']}: {m['content']}" for m in messages)
+
+        inputs = tok(prompt, return_tensors="pt")
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+        t0 = time.perf_counter()
+        with torch.no_grad():
+            out = mdl(**inputs)
+            logits = out.logits[0, -1, :]
+        compute_ms = (time.perf_counter() - t0) * 1000.0
+
+        logprobs: dict[str, float] = {}
+        for sent in allowed_tokens:
+            ids = tok.encode(sent, add_special_tokens=False)
+            if len(ids) != 1:
+                logprobs[sent] = float("-inf")
+                continue
+            logprobs[sent] = float(torch.log_softmax(logits, dim=-1)[ids[0]].item())
+
+        # Pick MAP among allowed
+        best = max(allowed_tokens, key=lambda s: logprobs.get(s, float("-inf")))
+        return PrefillCompletion(
+            token=best,
+            logprobs=logprobs,
+            resolved_model=model or self.model_id,
+            raw={"backend": "transformers", "model_id": self.model_id},
+            input_tokens=int(inputs["input_ids"].numel()),
+            output_tokens=1,
+            compute_only_ms=compute_ms,
+        )
 
 
 class SentinelTokenError(RuntimeError):
@@ -428,6 +530,12 @@ class PrefillClient:
     def _get_backend(self) -> PrefillBackend:
         if self._backend is not None:
             return self._backend
+        if self.config.backend == "transformers":
+            return TransformersPrefillBackend(
+                model_id=self.config.model,
+                device=self.config.device,
+                tokenizer=self._tokenizer,
+            )
         if self.config.backend == "vllm":
             if not self.config.base_url:
                 raise ValueError(
@@ -441,8 +549,9 @@ class PrefillClient:
         if self.config.backend == "mlx":
             raise NotImplementedError(
                 "MLX backend: inject a PrefillBackend that calls mlx_lm with "
-                "constrained decoding + logprobs, or use backend='vllm' against "
-                "a local server. Logprob access is REQUIRED for EXP-3."
+                "constrained decoding + logprobs, or use backend='transformers' "
+                "on CPU / 'vllm' against a local server. Logprob access is "
+                "REQUIRED for EXP-3."
             )
         raise ValueError(
             f"Unknown backend {self.config.backend!r}; pass an injected "

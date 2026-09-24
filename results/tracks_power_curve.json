@@ -1,0 +1,41 @@
+{
+  "curve": [
+    {
+      "conf_shift": 0.1,
+      "mean_corrected": 0.09007084142906549,
+      "power_pvalue": 1.0,
+      "power_tracks": 0.525,
+      "true_delta_ece": 0.09
+    },
+    {
+      "conf_shift": 0.12,
+      "mean_corrected": 0.10900430473684405,
+      "power_pvalue": 1.0,
+      "power_tracks": 1.0,
+      "true_delta_ece": 0.11
+    },
+    {
+      "conf_shift": 0.14,
+      "mean_corrected": 0.12679732429397866,
+      "power_pvalue": 1.0,
+      "power_tracks": 1.0,
+      "true_delta_ece": 0.13
+    },
+    {
+      "conf_shift": 0.16,
+      "mean_corrected": 0.14529353103842638,
+      "power_pvalue": 1.0,
+      "power_tracks": 1.0,
+      "true_delta_ece": 0.15
+    }
+  ],
+  "jev_data_observed": false,
+  "n_boot_inner": 400,
+  "n_per_stratum": 750,
+  "n_trials": 200,
+  "note": "Composite tracks power at true \u0394ECE=0.09 is a coin flip by construction (hard threshold at the true effect). Read the curve to see where the gate becomes reliable.",
+  "rule": "tracks = corrected\u22650.09 AND p<0.05",
+  "schema": "jevbench.tracks_power_curve.v1",
+  "seed": 20260924,
+  "tracks_threshold": 0.09
+}

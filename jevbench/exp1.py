@@ -80,12 +80,30 @@ NOUL_QUESTION_KEYS = (
     "noul_neutral",
     "noul_contradiction",
 )
+# Near-zero sum rule (PROMPT R): if Σ noul < floor, use uniform and flag.
+# Defined before any scored call; pilot counts how often it triggers.
+NOUL_SUM_FLOOR = 1e-6
 
 
 def _noul_probs_from_decisions(
     decisions: list[dict[str, Any]],
 ) -> dict[str, float] | None:
-    """Normalize three Noul yes-probabilities into a 3-way distribution."""
+    """Normalize three Noul yes-probabilities into a 3-way distribution.
+
+    Thin wrapper around :func:`normalize_noul_triplet` that returns only the
+    probability map (or None). Use ``normalize_noul_triplet`` when the
+    near-zero-sum flag is needed.
+    """
+    result = normalize_noul_triplet(decisions)
+    if result is None:
+        return None
+    return result["probabilities"]
+
+
+def normalize_noul_triplet(
+    decisions: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    """Return ``{probabilities, near_zero_sum, raw_sum, raw}`` or None if incomplete."""
     raw: dict[str, float] = {}
     for d in decisions:
         if d.get("error"):
@@ -94,6 +112,7 @@ def _noul_probs_from_decisions(
         if key not in NOUL_QUESTION_KEYS:
             continue
         # Noul value is P(statement true); parse stores it as ``value``.
+        # Never invent a confidence field — Noul has none.
         val = d.get("value")
         if val is None:
             val = (d.get("raw") or {}).get("noul")
@@ -104,9 +123,18 @@ def _noul_probs_from_decisions(
     if len(raw) != 3:
         return None
     total = sum(raw.values())
-    if total <= 0:
-        return None
-    return {lab: raw[lab] / total for lab in CHAOSNLI_LABEL_ORDER}
+    near_zero = total < NOUL_SUM_FLOOR
+    if near_zero:
+        probs = {lab: 1.0 / 3.0 for lab in CHAOSNLI_LABEL_ORDER}
+    else:
+        probs = {lab: raw[lab] / total for lab in CHAOSNLI_LABEL_ORDER}
+    return {
+        "probabilities": probs,
+        "near_zero_sum": near_zero,
+        "raw_sum": total,
+        "raw": {lab: raw[lab] for lab in CHAOSNLI_LABEL_ORDER},
+        "floor": NOUL_SUM_FLOOR,
+    }
 
 
 def _flatten_live_record(rec: dict[str, Any]) -> dict[str, Any] | None:
@@ -133,7 +161,7 @@ def _flatten_live_record(rec: dict[str, Any]) -> dict[str, Any] | None:
     if not isinstance(probs, dict):
         return None
     choice = d.get("choice") or d.get("answer") or d.get("value")
-    noul_probs = _noul_probs_from_decisions(decisions)
+    noul_pack = normalize_noul_triplet(decisions)
     out = {
         "item_id": rec["item_id"],
         "tier": rec["tier"],
@@ -150,9 +178,13 @@ def _flatten_live_record(rec: dict[str, Any]) -> dict[str, Any] | None:
         "source_item_id": rec.get("source_item_id"),
         "primitive_arm": "choice",
     }
-    if noul_probs is not None:
-        out["probabilities_noul"] = noul_probs
-        out["choice_noul"] = max(noul_probs, key=noul_probs.get)
+    if noul_pack is not None:
+        out["probabilities_noul"] = noul_pack["probabilities"]
+        out["choice_noul"] = max(
+            noul_pack["probabilities"], key=noul_pack["probabilities"].get
+        )
+        out["noul_near_zero_sum"] = bool(noul_pack["near_zero_sum"])
+        out["noul_raw_sum"] = float(noul_pack["raw_sum"])
     return out
 
 

@@ -1,0 +1,23 @@
+name: pilot_prompt_r
+status: ready
+model: jev-1.13.0
+task: chaosnli
+serving_path: native
+description: "PROMPT R pilot \u2014 mid-entropy only; outputs NOT analysed."
+clients:
+- name: jev
+  type: jev
+  model: jev-1.13.0
+  serving_path: native
+- name: adapter_haiku
+  type: adapter
+  provider: anthropic
+  model: claude-haiku-4-5-20251001
+  llm_answer_mode: probabilities
+- name: adapter_openai
+  type: adapter
+  provider: openai
+  model: gpt-4o-mini
+  llm_answer_mode: probabilities
+pilot_ids_file: pilot/items.json
+noul_sum_floor: 1.0e-06

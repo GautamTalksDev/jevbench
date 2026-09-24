@@ -177,6 +177,8 @@ def test_dry_run_splits_jev_and_baselines(repo: Path):
             experiment="exp1_difficulty_calibration",
             dry_run=True,
             progress=False,
+            skip_budget_guard=True,
+            confirm=True,
         )
     ).run()
     assert isinstance(result, dict)
@@ -210,6 +212,8 @@ def test_manifest_written_before_any_call(repo: Path):
             concurrency=1,
             client_factory=factory,
             progress=False,
+            skip_budget_guard=True,
+            confirm=True,
         )
     ).run()
     assert isinstance(rdir, Path)
@@ -235,6 +239,8 @@ def test_repeat_passes_are_separate(repo: Path):
             concurrency=2,
             client_factory=factory,
             progress=False,
+            skip_budget_guard=True,
+            confirm=True,
         )
     ).run()
     assert isinstance(rdir, Path)
@@ -256,6 +262,8 @@ def test_resume_skips_completed(repo: Path):
             concurrency=1,
             client_factory=factory,
             progress=False,
+            skip_budget_guard=True,
+            confirm=True,
         )
     ).run()
     assert isinstance(rdir, Path)
@@ -282,6 +290,8 @@ def test_resume_skips_completed(repo: Path):
             resume_run_id=rdir.name,
             client_factory=factory2,
             progress=False,
+            skip_budget_guard=True,
+            confirm=True,
         )
     ).run()
     assert rdir2 == rdir
@@ -333,6 +343,8 @@ def test_runner_refuses_without_lock(tmp_path: Path):
                 repo_root=root,
                 experiment="e",
                 progress=False,
+                skip_budget_guard=True,
+                confirm=True,
             )
         ).run()
 
@@ -364,5 +376,11 @@ def test_load_experiment_has_runner_fields():
     assert spec.questions
     assert spec.clients
     assert spec.pricing_snapshot_date == "2026-09-19"
-    assert "department" in spec.question_map()
-    assert isinstance(spec.question_map()["department"], ChoiceQuestion)
+    qmap = spec.question_map()
+    assert "relation" in qmap
+    assert isinstance(qmap["relation"], ChoiceQuestion)
+    assert "noul_entailment" in qmap
+    assert any(c.type == "prefill" for c in spec.clients)
+    assert any(c.type == "gliclass" for c in spec.clients)
+    assert not any(c.type == "adapter" for c in spec.clients)
+    assert spec.effective_repeats() == 10

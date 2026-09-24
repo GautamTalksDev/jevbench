@@ -23,6 +23,13 @@ fails if any chart or metric in `results/` changes bit-for-bit
 
 Source records: [`runs/offline_fixture/raw.jsonl`](runs/offline_fixture/raw.jsonl).
 
+## Certificate page
+
+Host [`arena/`](arena/) from this repo (GitHub Pages workflow in
+`.github/workflows/pages.yml`). See [`arena/PUBLISH.md`](arena/PUBLISH.md).
+**Do not share the old claude.ai public link** — it still has the
+pre–Amendment 9 interval-based verdict.
+
 ## Method
 
 - **Pre-registration:** [`PREREGISTRATION.md`](PREREGISTRATION.md) /

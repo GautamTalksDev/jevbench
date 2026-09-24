@@ -134,9 +134,17 @@ def error_decision(
 
 @dataclass
 class RetryPolicy:
-    max_attempts: int = 5
+    """Paid-call retry policy (Amendment 10).
+
+    Max 3 retries (4 attempts total). Never retry HTTP 4xx — including 429.
+    Only connection failures and 5xx are retryable.
+    """
+
+    max_attempts: int = 4  # 1 initial + 3 retries
     base_delay_s: float = 0.5
     max_delay_s: float = 30.0
+    retry_4xx: bool = False
+    retry_429: bool = False
 
 
 # Re-export helper used by manifests
