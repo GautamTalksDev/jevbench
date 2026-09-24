@@ -87,7 +87,8 @@ Our contribution is the pre-registered ChaosNLI test, not inventing the question
 | Kumar, Liang & Ma, NeurIPS 2019 (arXiv:1909.10155) | Plugin CE bias | Verified Amendment 8. |
 | Roelofs et al., AISTATS 2022 (arXiv:2012.08668) | ECE_bin bias under calibration | Verified Amendment 8. |
 | TypeSafe / jevaiguide Noul vs Choice docs | Primitive confound | Official docs: Choice and Noul are not interchangeable. |
-| MAPIE / netcal | Calibration tooling | Use, do not reimplement |
+| facebook/bart-large-mnli | Supervised in-domain reference only | Fine-tuned on MultiNLI. ChaosNLI-MNLI items are in-domain — **not** a zero-shot baseline. Report MNLI vs SNLI separately; never in the same table as Jev (Amendment 11). |
+| knowledgator/gliclass-base-v1.0 | Local zero-shot-style control | Trained on synthetic zero-shot mix; card does not list MNLI/SNLI. Disclose synthetic training; do not silently substitute BART. |
 | Deferred Crispification (Doan Ngoc, Zenodo 22801506) | Position paper | Cite honestly |
 | Jev in Practice / daf-jev (Zenodo 22816188) | Tools paper | C2 target |
 | Public benches: ickma2311, anisselbd, anessbelbati, themsquared, SamuelSacco | Prior measurements | Credit |

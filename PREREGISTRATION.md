@@ -6,7 +6,7 @@
 **Pinned model:** `jev-1.13.0`
 **Serving path:** `native`
 **Locked at (UTC):** 2026-09-20T02:59:57+00:00
-**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendments 6–8); 2026-09-24 (Amendments 9–10)
+**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendments 6–8); 2026-09-24 (Amendments 9–11)
 
 This document locks hypotheses, metrics, and decision rules **before**
 scored API calls. Analyses that diverge are labelled exploratory.
@@ -212,6 +212,7 @@ explicitly marked not scored).
 | 8 (structural ECE bias correction) | 2026-09-24 | see `AMENDMENT_8_COMMIT` below |
 | 9 (Choice+Noul; parametric verdict; JSD/TVD) | 2026-09-24 | see `AMENDMENT_9_COMMIT` below |
 | 10 (secondaries S1–S3; local baselines; budget) | 2026-09-24 | see `AMENDMENT_10_COMMIT` below |
+| 11 (BART reference; local R=1; WSL2 memory) | 2026-09-24 | see `AMENDMENT_11_COMMIT` below |
 
 ### Amendment 1 — primary endpoint → ΔECE
 
@@ -505,6 +506,33 @@ retry loop from consuming the reserve.
 change prompted by pilot output on **excluded mid-entropy items only** is
 still this amendment's intent; record the pilot run id in the commit message.
 
+### Amendment 11 — baseline labelling; local repeats=1; WSL2 memory (PROMPT S follow-up)
+
+**Change:**
+
+1. **BART-large-MNLI is a supervised in-domain reference, not a zero-shot
+   baseline.** It is fine-tuned on MultiNLI; ChaosNLI-MNLI items come from
+   MNLI's development set. New client arm `bart_mnli_ref` (`role:
+   supervised_in_domain_reference`). Report MNLI and SNLI items separately.
+   **Do not** put BART in the same comparison table as Jev. GLiClass stays a
+   separate arm: trained on synthetic zero-shot mix
+   (`MoritzLaurer/synthetic_zeroshot_mixtral_v0.1`); card does not list
+   MNLI/SNLI as training data — disclose synthetic training; never silently
+   fall back from GLiClass to BART.
+2. **Local repeats = 1.** Prefill / GLiClass / BART / trivial use
+   `repeats: 1` (greedy scoring is expected-deterministic). Jev keeps R=10
+   for S1/S2. Determinism check: 50 mid-entropy items × 3 repeats
+   (`scripts/run_local_determinism.py` → `results/local_determinism.json`).
+3. **WSL2 memory.** Runner processes **one client at a time** and calls
+   `release()` between local models. Load Qwen2.5-1.5B and BART never
+   together. If OOM, raise WSL2 memory in `.wslconfig` rather than shrinking
+   the model. Expect multi-hour CPU overnight for 1,500 local items.
+
+**Reason:** Mislabeling BART as zero-shot would overclaim. Repeating
+deterministic locals ×10 wastes hours. Sequential load avoids OOM on ~10 GB.
+
+**No Jev output observed.** Offline only.
+
 ### Amendment commit hash (binding timestamp)
 
 ```
@@ -514,6 +542,7 @@ AMENDMENT_7_COMMIT=3891afac56818bed1dc64850d9775e65d64f613c
 AMENDMENT_8_COMMIT=9828641f73666c51a6ced232726049b7ff19e141
 AMENDMENT_9_COMMIT=6011c75818f851ea99b495776edb7f2be0a8933d
 AMENDMENT_10_COMMIT=755be90731f71dcfdd503fc9668af6a145b90f71
+AMENDMENT_11_COMMIT=PENDING_THIS_COMMIT
 ```
 
 Verify with:

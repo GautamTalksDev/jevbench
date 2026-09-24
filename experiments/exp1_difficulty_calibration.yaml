@@ -69,18 +69,30 @@ clients:
     type: jev
     model: jev-1.13.0
     serving_path: native
-  # Amendment 10 — local baselines only (CPU-friendly). No paid adapter LLMs.
+    # R=10 feeds S1/S2 instability (Amendment 10). Local arms override to 1.
+  # Amendment 10/11 — local baselines. Load one at a time (WSL2 ~10GB).
   # Prefill: logprob-derived single constrained token (Qwen2.5-1.5B-Instruct).
-  # 7B omitted on this host (WSL2 Intel, ~10GB RAM, no NVIDIA).
+  # 7B omitted (no NVIDIA; ~10GB RAM).
   - name: prefill_qwen15
     type: prefill
     model: Qwen/Qwen2.5-1.5B-Instruct
     prefill_backend: transformers
+    repeats: 1
   - name: gliclass
     type: gliclass
     model: knowledgator/gliclass-base-v1.0
+    repeats: 1
+  # Supervised in-domain reference — NOT a zero-shot baseline.
+  # Fine-tuned on MultiNLI; ChaosNLI-MNLI items are in-domain. Report MNLI
+  # and SNLI separately; do not put in the same comparison table as Jev.
+  - name: bart_mnli_ref
+    type: bart_mnli
+    model: facebook/bart-large-mnli
+    role: supervised_in_domain_reference
+    repeats: 1
   - name: trivial
     type: trivial
+    repeats: 1
 
 hypotheses:
   - id: H1
@@ -118,7 +130,9 @@ metrics:
   - "ECE (uniform + quantile) with per-bin occupancy — M in {5,10,15,20} robustness"
   - "Per-tier reliability diagrams with occupancy"
   - "DESCRIPTIVE ONLY: ECE-vs-accuracy slope where four tiers exist"
-  - "Same primary analysis on local prefill + GLiClass baselines (equal items); frontier LLM comparison out of scope — cite jev-frontier-bench"
+  - "Same primary analysis on local prefill + GLiClass (equal items); frontier LLM comparison out of scope — cite jev-frontier-bench"
+  - "REFERENCE (not a baseline): BART-large-MNLI supervised in-domain — report MNLI vs SNLI separately; never in the same table as Jev"
+  - "Local arms run once (repeats=1); determinism check: 50 items × 3 repeats"
   - "Contamination: original vs frozen paraphrase accuracy, every arm"
   - "Accuracy / Brier / MCE per stratum"
   - "Latency p50/p95/p99 (never mean); local baselines flagged unfair vs hosted"

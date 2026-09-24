@@ -358,10 +358,15 @@ def test_work_units_and_rate_limiter():
             label=Label(id="i1", label="x", labeler="t", labeled_at="2026-09-19T00:00:00+00:00"),
         )
     ]
-    clients = [ClientSpec(name="jev", type="jev"), ClientSpec(name="t", type="trivial")]
+    clients = [
+        ClientSpec(name="jev", type="jev"),
+        ClientSpec(name="t", type="trivial", repeats=1),
+    ]
     units = work_units(items, clients, repeats=3)
-    assert len(units) == 6
+    # client-major order: jev×3 then trivial×1
+    assert len(units) == 4
     assert units[0].key == "0:i1:jev"
+    assert units[-1].key == "0:i1:t"
 
     limiter = TokenBucketLimiter(
         RateLimitConfig(tokens_per_sec=1_000_000, requests_per_min=60_000)
@@ -382,5 +387,9 @@ def test_load_experiment_has_runner_fields():
     assert "noul_entailment" in qmap
     assert any(c.type == "prefill" for c in spec.clients)
     assert any(c.type == "gliclass" for c in spec.clients)
+    assert any(c.type == "bart_mnli" for c in spec.clients)
+    bart = next(c for c in spec.clients if c.type == "bart_mnli")
+    assert bart.role == "supervised_in_domain_reference"
+    assert bart.repeats == 1
     assert not any(c.type == "adapter" for c in spec.clients)
     assert spec.effective_repeats() == 10

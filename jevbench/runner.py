@@ -228,6 +228,18 @@ def build_client(
             GLiClassClientConfig(
                 model_id=cspec.model or "knowledgator/gliclass-base-v1.0",
                 resolved_model=cspec.model,
+                device=str(cspec.extras.get("device", "cpu")),
+            )
+        )
+    if cspec.type == "bart_mnli":
+        from jevbench.clients.bart_mnli import BartMnliClient, BartMnliClientConfig
+
+        return BartMnliClient(
+            BartMnliClientConfig(
+                model_id=cspec.model or "facebook/bart-large-mnli",
+                resolved_model=cspec.model,
+                device=str(cspec.extras.get("device", "cpu")),
+                role=cspec.role or "supervised_in_domain_reference",
             )
         )
     if cspec.type == "trivial":
@@ -278,12 +290,22 @@ def work_units(
     clients: list[ClientSpec],
     repeats: int,
 ) -> list[WorkUnit]:
+    """Build call units.
+
+    Order is **client → pass → item** so heavy local models can be loaded one
+    at a time and released between clients (Amendment 11 / WSL2 memory).
+    Per-client ``repeats`` overrides the experiment default (local greedy
+    baselines use 1; Jev uses 10).
+    """
     units: list[WorkUnit] = []
-    for pass_idx in range(repeats):
-        for item in items:
-            for client in clients:
+    for client in clients:
+        n_rep = int(client.repeats) if client.repeats is not None else int(repeats)
+        for pass_idx in range(n_rep):
+            for item in items:
                 units.append(
-                    WorkUnit(pass_idx=pass_idx, item_id=item.id, client_name=client.name)
+                    WorkUnit(
+                        pass_idx=pass_idx, item_id=item.id, client_name=client.name
+                    )
                 )
     return units
 
@@ -412,6 +434,7 @@ def dry_run_estimate(
     total_calls = 0
 
     for cspec in clients:
+        n_rep = int(cspec.repeats) if cspec.repeats is not None else int(n_repeats)
         input_tok = 0
         output_tok = 0  # unknown; assume ~50 for structured answers dry-run
         for item in items:
@@ -419,9 +442,9 @@ def dry_run_estimate(
             # One call carries state + all questions
             input_tok += state_tok + q_tokens
             output_tok += 50
-        input_tok *= n_repeats
-        output_tok *= n_repeats
-        n_calls = len(items) * n_repeats
+        input_tok *= n_rep
+        output_tok *= n_rep
+        n_calls = len(items) * n_rep
         total_calls += n_calls
         price = resolve_price(
             spec.pricing_snapshot_date,
@@ -434,10 +457,15 @@ def dry_run_estimate(
             cost = price.cost_usd(input_tok, 0)
             total_jev += cost
         else:
+            # Local baselines are $0
+            if cspec.type in ("prefill", "gliclass", "trivial", "bart_mnli"):
+                cost = 0.0
             total_baseline += cost
         by_client[cspec.name] = {
             "type": cspec.type,
             "model": cspec.model or spec.model,
+            "role": cspec.role,
+            "repeats": n_rep,
             "calls": n_calls,
             "est_input_tokens": input_tok,
             "est_output_tokens": output_tok if cspec.type != "jev" else 0,
@@ -875,16 +903,33 @@ class Runner:
         )
 
         def _run_pool() -> None:
-            with ThreadPoolExecutor(max_workers=self.concurrency) as pool:
-                futures = {pool.submit(execute, u): u for u in pending}
-                if progress_ctx is not None:
-                    task_id = progress_ctx.add_task(
-                        f"run {run_id}",
-                        total=total,
-                        rate="0.0",
-                        spend=0.0,
-                        errors=0,
-                    )
+            # Amendment 11: process one client at a time so WSL2 can keep only
+            # one heavy model resident (~1.5B fp32 ≈ 6GB + BART ≈ 1.6GB).
+            by_client: dict[str, list[WorkUnit]] = {}
+            for u in pending:
+                by_client.setdefault(u.client_name, []).append(u)
+
+            task_id = None
+            if progress_ctx is not None:
+                task_id = progress_ctx.add_task(
+                    f"run {run_id}",
+                    total=total,
+                    rate="0.0",
+                    spend=0.0,
+                    errors=0,
+                )
+
+            for cname, client_units in by_client.items():
+                console.print(f"[cyan]client[/cyan] {cname} — {len(client_units)} calls")
+                # Local models: concurrency 1 (CPU + memory). Jev may use pool.
+                cspec, client = clients[cname]
+                workers = (
+                    1
+                    if cspec.type in ("prefill", "gliclass", "bart_mnli")
+                    else self.concurrency
+                )
+                with ThreadPoolExecutor(max_workers=workers) as pool:
+                    futures = {pool.submit(execute, u): u for u in client_units}
                     for fut in as_completed(futures):
                         try:
                             fut.result()
@@ -894,16 +939,18 @@ class Runner:
                         except Exception as exc:
                             console.print(f"[red]worker crashed:[/red] {exc}")
                             raise
-                        progress_ctx.update(
-                            task_id,
-                            advance=1,
-                            rate=f"{self._stats.calls_per_sec:.2f}",
-                            spend=self._stats.spend_usd,
-                            errors=self._stats.errors,
-                        )
-                else:
-                    for fut in as_completed(futures):
-                        fut.result()
+                        if progress_ctx is not None and task_id is not None:
+                            progress_ctx.update(
+                                task_id,
+                                advance=1,
+                                rate=f"{self._stats.calls_per_sec:.2f}",
+                                spend=self._stats.spend_usd,
+                                errors=self._stats.errors,
+                            )
+                release = getattr(client, "release", None)
+                if callable(release):
+                    console.print(f"[dim]release[/dim] {cname}")
+                    release()
 
         if progress_ctx is not None:
             with progress_ctx:

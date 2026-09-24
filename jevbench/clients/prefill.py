@@ -171,6 +171,20 @@ class TransformersPrefillBackend:
         tok, _ = self._load()
         return tok
 
+    def release(self) -> None:
+        self._model = None
+        self._tok = None
+        try:
+            import gc
+
+            import torch
+
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:  # noqa: BLE001
+            pass
+
     def complete_one_token(
         self,
         *,
@@ -386,6 +400,10 @@ class HttpVllmBackend:
     def set_tokenizer(self, tokenizer: TokenizerLike) -> None:
         self._tokenizer = tokenizer
 
+    def release(self) -> None:
+        """No local weights to drop for the HTTP backend."""
+        return
+
     def complete_one_token(
         self,
         *,
@@ -479,6 +497,16 @@ class PrefillClient:
     @property
     def serving_path(self) -> str:
         return self.config.serving_path
+
+    def release(self) -> None:
+        """Unload local weights between clients (WSL2 memory)."""
+        backend = self._backend
+        if backend is not None:
+            rel = getattr(backend, "release", None)
+            if callable(rel):
+                rel()
+        self._backend = None
+        self._tokenizer = None
 
     def sentinel_mappings_for_manifest(self) -> dict[str, Any]:
         """Return mapping recorded during the last ``decide`` call for manifests."""

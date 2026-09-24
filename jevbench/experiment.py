@@ -55,9 +55,13 @@ class ClientSpec(BaseModel):
     """One client arm in the experiment."""
 
     name: str
-    type: Literal["jev", "adapter", "prefill", "trivial", "gliclass"]
+    type: Literal["jev", "adapter", "prefill", "trivial", "gliclass", "bart_mnli"]
     model: str | None = None
     serving_path: str | None = None  # overrides experiment serving_path for jev
+    # Per-client repeat override (Amendment 11): local greedy models use 1.
+    repeats: int | None = Field(default=None, ge=1)
+    # Paper role: e.g. "supervised_in_domain_reference" for BART-MNLI.
+    role: str | None = None
     # adapter
     provider: Literal["openai", "anthropic"] | None = None
     llm_answer_mode: Literal["probabilities", "discrete"] = "probabilities"

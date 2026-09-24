@@ -1,10 +1,12 @@
-"""GLiClass zero-shot classifier arm.
+"""BART-large-MNLI supervised in-domain reference (Amendment 11).
 
-``knowledgator/gliclass-base-v1.0`` was trained on synthetic zero-shot data
-(``MoritzLaurer/synthetic_zeroshot_mixtral_v0.1``). The model card claims
-zero-shot evaluation on IMDB / AG_NEWS / Emotions and does **not** list
-MNLI/SNLI as training corpora. Still disclose synthetic training; do not
-silently substitute BART-MNLI (that arm is a separate supervised reference).
+``facebook/bart-large-mnli`` is fine-tuned on MultiNLI. ChaosNLI's MNLI items
+come from MNLI's development set, so on those items this model is a
+**supervised, in-domain NLI reference** — not a zero-shot baseline.
+
+Report MNLI and SNLI items separately. Do **not** put this arm in the same
+comparison table as Jev. It answers: does a model trained for this task do
+better?
 """
 
 from __future__ import annotations
@@ -13,7 +15,7 @@ import logging
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Any
 
 from jevbench.clients.base import (
     ChoiceQuestion,
@@ -27,40 +29,46 @@ from jevbench.clients.base import (
 
 logger = logging.getLogger(__name__)
 
-
-class GLiClassScorer(Protocol):
-    def score(
-        self, text: str, labels: Sequence[str]
-    ) -> dict[str, float]:
-        """Return unnormalized scores or probabilities per label."""
-        ...
+DEFAULT_MODEL = "facebook/bart-large-mnli"
+PAPER_ROLE = "supervised_in_domain_reference"
 
 
 @dataclass
-class GLiClassClientConfig:
-    model_id: str = "knowledgator/gliclass-base-v1.0"
-    serving_path: str = "gliclass"
+class BartMnliClientConfig:
+    model_id: str = DEFAULT_MODEL
+    serving_path: str = "bart_mnli"
     resolved_model: str | None = None
     device: str = "cpu"
+    role: str = PAPER_ROLE
 
 
 @dataclass
-class GLiClassClient:
-    """Zero-shot multi-label/multi-class classifier control."""
+class BartMnliClient:
+    """MNLI-supervised BART used only as an in-domain reference arm."""
 
-    config: GLiClassClientConfig = field(default_factory=GLiClassClientConfig)
-    scorer: GLiClassScorer | None = None
-    _model: Any = field(default=None, repr=False)
-    _tokenizer: Any = field(default=None, repr=False)
+    config: BartMnliClientConfig = field(default_factory=BartMnliClientConfig)
+    _pipeline: Any = field(default=None, repr=False)
 
     @property
     def serving_path(self) -> str:
         return self.config.serving_path
 
+    def _get_pipeline(self) -> Any:
+        if self._pipeline is not None:
+            return self._pipeline
+        from transformers import pipeline  # type: ignore
+
+        device = -1 if self.config.device == "cpu" else 0
+        self._pipeline = pipeline(
+            "zero-shot-classification",
+            model=self.config.model_id,
+            device=device,
+        )
+        return self._pipeline
+
     def release(self) -> None:
-        self.scorer = None
-        self._model = None
-        self._tokenizer = None
+        """Drop weights so WSL2 can load the next local model."""
+        self._pipeline = None
         try:
             import gc
 
@@ -72,44 +80,8 @@ class GLiClassClient:
         except Exception:  # noqa: BLE001
             pass
 
-    def _get_scorer(self) -> GLiClassScorer:
-        if self.scorer is not None:
-            return self.scorer
-        try:
-            from gliclass import GLiClassModel, ZeroShotClassificationPipeline
-            from transformers import AutoTokenizer
-        except ImportError as exc:
-            raise ImportError(
-                "GLiClass arm requires `pip install gliclass transformers`. "
-                "Do not substitute facebook/bart-large-mnli here — that is the "
-                "separate supervised_in_domain_reference arm (Amendment 11)."
-            ) from exc
-
-        tokenizer = AutoTokenizer.from_pretrained(self.config.model_id)
-        model = GLiClassModel.from_pretrained(self.config.model_id)
-        device = self.config.device
-        model.to(device)
-        model.eval()
-        self._model = model
-        self._tokenizer = tokenizer
-        pipe = ZeroShotClassificationPipeline(
-            model, tokenizer, classification_type="multi-label", device=device
-        )
-
-        class _GLiScorer:
-            def score(self, text: str, labels: Sequence[str]) -> dict[str, float]:
-                results = pipe(text, list(labels), threshold=0.0)[0]
-                out = {str(r["label"]): float(r["score"]) for r in results}
-                for lab in labels:
-                    out.setdefault(str(lab), 0.0)
-                return out
-
-        self.scorer = _GLiScorer()
-        self.config.resolved_model = self.config.model_id
-        return self.scorer
-
     def decide(self, request: SystemOneRequest) -> list[Decision]:
-        scorer = self._get_scorer()
+        pipe = self._get_pipeline()
         text = request.state if isinstance(request.state, str) else str(request.state)
         decisions: list[Decision] = []
         resolved = self.config.resolved_model or self.config.model_id
@@ -127,20 +99,25 @@ class GLiClassClient:
                     raise TypeError(type(question))
 
                 t0 = time.perf_counter()
-                scores = scorer.score(text, labels)
+                out = pipe(text, candidate_labels=labels, multi_label=False)
                 latency_ms = (time.perf_counter() - t0) * 1000.0
-                total = sum(max(0.0, float(v)) for v in scores.values()) or 1.0
-                probs = {k: max(0.0, float(scores.get(k, 0.0))) / total for k in labels}
+                labs: Sequence[str] = out["labels"]
+                scores: Sequence[float] = out["scores"]
+                probs = {str(l): float(s) for l, s in zip(labs, scores, strict=False)}
+                # Ensure every requested label is present
+                for lab in labels:
+                    probs.setdefault(lab, 0.0)
+                total = sum(probs[l] for l in labels) or 1.0
+                probs = {l: probs[l] / total for l in labels}
                 chosen = max(probs, key=probs.get)
 
                 if kind == "noul":
-                    p_true = probs.get("yes", 0.0)
                     decisions.append(
                         Decision(
                             item_id=request.item_id,
                             question_key=key,
                             kind="noul",
-                            value=float(p_true),
+                            value=float(probs.get("yes", 0.0)),
                             probabilities=None,
                             confidence=None,
                             latency_ms=latency_ms,
@@ -151,12 +128,12 @@ class GLiClassClient:
                             attempt=1,
                             error=None,
                             raw={
-                                "scores": scores,
                                 "probs": probs,
-                                "training_note": (
-                                    "Synthetic zero-shot mix "
-                                    "(MoritzLaurer/synthetic_zeroshot_mixtral_v0.1); "
-                                    "card does not list MNLI/SNLI as training data."
+                                "role": self.config.role,
+                                "caveat": (
+                                    "Fine-tuned on MultiNLI; ChaosNLI-MNLI items "
+                                    "are in-domain. Report MNLI vs SNLI separately; "
+                                    "do not compare head-to-head with Jev."
                                 ),
                             },
                         )
@@ -180,17 +157,18 @@ class GLiClassClient:
                             attempt=1,
                             error=None,
                             raw={
-                                "scores": scores,
-                                "training_note": (
-                                    "Synthetic zero-shot mix "
-                                    "(MoritzLaurer/synthetic_zeroshot_mixtral_v0.1); "
-                                    "card does not list MNLI/SNLI as training data."
+                                "probs": probs,
+                                "role": self.config.role,
+                                "caveat": (
+                                    "Fine-tuned on MultiNLI; ChaosNLI-MNLI items "
+                                    "are in-domain. Report MNLI vs SNLI separately; "
+                                    "do not compare head-to-head with Jev."
                                 ),
                             },
                         )
                     )
             except Exception as exc:  # noqa: BLE001
-                logger.error("GLiClass failed key=%s err=%s", key, exc)
+                logger.error("BartMnli failed key=%s err=%s", key, exc)
                 decisions.append(
                     error_decision(
                         item_id=request.item_id,
