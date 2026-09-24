@@ -62,19 +62,63 @@ class GLiClassClient:
     def _get_scorer(self) -> GLiClassScorer:
         if self.scorer is not None:
             return self.scorer
-        # Lazy load — heavy
+        # Prefer the dedicated gliclass package; fall back to a generic
+        # zero-shot NLI classifier (not the GLiClass checkpoint — transformers
+        # does not register that architecture).
+        try:
+            from gliclass import GLiClassModel  # type: ignore
+            from transformers import AutoTokenizer  # type: ignore
+
+            tokenizer = AutoTokenizer.from_pretrained(self.config.model_id)
+            model = GLiClassModel.from_pretrained(self.config.model_id)
+            device = self.config.device
+            model.to(device)
+            model.eval()
+
+            class _GLiScorer:
+                def score(self, text: str, labels: Sequence[str]) -> dict[str, float]:
+                    import torch
+
+                    inputs = tokenizer(
+                        text, labels, return_tensors="pt", truncation=True
+                    )
+                    inputs = {k: v.to(device) for k, v in inputs.items()}
+                    with torch.no_grad():
+                        out = model(**inputs)
+                    # API varies by release — prefer logits over labels
+                    logits = getattr(out, "logits", None)
+                    if logits is None:
+                        raise RuntimeError("GLiClassModel returned no logits")
+                    probs = torch.softmax(logits.squeeze(0), dim=-1)
+                    return {
+                        str(lab): float(probs[i].item())
+                        for i, lab in enumerate(labels)
+                        if i < probs.numel()
+                    }
+
+            self.scorer = _GLiScorer()
+            self.config.resolved_model = self.config.model_id
+            return self.scorer
+        except Exception as gliclass_exc:  # noqa: BLE001
+            logger.warning(
+                "Native GLiClass load failed (%s); falling back to "
+                "facebook/bart-large-mnli zero-shot NLI.",
+                gliclass_exc,
+            )
+
         try:
             from transformers import pipeline  # type: ignore
         except ImportError as exc:
             raise ImportError(
-                "GLiClass arm requires transformers. Install it for live EXP-3, "
-                "or inject scorer= for tests."
+                "GLiClass arm requires the gliclass package or transformers. "
+                "Install one of them for live runs, or inject scorer= for tests."
             ) from exc
 
+        fallback_id = "facebook/bart-large-mnli"
         pipe = pipeline(
             "zero-shot-classification",
-            model=self.config.model_id,
-            device=self.config.device,
+            model=fallback_id,
+            device=-1 if self.config.device == "cpu" else 0,
         )
 
         class _HFScorer:
@@ -85,6 +129,9 @@ class GLiClassClient:
                 return {str(l): float(s) for l, s in zip(labs, scores)}
 
         self.scorer = _HFScorer()
+        self.config.resolved_model = (
+            f"{fallback_id} (fallback; gliclass checkpoint not loadable)"
+        )
         return self.scorer
 
     def decide(self, request: SystemOneRequest) -> list[Decision]:
