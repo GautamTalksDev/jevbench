@@ -143,7 +143,8 @@ class RateLimitError(Exception):
         self.retry_after = retry_after
 
 
-def test_jev_client_retries_rate_limit_honouring_retry_after():
+def test_jev_client_does_not_retry_429():
+    """Amendment 10: never retry 4xx including 429."""
     raw = json.loads((FIXTURES / "systemone_success.json").read_text())
     sleeps: list[float] = []
     n = {"i": 0}
@@ -160,12 +161,13 @@ def test_jev_client_retries_rate_limit_honouring_retry_after():
         sleep=sleeps.append,
     )
     decisions = client.decide(_ticket_request())
-    assert sleeps == [1.25, 1.25]
-    assert all(d.attempt == 3 for d in decisions)
-    assert all(d.error is None for d in decisions)
+    assert n["i"] == 1  # no retries
+    assert sleeps == []
+    assert all(d.attempt == 1 for d in decisions)
+    assert all(d.error and "RateLimitError" in d.error for d in decisions)
 
 
-def test_jev_client_records_error_after_max_attempts():
+def test_jev_client_records_error_after_non_retryable_429():
     def transport(_request: SystemOneRequest) -> dict[str, Any]:
         raise RateLimitError(retry_after=0.01)
 
@@ -177,7 +179,7 @@ def test_jev_client_records_error_after_max_attempts():
     decisions = client.decide(_ticket_request())
     assert len(decisions) == 3
     assert all(d.error and "RateLimitError" in d.error for d in decisions)
-    assert all(d.attempt == 3 for d in decisions)
+    assert all(d.attempt == 1 for d in decisions)
 
 
 def test_adapter_client_exposes_llm_answer_mode_ablation():

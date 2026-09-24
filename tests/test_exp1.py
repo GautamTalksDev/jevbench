@@ -101,7 +101,11 @@ def test_exp1_yaml_loads_with_n_per_stratum():
     assert spec.sample_size.n_per_stratum == 750
     assert spec.model == "jev-1.13.0"
     assert spec.serving_path == "native"
-    assert spec.effective_repeats() == 3
+    assert spec.effective_repeats() == 10  # Amendment 11: Jev R=10; locals override to 1
+    jev = next(c for c in spec.clients if c.name == "jev")
+    assert jev.repeats is None or jev.repeats == 10
+    local = next(c for c in spec.clients if c.name == "prefill_qwen15")
+    assert local.repeats == 1
 
 
 def test_exp1_analysis_smoke_on_fixture(tmp_path: Path):
