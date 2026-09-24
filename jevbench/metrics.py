@@ -165,6 +165,49 @@ def soft_correctness(probs: ArrayLike, label_dist: ArrayLike) -> np.ndarray:
     return dist[np.arange(len(pred)), pred].astype(float)
 
 
+def jensen_shannon_divergence(p: ArrayLike, q: ArrayLike, *, axis: int = -1) -> np.ndarray:
+    """Jensen–Shannon divergence (base-2 bits) between discrete distributions.
+
+    Secondary EXP-1 metric (Amendment 9): divergence from Jev's distribution
+    to the human annotator distribution. Uses the average of KL(p‖m) and
+    KL(q‖m) with m = (p+q)/2.
+    """
+    p_arr = np.clip(np.asarray(p, dtype=float), 1e-12, 1.0)
+    q_arr = np.clip(np.asarray(q, dtype=float), 1e-12, 1.0)
+    p_arr = p_arr / p_arr.sum(axis=axis, keepdims=True)
+    q_arr = q_arr / q_arr.sum(axis=axis, keepdims=True)
+    m = 0.5 * (p_arr + q_arr)
+    kl_pm = np.sum(p_arr * (np.log2(p_arr) - np.log2(m)), axis=axis)
+    kl_qm = np.sum(q_arr * (np.log2(q_arr) - np.log2(m)), axis=axis)
+    return (0.5 * (kl_pm + kl_qm)).astype(float)
+
+
+def total_variation_distance(p: ArrayLike, q: ArrayLike, *, axis: int = -1) -> np.ndarray:
+    """Total variation distance ½‖p−q‖₁ between discrete distributions."""
+    p_arr = np.asarray(p, dtype=float)
+    q_arr = np.asarray(q, dtype=float)
+    p_arr = p_arr / np.clip(p_arr.sum(axis=axis, keepdims=True), 1e-12, None)
+    q_arr = q_arr / np.clip(q_arr.sum(axis=axis, keepdims=True), 1e-12, None)
+    return (0.5 * np.sum(np.abs(p_arr - q_arr), axis=axis)).astype(float)
+
+
+def uniform_baseline_divergence(
+    label_dist: ArrayLike, *, n_classes: int | None = None
+) -> dict[str, float]:
+    """JSD/TVD of a uniform guess against the human distribution (baseline)."""
+    dist = np.asarray(label_dist, dtype=float)
+    if dist.ndim == 1:
+        dist = dist[None, :]
+    k = int(n_classes or dist.shape[-1])
+    uni = np.full_like(dist, 1.0 / k)
+    return {
+        "jsd_mean": float(jensen_shannon_divergence(uni, dist).mean()),
+        "tvd_mean": float(total_variation_distance(uni, dist).mean()),
+        "n": int(dist.shape[0]),
+        "n_classes": k,
+    }
+
+
 def hard_correctness(probs: ArrayLike, majority: ArrayLike) -> np.ndarray:
     """Hard correctness: ``1[argmax == majority label]``.
 

@@ -16,10 +16,11 @@ import numpy as np
 
 from jevbench.chaosnli import LABEL_ORDER as NLI_LABEL_ORDER
 from jevbench.metrics import expected_calibration_error, soft_correctness
+from jevbench.verdict import decide_verdict
 
 SCHEMA = "jevbench.certificate.v1"
 MATCH_TOL = 1e-6
-PREREG_COMMIT_EXP1 = "bf03af9"
+PREREG_COMMIT_EXP1 = "bf03af9"  # updated to Amendment 9 binding hash after commit
 LABEL_ORDER = NLI_LABEL_ORDER  # entailment, neutral, contradiction
 
 
@@ -240,6 +241,14 @@ def build_specimen(*, seed: int = 20260923) -> dict[str, Any]:
         except (OSError, ValueError, TypeError, json.JSONDecodeError):
             pass
 
+    # Specimen is built to land in the tracks zone; stamp a harness verdict.
+    delta = float(recomputed["delta_ece"])
+    specimen_verdict = decide_verdict(
+        corrected_delta_ece=delta,
+        p_value=0.001,
+        p_holds_reject_ge_effect=0.99,
+    )
+
     return {
         "schema": SCHEMA,
         "meta": {
@@ -259,10 +268,15 @@ def build_specimen(*, seed: int = 20260923) -> dict[str, Any]:
         },
         "result": {
             "delta_ece": recomputed["delta_ece"],
+            "delta_raw": recomputed["delta_ece"],
+            "delta_corrected": recomputed["delta_ece"],
             "ci_low": recomputed["delta_ece"] - 0.02,
             "ci_high": recomputed["delta_ece"] + 0.02,
             "ece_easy": recomputed["ece_easy"],
             "ece_hard": recomputed["ece_hard"],
+            "p_value": 0.001,
+            "verdict": specimen_verdict["verdict"],
+            "verdict_reason": specimen_verdict["reason"],
         },
         "items": items,
     }
@@ -324,6 +338,19 @@ def export_certificate(
     ece_easy = _req(soft, "ece_easy")
     ece_hard = _req(soft, "ece_hard")
 
+    # Amendment 9 fields — copy from harness result / jev block; never invent.
+    result_block = exp1.get("result") or {}
+    delta_raw = result_block.get("delta_raw", jev.get("delta_raw", delta))
+    delta_corrected = result_block.get(
+        "delta_corrected", jev.get("delta_corrected", delta)
+    )
+    p_value = result_block.get("p_value", jev.get("p_value"))
+    verdict = result_block.get("verdict", jev.get("verdict"))
+    if verdict is None:
+        raise KeyError("harness missing result.verdict — re-run EXP-1 analyze")
+    if p_value is None:
+        raise KeyError("harness missing result.p_value — re-run EXP-1 analyze")
+
     coverage = float("nan")
     if coverage_path.is_file():
         cov = json.loads(coverage_path.read_text(encoding="utf-8"))
@@ -369,10 +396,14 @@ def export_certificate(
         },
         "result": {
             "delta_ece": delta,
+            "delta_raw": float(delta_raw),
+            "delta_corrected": float(delta_corrected),
             "ci_low": ci_low,
             "ci_high": ci_high,
             "ece_easy": ece_easy,
             "ece_hard": ece_hard,
+            "p_value": float(p_value),
+            "verdict": str(verdict),
         },
         "items": items,
     }

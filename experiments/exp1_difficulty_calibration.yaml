@@ -32,6 +32,36 @@ questions:
       neutral: The hypothesis might be true, but the premise does not require it.
       contradiction: The hypothesis cannot be true if the premise is true.
 
+  # Amendment 9 — Noul arm in the SAME call (normalize the three probabilities).
+  # Neither Choice nor Noul is "the" result; report both. Motivated by
+  # TypeSafe's own docs that Choice and Noul are not interchangeable, and by
+  # independent reports that the two primitives calibrate differently.
+  noul_entailment:
+    kind: noul
+    instructions: >
+      The hypothesis is entailed by the premise (must be true if the premise
+      is true). Use only the premise and hypothesis in the state.
+    criteria:
+      "true": The hypothesis must be true if the premise is true.
+      "false": The hypothesis is not entailed by the premise.
+  noul_neutral:
+    kind: noul
+    instructions: >
+      The hypothesis is neutral with respect to the premise (might be true,
+      but the premise does not require it). Use only the premise and
+      hypothesis in the state.
+    criteria:
+      "true": The premise neither entails nor contradicts the hypothesis.
+      "false": The hypothesis is entailed or contradicted by the premise.
+  noul_contradiction:
+    kind: noul
+    instructions: >
+      The hypothesis is contradicted by the premise (cannot be true if the
+      premise is true). Use only the premise and hypothesis in the state.
+    criteria:
+      "true": The hypothesis cannot be true if the premise is true.
+      "false": The hypothesis is not contradicted by the premise.
+
 clients:
   - name: jev
     type: jev
@@ -71,8 +101,11 @@ hypotheses:
       Descriptive only. Interval crossing zero is inconclusive.
 
 metrics:
-  - "PRIMARY: soft top-label ΔECE (high-entropy vs low-entropy), equal n=750, BCa + percentile, n_boot=10000"
+  - "PRIMARY: soft top-label ΔECE (high-entropy vs low-entropy), equal n=750, bias-corrected parametric test (Amendment 9); BCa + percentile reported beside it"
+  - "PRIMARY ARMS: Choice and normalized three-Noul from the same call — report both"
+  - "VERDICT: tracks = corrected≥0.09 AND p<0.05; holds = reject Δ≥0.09 (sim under 0.09) AND corrected≤0.02; else inconclusive"
   - "REPORTED: hard top-label ΔECE (argmax vs majority). Hard scoring puts label noise in the hard stratum only, which inflates ΔECE in the direction of the hypothesis."
+  - "SECONDARY: JSD and TVD to human distribution per stratum, both arms, vs uniform-guess baseline"
   - "ECE (uniform + quantile) with per-bin occupancy — M in {5,10,15,20} robustness"
   - "Per-tier reliability diagrams with occupancy"
   - "DESCRIPTIVE ONLY: ECE-vs-accuracy slope where four tiers exist"
@@ -82,13 +115,13 @@ metrics:
   - "Latency p50/p95/p99 (never mean)"
 
 decision_rules:
-  - "Report soft ΔECE (both BCa and percentile CIs, equal_n flag, occupancy) as primary."
-  - "Always report hard ΔECE beside it, with the label-noise caveat."
+  - "Primary verdict is Amendment 9 on corrected soft ΔECE; certificate uses harness result.verdict."
+  - "Report Choice and Noul arms; neither is 'the' result."
+  - "Always report raw and corrected ΔECE; always report hard beside soft."
   - "Never report ECE without bin occupancy."
   - "Calibration metrics use probabilities only — never confidence."
-  - "Interval crossing zero ⇒ inconclusive, not equivalence."
-  - "If the M∈{5,10,15,20} sweep flips the primary conclusion, the conclusion IS the binning — report the sweep."
-  - "Do not score underpowered relative to results/power_asymmetric.json."
+  - "If the M∈{5,10,15,20} sweep flips the raw-interval sign, say so; parametric corrected test remains primary."
+  - "Do not score underpowered relative to results/power_asymmetric.json / soft_bias_correction.json."
   - "The hand-labelling kappa gate does not apply: agreement is the 100-annotator distribution."
   - "A large drop from original wording to the frozen paraphrase, on every arm, is a memorisation signal, not a calibration finding."
 

@@ -1,0 +1,29 @@
+{
+  "acceptance": {
+    "holds_at_effect_rare": true,
+    "holds_boundary_size_ok": true,
+    "note": "Size checks: parametric p FPR under null; one-sided reject-\u22650.09 size under true \u0394=0.09; tracks under null rare; holds under true \u0394=0.09 rare. When true \u0394=0, holds is the correct verdict (not a false positive).",
+    "pvalue_fpr_ok": true,
+    "pvalue_power_at_0_09_ok": true,
+    "tracks_null_fpr_low": true,
+    "tracks_power_at_boundary_note": "Composite tracks power at true \u0394ECE=0.09 is 0.522. Requiring corrected\u22650.09 when the true mean is 0.09 yields ~50% power by construction (median split). The parametric p-value test itself retains high power; the paper must not claim 80% power for the composite tracks gate at exactly 0.09."
+  },
+  "alternative_at_0_09": {
+    "mean_corrected": 0.09044809664608289,
+    "power_pvalue": 1.0,
+    "power_tracks": 0.5225,
+    "rate_holds": 0.0,
+    "size_one_sided_reject_ge_0_09": 0.05
+  },
+  "jev_data_observed": false,
+  "n_per_stratum": 750,
+  "n_trials": 400,
+  "null": {
+    "fpr_pvalue": 0.0425,
+    "fpr_tracks": 0.0,
+    "mean_corrected": 9.299482381467225e-05,
+    "rate_holds_when_true_delta_0": 1.0
+  },
+  "schema": "jevbench.verdict_size.v1",
+  "seed": 20260924
+}

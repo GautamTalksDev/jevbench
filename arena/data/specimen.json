@@ -17,10 +17,15 @@
   },
   "result": {
     "delta_ece": 0.16890116332776264,
+    "delta_raw": 0.16890116332776264,
+    "delta_corrected": 0.16890116332776264,
     "ci_low": 0.14890116332776265,
     "ci_high": 0.18890116332776263,
     "ece_easy": 0.0015039923952070203,
-    "ece_hard": 0.17040515572296966
+    "ece_hard": 0.17040515572296966,
+    "p_value": 0.001,
+    "verdict": "tracks",
+    "verdict_reason": "corrected \u0394ECE=0.1689 \u2265 0.09 and parametric p=0.0010 < 0.05."
   },
   "items": [
     {

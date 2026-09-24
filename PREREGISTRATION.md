@@ -6,7 +6,7 @@
 **Pinned model:** `jev-1.13.0`
 **Serving path:** `native`
 **Locked at (UTC):** 2026-09-20T02:59:57+00:00
-**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendments 6–8)
+**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendments 6–8); 2026-09-24 (Amendment 9)
 
 This document locks hypotheses, metrics, and decision rules **before**
 scored API calls. Analyses that diverge are labelled exploratory.
@@ -77,18 +77,23 @@ annotator counts + a fetch script (`scripts/fetch_chaosnli.py`).
 
 ## Hypotheses & falsification rules
 
-### H1 — primary (amended: soft ΔECE on ChaosNLI)
+### H1 — primary (amended: soft ΔECE on ChaosNLI; Amendment 9 verdict)
 
 **Statement:** Soft top-label ΔECE = ECE(high-entropy) − ECE(low-entropy) is
 distinguishable from zero in the literature direction (hard less
 calibrated), with equal n = 750 per stratum and occupancy reported on every
-ECE.
+ECE. Primary inference uses the **parametric bias-corrected** test
+(Amendments 8–9), not the bootstrap interval alone.
 
-**Falsified when:** The stratified two-sample bootstrap 95% CI on soft ΔECE
-(percentile and BCa, n_boot = 10 000) includes zero (inconclusive — not
-equivalence), or the powered sample fails to exclude zero at the
-pre-specified effect size. Never interpret an underpowered inconclusive
-interval as a substantive finding.
+**Falsified when / verdict (Amendment 9):**
+- **tracks** = corrected ΔECE ≥ 0.09 AND parametric p < 0.05
+- **holds** = one-sided test rejects ΔECE ≥ 0.09 at level 0.05
+  (simulate under true ΔECE = 0.09) AND corrected ΔECE ≤ 0.02
+- else **inconclusive**
+
+Run identical analysis on **Choice** and **normalized three-Noul** arms
+from the same call; report both; neither is "the" result. Never interpret
+an underpowered inconclusive as a substantive finding.
 
 ### H1a — descriptive (retained)
 
@@ -125,12 +130,18 @@ for bin occupancy.
 
 ## Decision rules
 
-- Report **soft ΔECE** (with CI, equal-n flag, occupancy) as the primary result.
-- Always report hard ΔECE beside it, with the label-noise caveat above.
+- Primary verdict uses the **Amendment 9 parametric rule** on corrected soft
+  ΔECE (Choice arm stamped on the certificate; Noul arm reported beside it).
+- Always report raw and corrected ΔECE. The certificate page displays
+  `result.verdict` from the harness — it must not recompute a zone from the
+  interval.
+- Always report hard ΔECE beside soft, with the label-noise caveat above.
+- Secondary: JSD and TVD from Jev's distribution to the human distribution,
+  per stratum, both arms, compared to a uniform-guess baseline.
 - Never report ECE without bin occupancy.
 - Calibration metrics use probabilities only — never confidence.
-- Interval crossing zero ⇒ inconclusive, not equivalence.
-- Do not run EXP-1 underpowered relative to `results/power_asymmetric.json`.
+- Do not run EXP-1 underpowered relative to `results/power_asymmetric.json`
+  / `results/soft_bias_correction.json`.
 - Report the BCa coverage diagnostic in `results/bca_diagnostic.json`: the
   data support the **ΔECE statistic** explanation (mean coverage near
   nominal; ΔECE BCa undercovers). Do not claim a 95% ΔECE interval.
@@ -199,6 +210,7 @@ explicitly marked not scored).
 | 6 (ChaosNLI) | 2026-09-23 | see `AMENDMENT_6_COMMIT` below |
 | 7 (soft null Beta–Binomial) | 2026-09-23 | see `AMENDMENT_7_COMMIT` below |
 | 8 (structural ECE bias correction) | 2026-09-24 | see `AMENDMENT_8_COMMIT` below |
+| 9 (Choice+Noul; parametric verdict; JSD/TVD) | 2026-09-24 | see `AMENDMENT_9_COMMIT` below |
 
 ### Amendment 1 — primary endpoint → ΔECE
 
@@ -223,10 +235,14 @@ Jev API data**. The slope is retained as a descriptive figure.
 
 **Change:** detectable effect size **ΔECE = 0.09** is pre-specified.
 
-**Reason:** anchored to the gap between published benchmark results
-(~ECE 0.05–0.07 at ~92% accuracy vs ~0.154 at ~63% accuracy), not chosen
-ad hoc. See `jevbench/power.py` module docstring and
-`results/power_analysis.json`.
+**Reason (Amendment 9 re-trace):** the verified low-accuracy public anchor is
+**jev-phishing-bench** (62.6% accuracy, ECE **0.154**). SamuelSacco issue #1
+contrasted that with jev-spam-eval at 98.3% accuracy (well calibrated at the
+extremes). An earlier draft also cited "~ECE 0.05–0.07 at ~92%"; that
+specific high-accuracy ECE was **not re-traced to a primary repo** and is
+withdrawn as justification. The threshold stays 0.09 (locked before any Jev
+call); the justification text is the honest one. See `jevbench/power.py`
+module docstring and `results/power_analysis.json`.
 
 ### Amendment 4 — n from power analysis
 
@@ -389,6 +405,56 @@ interval and the margin to the ≤0.02 "holds" zone are not.
 
 **No Jev output observed.** Offline only.
 
+### Amendment 9 — Choice+Noul arms; parametric verdict; JSD/TVD (PROMPT Q)
+
+**Change:**
+
+1. **Primitive arms.** EXP-1 asks, in the **same** System One call as the
+   Choice `relation` question, three Nouls
+   (`noul_entailment` / `noul_neutral` / `noul_contradiction`), normalized
+   to sum to 1. Run the identical soft ΔECE + bias-corrected analysis on
+   both arms. Report both; neither is "the" result. Motivation: TypeSafe's
+   own docs that Choice and Noul are not interchangeable (verified); see
+   `paper/RELATED_WORK.md`. Specific third-party audit numbers were **not**
+   re-verified to a primary repo at amendment time and are not cited.
+2. **Verdict rule** (primary = parametric corrected test):
+   - tracks = corrected ΔECE ≥ 0.09 AND p < 0.05
+   - holds = one-sided reject ΔECE ≥ 0.09 at 0.05 (simulate under true
+     ΔECE = 0.09) AND corrected ΔECE ≤ 0.02
+   - else inconclusive
+   Size re-verified in `results/verdict_size.json` (p-value FPR ≈ 0.04;
+   one-sided reject-≥0.09 size at the boundary ≈ 0.05; tracks under null
+   ≈ 0; holds under true Δ=0.09 ≈ 0). **Composite tracks power at exactly
+   ΔECE=0.09 is ~0.5 by construction** (requiring corrected ≥ 0.09 when the
+   true mean is 0.09 is a median split); the parametric p-value test itself
+   has power ≈ 1.0 at that effect. Do not claim 80% power for the composite
+   tracks gate at the boundary. The certificate page displays
+   `result.verdict` from the harness and must not recompute a zone from the
+   interval (`result.p_value`, `result.delta_raw`, `result.delta_corrected`
+   stamped beside it).
+3. **Secondary.** JSD and TVD from Jev's distribution to the human
+   distribution, per stratum, both arms, vs a uniform-guess baseline
+   (motivated by Baan et al., EMNLP 2022 / arXiv 2210.16133 — verified).
+4. **Related work.** Credit SamuelSacco/jev-exploration#1 (2026-09-17) as
+   the origin of the difficulty-vs-calibration question (verified; issue
+   later closed on a different synthetic design). Re-trace the 0.09
+   effect-size justification: verified low-accuracy end is phishing ECE
+   0.154 @ 62.6%; the earlier "~0.05–0.07 at ~92%" figure was **not**
+   re-traced to a primary repo — threshold stays; justification discloses
+   that. Claims about jev-frontier-bench / HF ChaosNLI jev-bench /
+   jev-calibration-audit specific numbers were **not** verified and are
+   not cited.
+
+**Reason:** The landscape moved while the harness was built. The core
+question is no longer unpublished as a question (SamuelSacco #1). Descriptive
+ChaosNLI-on-Jev reports exist elsewhere. Running Choice alone would confound
+model with primitive. The bootstrap interval's near-100% coverage made the
+old interval-based "holds" rule asymmetrically hard. This amendment
+repositions the paper as the first pre-registered, equal-n, bias-corrected
+test, with a methods finding the others lack.
+
+**No Jev output observed.** Offline only.
+
 ### Amendment commit hash (binding timestamp)
 
 ```
@@ -396,6 +462,7 @@ AMENDMENT_COMMIT=70be25f7baf91daa748cec11c38f26f17315b17c
 AMENDMENT_6_COMMIT=bf03af91ecd08efa927cea9d1a8eb5adfc941634
 AMENDMENT_7_COMMIT=3891afac56818bed1dc64850d9775e65d64f613c
 AMENDMENT_8_COMMIT=9828641f73666c51a6ced232726049b7ff19e141
+AMENDMENT_9_COMMIT=<fill after this commit>
 ```
 
 Verify with:

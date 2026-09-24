@@ -1,10 +1,16 @@
 """Power analysis for the EXP-1 ΔECE endpoint.
 
-Effect size 0.09 is anchored to the published literature, not chosen by us:
-two published Jev benchmarks report roughly ECE 0.05–0.07 at ~92% accuracy
-and ~0.154 at ~63% accuracy — a gap of about 0.09. The effect size is
-therefore the magnitude that would actually explain the disagreement in the
-existing literature. That sentence is the justification a reviewer will look for.
+Effect size 0.09 is pre-registered (Amendment 3) and retained. The primary
+anchor that can be traced to a public bench is **jev-phishing-bench**
+(anisselbd): accuracy 62.6%, ECE 0.154 on 2,000 emails. SamuelSacco's
+jev-exploration issue #1 contrasted that with **jev-spam-eval** at 98.3%
+accuracy described as well calibrated at the extremes — a high-vs-low
+accuracy pair, not a measured ECE gap of exactly 0.09.
+
+An earlier draft claimed "~ECE 0.05–0.07 at ~92% accuracy" as the other
+end of the gap. That specific figure was **not re-traced to a primary
+repo** at Amendment 9 time; the pre-registered threshold stays 0.09, but
+the justification text discloses the untraced high-accuracy ECE.
 
 No network. No API key. Run before any paid call — this sets the budget.
 

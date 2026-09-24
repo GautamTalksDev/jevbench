@@ -506,15 +506,46 @@
     }
 
     // Expose for headless tests
-    window.JevbenchCertificate = { softCorrect, eceSoft, recompute, matchStatus, getDoc: () => doc };
+    window.JevbenchCertificate = {
+      softCorrect, eceSoft, recompute, matchStatus, zoneFor, verdictFromHarness,
+      getDoc: () => doc
+    };
 
     function zoneFor(delta) {
+      // Display gauge only — Amendment 9 verdict comes from harness result.verdict.
       if (delta <= HOLD) return "holds";
       if (delta < TRACKS) return "inconclusive";
       return "tracks";
     }
 
+    function verdictFromHarness(result, synthetic) {
+      const label = (result && result.verdict) || "inconclusive";
+      if (synthetic && label === "tracks") {
+        return {
+          title: "Specimen: tracks accuracy (not a finding)",
+          sub: "This synthetic run lands in the tracks verdict so you can see the page. It means nothing about Jev."
+        };
+      }
+      if (label === "tracks") {
+        return {
+          title: "Calibration tracks accuracy",
+          sub: "Harness verdict: corrected ΔECE ≥ 0.09 and parametric p < 0.05. The page does not recompute this from the interval."
+        };
+      }
+      if (label === "holds") {
+        return {
+          title: "Calibration holds across difficulty",
+          sub: "Harness verdict: one-sided test rejects ΔECE ≥ 0.09 and corrected ΔECE ≤ 0.02."
+        };
+      }
+      return {
+        title: "Inconclusive on the pre-registered rule",
+        sub: "Harness verdict: neither tracks nor holds cleared its Amendment 9 gate."
+      };
+    }
+
     function verdictCopy(delta, synthetic) {
+      // Legacy zone copy — kept for gauge labels only; page title uses harness.
       const z = zoneFor(delta);
       if (z === "holds") {
         return {
@@ -666,16 +697,21 @@
       }
       document.getElementById("modelBadge").textContent = d.meta.model_resolved || "—";
 
-      const delta = Number(d.result.delta_ece);
-      const v = verdictCopy(delta, synthetic);
+      const delta = Number(d.result.delta_corrected != null ? d.result.delta_corrected : d.result.delta_ece);
+      const v = verdictFromHarness(d.result, synthetic);
       document.getElementById("verdictTitle").textContent = v.title;
       document.getElementById("verdictSub").textContent = v.sub;
-      drawGauge(delta);
+      drawGauge(Number(d.result.delta_ece));
 
       document.getElementById("deltaValue").textContent = fmt(delta, 3);
-      const ciLo = Number(d.result.ci_low), ciHi = Number(d.result.ci_high);
-      document.getElementById("ciValue").textContent =
-        `CI [${fmt(ciLo, 3)}, ${fmt(ciHi, 3)}]`.replace(/\+\-/g, "-");
+      if (d.result.p_value != null && Number.isFinite(Number(d.result.p_value))) {
+        document.getElementById("ciValue").textContent =
+          `p=${Number(d.result.p_value).toFixed(4)} · raw ${fmt(Number(d.result.delta_raw ?? d.result.delta_ece), 3)} · corr ${fmt(Number(d.result.delta_corrected ?? d.result.delta_ece), 3)}`;
+      } else {
+        const ciLo = Number(d.result.ci_low), ciHi = Number(d.result.ci_high);
+        document.getElementById("ciValue").textContent =
+          `CI [${fmt(ciLo, 3)}, ${fmt(ciHi, 3)}]`.replace(/\+\-/g, "-");
+      }
 
       const cov = Number(d.meta.coverage_empirical);
       const covEl = document.getElementById("covValue");

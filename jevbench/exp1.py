@@ -18,10 +18,16 @@ from jevbench.chaosnli import contamination_table
 from jevbench.metrics import (
     calibration_by_tier,
     delta_ece,
+    hard_correctness,
+    jensen_shannon_divergence,
     paired_bootstrap,
     soft_correctness,
     subsample_to_equal_n,
+    total_variation_distance,
+    uniform_baseline_divergence,
 )
+from jevbench.power import SOFT_NULL_OPERATING_KAPPA, soft_delta_ece_corrected
+from jevbench.verdict import decide_verdict, p_holds_one_sided, simulate_corrected_delta_ece
 
 REPO = Path(__file__).resolve().parents[1]
 RESULTS = REPO / "results"
@@ -68,16 +74,57 @@ def load_raw_records(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+CHAOSNLI_LABEL_ORDER = ("entailment", "neutral", "contradiction")
+NOUL_QUESTION_KEYS = (
+    "noul_entailment",
+    "noul_neutral",
+    "noul_contradiction",
+)
+
+
+def _noul_probs_from_decisions(
+    decisions: list[dict[str, Any]],
+) -> dict[str, float] | None:
+    """Normalize three Noul yes-probabilities into a 3-way distribution."""
+    raw: dict[str, float] = {}
+    for d in decisions:
+        if d.get("error"):
+            continue
+        key = str(d.get("question_id") or d.get("question_key") or d.get("name") or "")
+        if key not in NOUL_QUESTION_KEYS:
+            continue
+        # Noul value is P(statement true); parse stores it as ``value``.
+        val = d.get("value")
+        if val is None:
+            val = (d.get("raw") or {}).get("noul")
+        if val is None:
+            return None
+        label = key.replace("noul_", "", 1)
+        raw[label] = float(val)
+    if len(raw) != 3:
+        return None
+    total = sum(raw.values())
+    if total <= 0:
+        return None
+    return {lab: raw[lab] / total for lab in CHAOSNLI_LABEL_ORDER}
+
+
 def _flatten_live_record(rec: dict[str, Any]) -> dict[str, Any] | None:
-    """Convert a runner raw.jsonl row into fixture-style flat record."""
+    """Convert a runner raw.jsonl row into fixture-style flat record.
+
+    Amendment 9: when three Nouls are present in the same call, also attach
+    ``probabilities_noul`` (normalized). Choice remains ``probabilities``.
+    """
     decisions = rec.get("decisions") or []
     if not decisions:
         return None
-    # Prefer the department / first choice decision
+    # Prefer the Choice decision for the primary probabilities field.
     d = decisions[0]
     for cand in decisions:
         q = str(cand.get("question_id") or cand.get("name") or "")
-        if "department" in q or cand.get("kind") == "choice":
+        if q == "relation" or (
+            cand.get("kind") == "choice" and "noul" not in q
+        ):
             d = cand
             break
     if d.get("error"):
@@ -85,9 +132,9 @@ def _flatten_live_record(rec: dict[str, Any]) -> dict[str, Any] | None:
     probs = d.get("probabilities")
     if not isinstance(probs, dict):
         return None
-    choice = d.get("choice") or d.get("answer")
-    # Ground-truth label is not on live records — caller joins dataset
-    return {
+    choice = d.get("choice") or d.get("answer") or d.get("value")
+    noul_probs = _noul_probs_from_decisions(decisions)
+    out = {
         "item_id": rec["item_id"],
         "tier": rec["tier"],
         "client": rec["client"],
@@ -101,7 +148,12 @@ def _flatten_live_record(rec: dict[str, Any]) -> dict[str, Any] | None:
         "output_tokens": (rec.get("usage") or {}).get("output_tokens"),
         "role": rec.get("role", "primary"),
         "source_item_id": rec.get("source_item_id"),
+        "primitive_arm": "choice",
     }
+    if noul_probs is not None:
+        out["probabilities_noul"] = noul_probs
+        out["choice_noul"] = max(noul_probs, key=noul_probs.get)
+    return out
 
 
 def normalize_records(
@@ -156,11 +208,19 @@ def _stratum_arrays(
     rows: list[dict[str, Any]],
     tiers: tuple[str, ...],
     label_order: tuple[str, ...],
+    *,
+    probs_key: str = "probabilities",
 ) -> tuple[np.ndarray, np.ndarray, list[str], np.ndarray | None]:
-    sel = [r for r in rows if r.get("tier") in tiers and r.get("role", "primary") != "paraphrase"]
+    sel = [
+        r
+        for r in rows
+        if r.get("tier") in tiers
+        and r.get("role", "primary") != "paraphrase"
+        and isinstance(r.get(probs_key), dict)
+    ]
     if not sel:
         return np.zeros((0, len(label_order))), np.zeros(0, dtype=int), [], None
-    probs = _prob_matrix([r["probabilities"] for r in sel], label_order)
+    probs = _prob_matrix([r[probs_key] for r in sel], label_order)
     labels = np.asarray(
         [_label_index(str(r["label"]), label_order) for r in sel], dtype=int
     )
@@ -178,6 +238,115 @@ def _align_kept(
     pos = {i: k for k, i in enumerate(ids_all)}
     idx = np.asarray([pos[i] for i in ids_kept], dtype=int)
     return [arr[idx] for arr in arrays]
+
+
+def _holds_effect_reference(*, seed: int = 20260924) -> np.ndarray:
+    """Corrected ΔECE draws under true ΔECE=0.09 for the holds one-sided test."""
+    cache = RESULTS / "holds_effect_null.json"
+    if cache.is_file():
+        doc = json.loads(cache.read_text(encoding="utf-8"))
+        arr = np.asarray(doc.get("corrected") or [], dtype=float)
+        if arr.size >= 50:
+            return arr
+    sim = simulate_corrected_delta_ece(
+        setting="alternative",
+        n_trials=400,
+        n_boot=400,
+        n_e0=400,
+        n_null_pval=400,
+        seed=seed,
+    )
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    cache.write_text(
+        json.dumps(
+            {
+                "schema": "jevbench.holds_effect_null.v1",
+                "n_trials": int(sim["corrected"].size),
+                "mean_corrected": sim["mean_corrected"],
+                "corrected": sim["corrected"].tolist(),
+                "jev_data_observed": False,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return sim["corrected"]
+
+
+def _corrected_soft_primary(
+    ph: np.ndarray,
+    correct_h: np.ndarray,
+    pe: np.ndarray,
+    correct_e: np.ndarray,
+    *,
+    seed: int,
+    kappa: float = SOFT_NULL_OPERATING_KAPPA,
+    n_boot: int = 2000,
+    n_e0: int = 2000,
+    n_null_pval: int = 2000,
+) -> dict[str, Any]:
+    """Raw + corrected soft ΔECE and parametric p-values (Amendment 8–9)."""
+    rng = np.random.default_rng(seed)
+    top_h = ph.max(axis=1)
+    top_e = pe.max(axis=1)
+    iv = soft_delta_ece_corrected(
+        top_h,
+        correct_h,
+        top_e,
+        correct_e,
+        kappa=kappa,
+        n_boot=n_boot,
+        n_e0=n_e0,
+        n_null_pval=n_null_pval,
+        rng=rng,
+    )
+    effect_ref = _holds_effect_reference(seed=seed + 5)
+    p_hold = p_holds_one_sided(float(iv["corrected_delta_ece"]), effect_ref)
+    return {
+        "delta_raw": float(iv["raw_delta_ece"]),
+        "delta_corrected": float(iv["corrected_delta_ece"]),
+        "p_value": float(iv["p_value"]),
+        "p_holds_reject_ge_effect": float(p_hold),
+        "e0_hard": float(iv["e0_hard"]),
+        "e0_easy": float(iv["e0_easy"]),
+        "bias0_delta_ece": float(iv["bias0_delta_ece"]),
+        "ci_low_corrected": float(iv["ci_low"]),
+        "ci_high_corrected": float(iv["ci_high"]),
+        "kappa": float(kappa),
+    }
+
+
+def _divergence_secondary(
+    ph: np.ndarray,
+    dh: np.ndarray,
+    pe: np.ndarray,
+    de: np.ndarray,
+) -> dict[str, Any]:
+    """JSD/TVD to humans per stratum, vs uniform-guess baseline (Amendment 9)."""
+    jsd_h = jensen_shannon_divergence(ph, dh)
+    jsd_e = jensen_shannon_divergence(pe, de)
+    tvd_h = total_variation_distance(ph, dh)
+    tvd_e = total_variation_distance(pe, de)
+    uni_h = uniform_baseline_divergence(dh)
+    uni_e = uniform_baseline_divergence(de)
+    return {
+        "hard": {
+            "jsd_mean": float(jsd_h.mean()),
+            "tvd_mean": float(tvd_h.mean()),
+            "n": int(len(jsd_h)),
+        },
+        "easy": {
+            "jsd_mean": float(jsd_e.mean()),
+            "tvd_mean": float(tvd_e.mean()),
+            "n": int(len(jsd_e)),
+        },
+        "uniform_baseline": {"hard": uni_h, "easy": uni_e},
+        "note": (
+            "Secondary only. Compare Jev→human JSD/TVD to the uniform-guess "
+            "baseline. Motivated by Baan et al. (EMNLP 2022 / arXiv 2210.16133)."
+        ),
+    }
 
 
 def _delta_block(
@@ -227,6 +396,7 @@ def analyze_client(
     client: str,
     seed: int = 20260922,
     n_boot: int = N_BOOT,
+    primitive_arm: str = "choice",
 ) -> dict[str, Any]:
     """Primary ΔECE + descriptive calibration + M-sweep for one client.
 
@@ -234,13 +404,23 @@ def analyze_client(
     hard scoring is reported beside it. Hard scoring puts label noise in
     the hard stratum only, which inflates ΔECE in the direction of the
     hypothesis — see :func:`jevbench.metrics.hard_correctness`.
+
+    ``primitive_arm`` is ``choice`` (default) or ``noul`` (normalized three
+    Nouls from the same call — Amendment 9). Neither arm is "the" result.
     """
+    probs_key = "probabilities_noul" if primitive_arm == "noul" else "probabilities"
     items = [
         r for r in _client_pass0(rows, client) if r.get("role", "primary") != "paraphrase"
     ]
+    if primitive_arm == "noul":
+        items = [r for r in items if isinstance(r.get("probabilities_noul"), dict)]
     label_order = _label_order_for(items)
-    ph, yh, ids_h, dh = _stratum_arrays(items, HARD_TIERS, label_order)
-    pe, ye, ids_e, de = _stratum_arrays(items, EASY_TIERS, label_order)
+    ph, yh, ids_h, dh = _stratum_arrays(
+        items, HARD_TIERS, label_order, probs_key=probs_key
+    )
+    pe, ye, ids_e, de = _stratum_arrays(
+        items, EASY_TIERS, label_order, probs_key=probs_key
+    )
 
     equal_n_info: dict[str, Any]
     if len(yh) == 0 or len(ye) == 0:
@@ -283,6 +463,24 @@ def analyze_client(
         )
     scoring_primary = "soft" if soft_block is not None else "hard"
     primary_block = soft_block if soft_block is not None else hard_block
+
+    # Amendment 9 — parametric corrected primary + divergence secondaries.
+    corrected_block: dict[str, Any] | None = None
+    verdict_block: dict[str, Any] | None = None
+    divergence_block: dict[str, Any] | None = None
+    if soft_block is not None and correct_h is not None and correct_e is not None:
+        corrected_block = _corrected_soft_primary(
+            ph, correct_h, pe, correct_e, seed=seed + 91
+        )
+        verdict_block = decide_verdict(
+            corrected_delta_ece=float(corrected_block["delta_corrected"]),
+            p_value=float(corrected_block["p_value"]),
+            p_holds_reject_ge_effect=float(
+                corrected_block["p_holds_reject_ge_effect"]
+            ),
+        )
+        if dh is not None and de is not None:
+            divergence_block = _divergence_secondary(ph, dh, pe, de)
 
     # Four-tier descriptive (support-ticket tiers). ChaosNLI has only easy/hard.
     by_tier_p: dict[str, list] = {t: [] for t in TIER_ORDER}
@@ -362,12 +560,29 @@ def analyze_client(
 
     return {
         "client": client,
+        "primitive_arm": primitive_arm,
         "n_items": len(items),
         "n_hard": int(len(yh)),
         "n_easy": int(len(ye)),
         "equal_n": equal_n_info,
         "scoring_primary": scoring_primary,
         "primary_delta_ece": primary_block,
+        "delta_raw": (
+            None if corrected_block is None else corrected_block["delta_raw"]
+        ),
+        "delta_corrected": (
+            None if corrected_block is None else corrected_block["delta_corrected"]
+        ),
+        "p_value": None if corrected_block is None else corrected_block["p_value"],
+        "p_holds_reject_ge_effect": (
+            None
+            if corrected_block is None
+            else corrected_block["p_holds_reject_ge_effect"]
+        ),
+        "verdict": None if verdict_block is None else verdict_block["verdict"],
+        "verdict_detail": verdict_block,
+        "corrected_soft": corrected_block,
+        "divergence_to_humans": divergence_block,
         "scoring": {
             "primary": scoring_primary,
             "soft": soft_block,
@@ -413,10 +628,9 @@ def _accuracy(rows: list[dict[str, Any]]) -> float:
 
 
 def build_verdict(payload: dict[str, Any]) -> str:
-    """One-paragraph plain-language verdict."""
+    """One-paragraph plain-language verdict (Amendment 9 parametric rule)."""
     jev = payload.get("jev") or {}
-    base = payload.get("baseline") or {}
-    primary = (jev.get("primary_delta_ece") or {})
+    jev_noul = payload.get("jev_noul") or {}
     gate = payload.get("gates") or {}
 
     if gate.get("block_reason"):
@@ -425,51 +639,26 @@ def build_verdict(payload: dict[str, Any]) -> str:
             f"No hypothesis is supported until the gate clears."
         )
 
-    point = primary.get("point")
-    bca = primary.get("ci_bca") or [None, None]
-    crosses = primary.get("crosses_zero_bca", True)
+    label = jev.get("verdict") or "inconclusive"
+    detail = jev.get("verdict_detail") or {}
+    noul_label = jev_noul.get("verdict")
+    parts = [
+        f"Choice arm Amendment 9 verdict: {label}.",
+        detail.get("reason") or "",
+    ]
+    if noul_label:
+        parts.append(
+            f"Noul arm (same call, normalized) verdict: {noul_label} "
+            f"(corrected ΔECE={jev_noul.get('delta_corrected')}, "
+            f"p={jev_noul.get('p_value')}). Neither arm is 'the' result."
+        )
     flips = (jev.get("robustness_m_sweep") or {}).get("conclusion_flips_with_M")
-
-    if crosses:
-        hyp = (
-            "The data are inconclusive for H1 (ΔECE CI crosses zero under BCa); "
-            "neither 'calibration independent of difficulty' nor 'hard is less "
-            "calibrated' is established at the powered endpoint"
+    if flips:
+        parts.append(
+            "The M-binning sweep flips the raw-interval sign — treat raw "
+            "binning claims as fragile; the parametric corrected test is primary."
         )
-    elif bca[0] is not None and bca[0] > 0:
-        hyp = (
-            "The data support H1 in the literature direction: the hard stratum "
-            "is less calibrated than the easy stratum (ΔECE BCa CI excludes zero from above)"
-        )
-    else:
-        hyp = (
-            "The data support a ΔECE distinguishable from zero, but not in the "
-            "pre-specified hard-worse direction (CI excludes zero from below)"
-        )
-
-    base_line = ""
-    bp = (base.get("primary_delta_ece") or {})
-    if bp:
-        base_line = (
-            f" On the adapter baseline under the same items and equal-n rule, "
-            f"ΔECE={bp.get('point')} (BCa {bp.get('ci_bca')})."
-        )
-
-    flip_line = (
-        " The M-binning sweep flips the primary sign — treat the conclusion as "
-        "binning-dependent."
-        if flips
-        else " The M∈{5,10,15,20} sweep does not flip the primary sign."
-    )
-
-    rule = jev.get("scoring_primary", "hard")
-    return (
-        f"{hyp} (primary scoring={rule}, point ΔECE={point}, BCa {bca}, percentile "
-        f"{primary.get('ci_percentile')}, n_hard={jev.get('n_hard')}, "
-        f"n_easy={jev.get('n_easy')}).{flip_line}{base_line} "
-        f"Hard scoring is reported beside soft scoring when annotator distributions "
-        f"are present. The four-tier ECE-vs-accuracy slope remains descriptive only."
-    )
+    return " ".join(p for p in parts if p)
 
 
 def run_exp1_analysis(
@@ -527,9 +716,25 @@ def run_exp1_analysis(
                     note or "Study is underpowered relative to F1 pessimistic corner."
                 )
 
-    jev = analyze_client(rows, client=jev_client, seed=seed, n_boot=n_boot)
+    jev = analyze_client(
+        rows, client=jev_client, seed=seed, n_boot=n_boot, primitive_arm="choice"
+    )
+    jev_noul = analyze_client(
+        rows, client=jev_client, seed=seed + 3, n_boot=n_boot, primitive_arm="noul"
+    )
     baseline = analyze_client(
-        rows, client=baseline_client, seed=seed + 1, n_boot=n_boot
+        rows,
+        client=baseline_client,
+        seed=seed + 1,
+        n_boot=n_boot,
+        primitive_arm="choice",
+    )
+    baseline_noul = analyze_client(
+        rows,
+        client=baseline_client,
+        seed=seed + 4,
+        n_boot=n_boot,
+        primitive_arm="noul",
     )
 
     # Equal-accuracy comparison note
@@ -587,7 +792,17 @@ def run_exp1_analysis(
         },
         "gates": gates,
         "jev": jev,
+        "jev_noul": jev_noul,
         "baseline": baseline,
+        "baseline_noul": baseline_noul,
+        "primitive_arms": {
+            "note": (
+                "Amendment 9: Choice and normalized three-Noul arms from the "
+                "same call. Report both; neither is 'the' result."
+            ),
+            "choice": "jev",
+            "noul": "jev_noul",
+        },
         "jev_vs_baseline": equal_acc_note,
         "strata": {"hard": list(HARD_TIERS), "easy": list(EASY_TIERS)},
         "contamination": contamination_table(
@@ -597,6 +812,17 @@ def run_exp1_analysis(
         ),
     }
     payload["verdict"] = build_verdict(payload)
+    # Certificate / paper primary stamp is Choice arm unless gate blocks.
+    payload["result"] = {
+        "delta_raw": jev.get("delta_raw"),
+        "delta_corrected": jev.get("delta_corrected"),
+        "p_value": jev.get("p_value"),
+        "verdict": jev.get("verdict"),
+        "primitive_arm": "choice",
+        "noul_verdict": jev_noul.get("verdict"),
+        "noul_delta_corrected": jev_noul.get("delta_corrected"),
+        "noul_p_value": jev_noul.get("p_value"),
+    }
 
     out_path = out_path or (RESULTS / "exp1.json")
     out_path.parent.mkdir(parents=True, exist_ok=True)
