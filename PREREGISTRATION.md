@@ -516,9 +516,9 @@ still this amendment's intent; record the pilot run id in the commit message.
    supervised_in_domain_reference`). Report MNLI and SNLI items separately.
    **Do not** put BART in the same comparison table as Jev. GLiClass stays a
    separate arm: trained on synthetic zero-shot mix
-   (`MoritzLaurer/synthetic_zeroshot_mixtral_v0.1`); card does not list
-   MNLI/SNLI as training data — disclose synthetic training; never silently
-   fall back from GLiClass to BART.
+   (`MoritzLaurer/synthetic_zeroshot_mixtral_v0.1`). **The model card doesn't
+   list MNLI or SNLI** (verified) — that is not a claim that it was not
+   trained on them. Never silently fall back from GLiClass to BART.
 2. **Local repeats = 1.** Prefill / GLiClass / BART / trivial use
    `repeats: 1` (greedy scoring is expected-deterministic). Jev keeps R=10
    for S1/S2. Determinism check: 50 mid-entropy items × 3 repeats

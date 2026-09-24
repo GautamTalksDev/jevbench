@@ -1,10 +1,10 @@
 """GLiClass zero-shot classifier arm.
 
 ``knowledgator/gliclass-base-v1.0`` was trained on synthetic zero-shot data
-(``MoritzLaurer/synthetic_zeroshot_mixtral_v0.1``). The model card claims
-zero-shot evaluation on IMDB / AG_NEWS / Emotions and does **not** list
-MNLI/SNLI as training corpora. Still disclose synthetic training; do not
-silently substitute BART-MNLI (that arm is a separate supervised reference).
+(``MoritzLaurer/synthetic_zeroshot_mixtral_v0.1``). **The model card doesn't
+list MNLI or SNLI** (verified). That is not a claim that it was not trained
+on them. Do not silently substitute BART-MNLI (that arm is a separate
+supervised reference).
 """
 
 from __future__ import annotations
@@ -155,8 +155,9 @@ class GLiClassClient:
                                 "probs": probs,
                                 "training_note": (
                                     "Synthetic zero-shot mix "
-                                    "(MoritzLaurer/synthetic_zeroshot_mixtral_v0.1); "
-                                    "card does not list MNLI/SNLI as training data."
+                                    "(MoritzLaurer/synthetic_zeroshot_mixtral_v0.1). "
+                                    "The model card doesn't list MNLI or SNLI "
+                                    "(verified — not a claim it was untrained on them)."
                                 ),
                             },
                         )
@@ -183,8 +184,9 @@ class GLiClassClient:
                                 "scores": scores,
                                 "training_note": (
                                     "Synthetic zero-shot mix "
-                                    "(MoritzLaurer/synthetic_zeroshot_mixtral_v0.1); "
-                                    "card does not list MNLI/SNLI as training data."
+                                    "(MoritzLaurer/synthetic_zeroshot_mixtral_v0.1). "
+                                    "The model card doesn't list MNLI or SNLI "
+                                    "(verified — not a claim it was untrained on them)."
                                 ),
                             },
                         )
