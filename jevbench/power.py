@@ -1543,11 +1543,158 @@ def soft_delta_ece_percentile(
         ) - _soft_ece_uniform(conf_e[ie[b]], soft_e[ie[b]], n_bins)
     low = float(np.quantile(samples, 0.025))
     high = float(np.quantile(samples, 0.975))
+    upper = bool(low > 0.0)
+    lower = bool(high < 0.0)
     return {
         "point": float(point),
         "ci_low": low,
         "ci_high": high,
-        "excludes_zero": bool(high < 0.0 or low > 0.0),
+        "excludes_zero": bool(upper or lower),
+        "excludes_zero_upper": upper,
+        "excludes_zero_lower": lower,
+    }
+
+
+def _draw_calibrated_soft(
+    conf: np.ndarray,
+    rng: np.random.Generator,
+    *,
+    kappa: float,
+    annotator_n: int = SOFT_NULL_ANNOTATOR_N,
+) -> np.ndarray:
+    """Soft correctness under calibration at fixed top probabilities."""
+    p = np.clip(np.asarray(conf, dtype=float), 1e-4, 1.0 - 1e-4)
+    a = kappa * p
+    b = kappa * (1.0 - p)
+    s = rng.beta(a, b)
+    return rng.binomial(int(annotator_n), s).astype(float) / float(annotator_n)
+
+
+def _soft_ece_batch(
+    conf: np.ndarray, soft: np.ndarray, n_bins: int = 10
+) -> np.ndarray:
+    """ECE for each row of ``soft`` against fixed ``conf`` (shape n_sims)."""
+    conf = np.asarray(conf, dtype=float)
+    soft = np.asarray(soft, dtype=float)
+    if soft.ndim == 1:
+        soft = soft[None, :]
+    n = conf.shape[0]
+    n_sims = soft.shape[0]
+    idx = np.minimum(n_bins - 1, (conf * n_bins).astype(int))
+    ece = np.zeros(n_sims, dtype=float)
+    for b in range(n_bins):
+        mask = idx == b
+        count = int(mask.sum())
+        if count:
+            ece += (count / n) * np.abs(soft[:, mask].mean(axis=1) - conf[mask].mean())
+    return ece
+
+
+def expected_ece_under_calibration(
+    conf: np.ndarray,
+    *,
+    kappa: float,
+    n_sims: int = 2000,
+    rng: np.random.Generator,
+    annotator_n: int = SOFT_NULL_ANNOTATOR_N,
+    n_bins: int = 10,
+) -> float:
+    """E[ECE | conf] under Beta–Binomial soft calibration at these probabilities."""
+    p = np.clip(np.asarray(conf, dtype=float), 1e-4, 1.0 - 1e-4)
+    n = p.size
+    a = kappa * p
+    b = kappa * (1.0 - p)
+    # Draw all sims at once: soft[s, i]
+    s = rng.beta(np.broadcast_to(a, (n_sims, n)), np.broadcast_to(b, (n_sims, n)))
+    soft = rng.binomial(int(annotator_n), s).astype(float) / float(annotator_n)
+    return float(_soft_ece_batch(p, soft, n_bins).mean())
+
+
+def soft_delta_ece_corrected(
+    conf_h: np.ndarray,
+    soft_h: np.ndarray,
+    conf_e: np.ndarray,
+    soft_e: np.ndarray,
+    *,
+    kappa: float,
+    n_boot: int,
+    n_e0: int,
+    n_null_pval: int,
+    rng: np.random.Generator,
+    n_bins: int = 10,
+    annotator_n: int = SOFT_NULL_ANNOTATOR_N,
+) -> dict[str, float | bool]:
+    """Raw and bias-corrected soft ΔECE with bootstrap CI and parametric p-value.
+
+    corrected ΔECE = (ECE_h − E0_h) − (ECE_e − E0_e), where E0 is the expected
+    ECE under calibration at the stratum's own top probabilities (PROMPT P).
+    Always report raw alongside corrected.
+    """
+    ece_h = _soft_ece_uniform(conf_h, soft_h, n_bins)
+    ece_e = _soft_ece_uniform(conf_e, soft_e, n_bins)
+    raw = float(ece_h - ece_e)
+    e0_h = expected_ece_under_calibration(
+        conf_h, kappa=kappa, n_sims=n_e0, rng=rng, annotator_n=annotator_n, n_bins=n_bins
+    )
+    e0_e = expected_ece_under_calibration(
+        conf_e, kappa=kappa, n_sims=n_e0, rng=rng, annotator_n=annotator_n, n_bins=n_bins
+    )
+    bias0 = float(e0_h - e0_e)
+    corrected = float(raw - bias0)
+
+    # Bootstrap of corrected ΔECE with E0 fixed at the observed probabilities.
+    n_h, n_e = len(soft_h), len(soft_e)
+    ih = rng.integers(0, n_h, size=(n_boot, n_h))
+    ie = rng.integers(0, n_e, size=(n_boot, n_e))
+    samples = np.empty(n_boot, dtype=float)
+    for b in range(n_boot):
+        samples[b] = (
+            _soft_ece_uniform(conf_h[ih[b]], soft_h[ih[b]], n_bins)
+            - _soft_ece_uniform(conf_e[ie[b]], soft_e[ie[b]], n_bins)
+            - bias0
+        )
+    ci_low = float(np.quantile(samples, 0.025))
+    ci_high = float(np.quantile(samples, 0.975))
+    upper = bool(ci_low > 0.0)
+    lower = bool(ci_high < 0.0)
+
+    # p-value from simulated null ΔECE at the observed probabilities.
+    p = np.clip(np.asarray(conf_h, dtype=float), 1e-4, 1.0 - 1e-4)
+    q = np.clip(np.asarray(conf_e, dtype=float), 1e-4, 1.0 - 1e-4)
+    a_h, b_h = kappa * p, kappa * (1.0 - p)
+    a_e, b_e = kappa * q, kappa * (1.0 - q)
+    s_h = rng.beta(
+        np.broadcast_to(a_h, (n_null_pval, p.size)),
+        np.broadcast_to(b_h, (n_null_pval, p.size)),
+    )
+    s_e = rng.beta(
+        np.broadcast_to(a_e, (n_null_pval, q.size)),
+        np.broadcast_to(b_e, (n_null_pval, q.size)),
+    )
+    soft_h_n = rng.binomial(int(annotator_n), s_h).astype(float) / float(annotator_n)
+    soft_e_n = rng.binomial(int(annotator_n), s_e).astype(float) / float(annotator_n)
+    null_deltas = _soft_ece_batch(p, soft_h_n, n_bins) - _soft_ece_batch(
+        q, soft_e_n, n_bins
+    )
+    p_upper = float(np.mean(null_deltas >= raw))
+    p_lower = float(np.mean(null_deltas <= raw))
+    p_value = float(min(1.0, 2.0 * min(p_upper, p_lower)))
+
+    return {
+        "raw_delta_ece": raw,
+        "corrected_delta_ece": corrected,
+        "ece_hard": float(ece_h),
+        "ece_easy": float(ece_e),
+        "e0_hard": float(e0_h),
+        "e0_easy": float(e0_e),
+        "bias0_delta_ece": bias0,
+        "ci_low": ci_low,
+        "ci_high": ci_high,
+        "excludes_zero": bool(upper or lower),
+        "excludes_zero_upper": upper,
+        "excludes_zero_lower": lower,
+        "p_value": p_value,
+        "null_mean_delta_ece_at_observed_p": float(null_deltas.mean()),
     }
 
 
@@ -1858,6 +2005,449 @@ def run_soft_null_kappa_sweep(
         },
         "jev_data_observed": False,
     }
+
+
+SOFT_BIAS_KAPPA_SENSITIVITY = (10, 20, 50)
+SOFT_BIAS_E0_SIMS = 2000
+SOFT_BIAS_NULL_PVAL_SIMS = 2000
+
+
+def _soft_bias_trial_worker(payload: dict[str, Any]) -> dict[str, Any]:
+    """One κ cell for PROMPT P: raw diagnosis and/or corrected FPR/power."""
+    mode = payload["mode"]  # "diagnose_raw" | "corrected"
+    kappa = float(payload["kappa"])
+    n = int(payload["n"])
+    n_trials = int(payload["n_trials"])
+    n_boot = int(payload["n_boot"])
+    n_e0 = int(payload["n_e0"])
+    n_null_pval = int(payload["n_null_pval"])
+    seed = int(payload["seed"])
+    setting = payload["setting"]
+    conf_shift = float(payload["conf_shift"])
+    p_easy = np.asarray(payload["p_pool_easy"], dtype=float)
+    p_hard = np.asarray(payload["p_pool_hard"], dtype=float)
+
+    rng = np.random.default_rng(seed)
+    raw_points: list[float] = []
+    corr_points: list[float] = []
+    bias0_points: list[float] = []
+    raw_excl = raw_upper = raw_lower = 0
+    corr_excl = corr_upper = corr_lower = 0
+    p_reject = 0
+
+    for _ in range(n_trials):
+        trial = np.random.default_rng(int(rng.integers(0, 2**31 - 1)))
+        hard = simulate_soft_beta_binomial_stratum(
+            n,
+            trial,
+            kappa=kappa,
+            p_pool=p_hard,
+            conf_shift=conf_shift if setting == "alternative" else 0.0,
+        )
+        easy = simulate_soft_beta_binomial_stratum(
+            n,
+            trial,
+            kappa=kappa,
+            p_pool=p_easy,
+            conf_shift=0.0,
+        )
+        if mode == "diagnose_raw":
+            iv = soft_delta_ece_percentile(
+                hard.conf,
+                hard.soft_correct,
+                easy.conf,
+                easy.soft_correct,
+                n_boot=n_boot,
+                rng=trial,
+            )
+            raw_points.append(float(iv["point"]))
+            raw_excl += int(iv["excludes_zero"])
+            raw_upper += int(iv["excludes_zero_upper"])
+            raw_lower += int(iv["excludes_zero_lower"])
+        else:
+            iv = soft_delta_ece_corrected(
+                hard.conf,
+                hard.soft_correct,
+                easy.conf,
+                easy.soft_correct,
+                kappa=kappa,
+                n_boot=n_boot,
+                n_e0=n_e0,
+                n_null_pval=n_null_pval,
+                rng=trial,
+            )
+            raw_points.append(float(iv["raw_delta_ece"]))
+            corr_points.append(float(iv["corrected_delta_ece"]))
+            bias0_points.append(float(iv["bias0_delta_ece"]))
+            corr_excl += int(iv["excludes_zero"])
+            corr_upper += int(iv["excludes_zero_upper"])
+            corr_lower += int(iv["excludes_zero_lower"])
+            p_reject += int(float(iv["p_value"]) < 0.05)
+
+    out: dict[str, Any] = {
+        "mode": mode,
+        "setting": setting,
+        "kappa": kappa,
+        "n_per_stratum": n,
+        "n_trials": n_trials,
+        "n_boot": n_boot,
+        "mean_raw_delta_ece": float(np.mean(raw_points)),
+        "se_raw_delta_ece": float(np.std(raw_points, ddof=1) / np.sqrt(max(n_trials, 1))),
+    }
+    if mode == "diagnose_raw":
+        out.update(
+            {
+                "null_fpr": raw_excl / n_trials,
+                "null_fpr_upper": raw_upper / n_trials,
+                "null_fpr_lower": raw_lower / n_trials,
+                "null_fpr_se": float(
+                    np.sqrt(
+                        (raw_excl / n_trials)
+                        * (1 - raw_excl / n_trials)
+                        / max(n_trials, 1)
+                    )
+                ),
+            }
+        )
+    else:
+        out.update(
+            {
+                "n_e0": n_e0,
+                "n_null_pval": n_null_pval,
+                "mean_corrected_delta_ece": float(np.mean(corr_points)),
+                "mean_bias0_delta_ece": float(np.mean(bias0_points)),
+                "null_fpr_corrected": corr_excl / n_trials,
+                "null_fpr_corrected_upper": corr_upper / n_trials,
+                "null_fpr_corrected_lower": corr_lower / n_trials,
+                "null_fpr_corrected_se": float(
+                    np.sqrt(
+                        (corr_excl / n_trials)
+                        * (1 - corr_excl / n_trials)
+                        / max(n_trials, 1)
+                    )
+                ),
+                "null_fpr_pvalue": p_reject / n_trials,
+            }
+        )
+    return out
+
+
+def diagnose_raw_soft_null_tails(
+    *,
+    n: int = 750,
+    n_trials: int = 2000,
+    n_boot: int = N_BOOT_POWER,
+    kappa: float = 20.0,
+    seed: int = 20260923,
+) -> dict[str, Any]:
+    """PROMPT P step 1 — upper/lower FPR split and null mean raw ΔECE."""
+    p_easy, p_hard = specimen_top_prob_pools()
+    return _soft_bias_trial_worker(
+        {
+            "mode": "diagnose_raw",
+            "setting": "null",
+            "kappa": float(kappa),
+            "n": n,
+            "n_trials": n_trials,
+            "n_boot": n_boot,
+            "n_e0": 0,
+            "n_null_pval": 0,
+            "seed": seed + 11,
+            "conf_shift": 0.0,
+            "p_pool_easy": p_easy,
+            "p_pool_hard": p_hard,
+        }
+    )
+
+
+def run_soft_bias_correction(
+    *,
+    n: int = 750,
+    n_trials: int = 2000,
+    n_boot: int = N_BOOT_POWER,
+    n_e0: int = SOFT_BIAS_E0_SIMS,
+    n_null_pval: int = SOFT_BIAS_NULL_PVAL_SIMS,
+    seed: int = 20260923,
+    diagnose_kappa: float = 20.0,
+    kappas: tuple[float, ...] = SOFT_BIAS_KAPPA_SENSITIVITY,
+    max_workers: int = 8,
+    diagnosis: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """PROMPT P — diagnose structural ECE bias; correct via parametric null."""
+    p_easy, p_hard = specimen_top_prob_pools()
+
+    if diagnosis is None:
+        diagnosis = diagnose_raw_soft_null_tails(
+            n=n,
+            n_trials=n_trials,
+            n_boot=n_boot,
+            kappa=diagnose_kappa,
+            seed=seed,
+        )
+    upper = float(diagnosis["null_fpr_upper"])
+    lower = float(diagnosis["null_fpr_lower"])
+    favours_h1 = upper > lower
+    diagnosis_text = (
+        f"At κ={diagnose_kappa}, raw null FPR={diagnosis['null_fpr']:.3f} splits into "
+        f"upper-tail (CI entirely >0)={upper:.3f} and lower-tail "
+        f"(CI entirely <0)={lower:.3f}. "
+        + (
+            "Mostly upper-tail: the structural ECE bias favours H1 "
+            "(positive ΔECE toward the hypothesis)."
+            if favours_h1
+            else (
+                "Mostly lower-tail: the structural bias pushes against H1."
+                if lower > upper
+                else "Tails are approximately balanced."
+            )
+        )
+        + f" Null mean raw ΔECE={diagnosis['mean_raw_delta_ece']:.4f} "
+        f"(paper: place next to ΔECE=0.09 detectable and ≤0.02 holds thresholds)."
+    )
+
+    # --- 2–4. Corrected FPR + power + κ sensitivity ---
+    mid = float(diagnose_kappa)
+    conf_shift = _calibrate_soft_alt_shift_corrected(
+        p_easy, p_hard, kappa=mid, n=n, target=TARGET_DELTA_ECE, seed=seed + 9
+    )
+
+    jobs: list[dict[str, Any]] = []
+    job_i = 0
+    for kappa in kappas:
+        for setting in ("null", "alternative"):
+            jobs.append(
+                {
+                    "mode": "corrected",
+                    "setting": setting,
+                    "kappa": float(kappa),
+                    "n": n,
+                    "n_trials": n_trials,
+                    "n_boot": n_boot,
+                    "n_e0": n_e0,
+                    "n_null_pval": n_null_pval,
+                    "seed": seed + 1000 * job_i + 101,
+                    "conf_shift": conf_shift,
+                    "p_pool_easy": p_easy,
+                    "p_pool_hard": p_hard,
+                }
+            )
+            job_i += 1
+
+    cells: list[dict[str, Any]] = []
+    if max_workers <= 1:
+        for job in jobs:
+            cells.append(_soft_bias_trial_worker(job))
+    else:
+        with ProcessPoolExecutor(max_workers=max_workers) as pool:
+            futs = [pool.submit(_soft_bias_trial_worker, job) for job in jobs]
+            for fut in as_completed(futs):
+                cells.append(fut.result())
+    cells.sort(key=lambda c: (c["setting"], c["kappa"]))
+
+    by_kappa: dict[str, Any] = {}
+    for kappa in kappas:
+        null_c = next(
+            c for c in cells if c["setting"] == "null" and c["kappa"] == float(kappa)
+        )
+        alt_c = next(
+            c
+            for c in cells
+            if c["setting"] == "alternative" and c["kappa"] == float(kappa)
+        )
+        by_kappa[str(int(kappa))] = {
+            "kappa": float(kappa),
+            "null_mean_raw_delta_ece": null_c["mean_raw_delta_ece"],
+            "null_mean_corrected_delta_ece": null_c["mean_corrected_delta_ece"],
+            "null_mean_bias0_delta_ece": null_c["mean_bias0_delta_ece"],
+            "null_fpr_corrected": null_c["null_fpr_corrected"],
+            "null_fpr_corrected_se": null_c["null_fpr_corrected_se"],
+            "null_fpr_corrected_upper": null_c["null_fpr_corrected_upper"],
+            "null_fpr_corrected_lower": null_c["null_fpr_corrected_lower"],
+            "null_fpr_pvalue": null_c["null_fpr_pvalue"],
+            "alt_mean_raw_delta_ece": alt_c["mean_raw_delta_ece"],
+            "alt_mean_corrected_delta_ece": alt_c["mean_corrected_delta_ece"],
+            "power_corrected": alt_c["null_fpr_corrected"],
+            "power_pvalue": alt_c["null_fpr_pvalue"],
+        }
+
+    op_row = by_kappa[str(int(diagnose_kappa))]
+    # Primary size check uses the parametric p-value (correct by construction).
+    # Bootstrap CI of corrected ΔECE is still reported; empirically conservative
+    # because E0 is held fixed under resampling.
+    fpr = float(op_row["null_fpr_pvalue"])
+    fpr_ci = float(op_row["null_fpr_corrected"])
+    fpr_ok = 0.03 <= fpr <= 0.08
+    power = float(op_row["power_pvalue"])
+    power_ci = float(op_row["power_corrected"])
+    power_ok = power >= POWER_THRESHOLD
+
+    # Sensitivity: does the corrected null mean / FPR change verdict across κ?
+    corr_means = [by_kappa[str(int(k))]["null_mean_corrected_delta_ece"] for k in kappas]
+    fprs = [by_kappa[str(int(k))]["null_fpr_pvalue"] for k in kappas]
+    powers = [by_kappa[str(int(k))]["power_pvalue"] for k in kappas]
+    verdict_kappa_dependent = (
+        max(fprs) - min(fprs) > 0.03
+        or (min(powers) < POWER_THRESHOLD <= max(powers))
+        or (max(np.abs(corr_means)) > 0.01 and min(np.abs(corr_means)) < 0.002)
+    )
+
+    return {
+        "schema": "jevbench.soft_bias_correction.v1",
+        "n_per_stratum": n,
+        "n_trials": n_trials,
+        "n_boot": n_boot,
+        "n_e0": n_e0,
+        "n_null_pval": n_null_pval,
+        "seed": seed,
+        "p_source": SOFT_NULL_P_SOURCE,
+        "diagnosis": {
+            "kappa": float(diagnose_kappa),
+            "null_fpr": diagnosis["null_fpr"],
+            "null_fpr_upper": diagnosis["null_fpr_upper"],
+            "null_fpr_lower": diagnosis["null_fpr_lower"],
+            "null_mean_delta_ece": diagnosis["mean_raw_delta_ece"],
+            "favours_h1": favours_h1,
+            "text": diagnosis_text,
+        },
+        "correction": {
+            "formula": "corrected_ΔECE = (ECE_hard − E0_hard) − (ECE_easy − E0_easy)",
+            "e0_definition": (
+                "E0_stratum = mean ECE over 2000 calibrated soft draws "
+                "(s~Beta(κp,κ(1−p)), share=Bin(100,s)/100) at the stratum's "
+                "own observed top probabilities"
+            ),
+            "interval": "percentile bootstrap of corrected ΔECE (E0 fixed at observed p)",
+            "p_value": (
+                "two-sided vs simulated null distribution of raw ΔECE at "
+                "observed probabilities — correct size by construction given "
+                "the simulator"
+            ),
+            "always_report_raw_and_corrected": True,
+        },
+        "conf_shift_hard_alternative": conf_shift,
+        "target_delta_ece": TARGET_DELTA_ECE,
+        "holds_threshold": 0.02,
+        "by_kappa": by_kappa,
+        "cells": cells,
+        "operating": {
+            "kappa": float(diagnose_kappa),
+            "null_fpr_pvalue": fpr,
+            "null_fpr_ci": fpr_ci,
+            "power_pvalue": power,
+            "power_ci": power_ci,
+            "primary_test": "parametric_pvalue",
+            "null_mean_raw_delta_ece": op_row["null_mean_raw_delta_ece"],
+            "null_mean_corrected_delta_ece": op_row["null_mean_corrected_delta_ece"],
+            "null_mean_bias0_delta_ece": op_row["null_mean_bias0_delta_ece"],
+        },
+        "sensitivity": {
+            "kappas": list(kappas),
+            "null_mean_corrected_delta_ece": {
+                str(int(k)): by_kappa[str(int(k))]["null_mean_corrected_delta_ece"]
+                for k in kappas
+            },
+            "null_fpr_pvalue": {
+                str(int(k)): by_kappa[str(int(k))]["null_fpr_pvalue"] for k in kappas
+            },
+            "null_fpr_ci": {
+                str(int(k)): by_kappa[str(int(k))]["null_fpr_corrected"] for k in kappas
+            },
+            "power_pvalue": {
+                str(int(k)): by_kappa[str(int(k))]["power_pvalue"] for k in kappas
+            },
+            "verdict_kappa_dependent": bool(verdict_kappa_dependent),
+            "note": (
+                "κ is not identifiable from calibrated data alone; report "
+                "corrected ΔECE across κ∈{10,20,50}. If the holds / tracks / "
+                "fails verdict flips with κ, the paper must say the verdict is "
+                "κ-dependent."
+            ),
+        },
+        "related_work": {
+            "kumar_liang_ma_2019": {
+                "citation": "Kumar, Liang & Ma, NeurIPS 2019 (Verified Uncertainty Calibration)",
+                "verified_claims": [
+                    "Plugin binned calibration-error estimators are biased; bias accumulates across bins.",
+                    "A debiased estimator (from the meteorological literature) improves sample complexity for squared calibration error from O(B) to O(√B).",
+                    "Appendix G discusses heuristic debiasing for ℓ1 ECE without the same formal guarantees as the squared case.",
+                ],
+                "arxiv": "1909.10155",
+            },
+            "roelofs_et_al_2022": {
+                "citation": "Roelofs, Cain, Shlens & Mozer, AISTATS 2022 (Mitigating Bias in Calibration Error Estimation)",
+                "verified_claims": [
+                    "Standard equal-width ECE_bin is systematically biased, including for perfectly calibrated models (BBC framework).",
+                    "Equal-mass binning has lower bias than equal-width binning in their simulations.",
+                    "ECE_debias (Bröcker 2012; Ferro & Fricker 2012) and their ECE_sweep are recommended less-biased estimators; ECE_debias is strongest near perfect calibration, ECE_sweep for miscalibrated models.",
+                ],
+                "arxiv": "2012.08668",
+            },
+            "our_correction": (
+                "We do not replace the plugin ECE with ECE_debias/ECE_sweep for "
+                "the primary endpoint; we subtract a parametric E0 estimated at "
+                "the observed top probabilities under the Beta–Binomial soft "
+                "null, and always report raw ΔECE beside corrected ΔECE."
+            ),
+        },
+        "acceptance": {
+            "fpr_band_ok": fpr_ok,
+            "fpr_band": [0.03, 0.08],
+            "fpr_metric": "parametric_pvalue_lt_0.05",
+            "fpr_pvalue": fpr,
+            "fpr_ci_excludes_zero": fpr_ci,
+            "power_ok": power_ok,
+            "power_threshold": POWER_THRESHOLD,
+            "power_pvalue": power,
+            "power_ci": power_ci,
+            "note": (
+                "Acceptance FPR uses the parametric p-value test (correct size "
+                "by construction at the observed probabilities). The bootstrap "
+                "CI of corrected ΔECE is reported for intervals but is "
+                "conservative when E0 is held fixed under resampling."
+            ),
+        },
+        "jev_data_observed": False,
+    }
+
+
+def _calibrate_soft_alt_shift_corrected(
+    p_pool_easy: np.ndarray,
+    p_pool_hard: np.ndarray,
+    *,
+    kappa: float,
+    n: int = 750,
+    target: float = TARGET_DELTA_ECE,
+    seed: int = 0,
+    n_probe: int = 24,
+    n_e0: int = 400,
+) -> float:
+    """Hard-stratum conf shift so mean *corrected* ΔECE ≈ target."""
+    rng = np.random.default_rng(seed)
+    best_shift, best_err = 0.12, 1e9
+    for shift in np.linspace(0.04, 0.28, 13):
+        pts: list[float] = []
+        for _ in range(n_probe):
+            trial = np.random.default_rng(int(rng.integers(0, 2**31 - 1)))
+            hard = simulate_soft_beta_binomial_stratum(
+                n, trial, kappa=kappa, p_pool=p_pool_hard, conf_shift=float(shift)
+            )
+            easy = simulate_soft_beta_binomial_stratum(
+                n, trial, kappa=kappa, p_pool=p_pool_easy, conf_shift=0.0
+            )
+            ece_h = _soft_ece_uniform(hard.conf, hard.soft_correct)
+            ece_e = _soft_ece_uniform(easy.conf, easy.soft_correct)
+            e0_h = expected_ece_under_calibration(
+                hard.conf, kappa=kappa, n_sims=n_e0, rng=trial
+            )
+            e0_e = expected_ece_under_calibration(
+                easy.conf, kappa=kappa, n_sims=n_e0, rng=trial
+            )
+            pts.append((ece_h - e0_h) - (ece_e - e0_e))
+        mean_pt = float(np.mean(pts))
+        err = abs(mean_pt - target)
+        if err < best_err:
+            best_err, best_shift = err, float(shift)
+    return best_shift
 
 
 def run_asymmetric_power(

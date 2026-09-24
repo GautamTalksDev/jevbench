@@ -1,0 +1,269 @@
+{
+  "acceptance": {
+    "fpr_band": [
+      0.03,
+      0.08
+    ],
+    "fpr_band_ok": true,
+    "fpr_ci_excludes_zero": 0.003,
+    "fpr_metric": "parametric_pvalue_lt_0.05",
+    "fpr_pvalue": 0.0515,
+    "note": "Acceptance FPR uses the parametric p-value test (correct size by construction at the observed probabilities). The bootstrap CI of corrected \u0394ECE is reported for intervals but is conservative when E0 is held fixed under resampling.",
+    "power_ci": 1.0,
+    "power_ok": true,
+    "power_pvalue": 1.0,
+    "power_threshold": 0.8
+  },
+  "by_kappa": {
+    "10": {
+      "alt_mean_corrected_delta_ece": 0.08838811129629448,
+      "alt_mean_raw_delta_ece": 0.09122965944246512,
+      "kappa": 10.0,
+      "null_fpr_corrected": 0.005,
+      "null_fpr_corrected_lower": 0.0,
+      "null_fpr_corrected_se": 0.0015771810295587506,
+      "null_fpr_corrected_upper": 0.005,
+      "null_fpr_pvalue": 0.049,
+      "null_mean_bias0_delta_ece": 0.004338775666109744,
+      "null_mean_corrected_delta_ece": 2.2320189636791228e-05,
+      "null_mean_raw_delta_ece": 0.004361095855746536,
+      "power_corrected": 1.0,
+      "power_pvalue": 1.0
+    },
+    "20": {
+      "alt_mean_corrected_delta_ece": 0.09034984958544241,
+      "alt_mean_raw_delta_ece": 0.09249245746137598,
+      "kappa": 20.0,
+      "null_fpr_corrected": 0.003,
+      "null_fpr_corrected_lower": 0.0,
+      "null_fpr_corrected_se": 0.0012229063741758812,
+      "null_fpr_corrected_upper": 0.003,
+      "null_fpr_pvalue": 0.0515,
+      "null_mean_bias0_delta_ece": 0.0032763674803415552,
+      "null_mean_corrected_delta_ece": 1.5570081764771814e-05,
+      "null_mean_raw_delta_ece": 0.0032919375621063276,
+      "power_corrected": 1.0,
+      "power_pvalue": 1.0
+    },
+    "50": {
+      "alt_mean_corrected_delta_ece": 0.09238746372384204,
+      "alt_mean_raw_delta_ece": 0.09392997924810732,
+      "kappa": 50.0,
+      "null_fpr_corrected": 0.005,
+      "null_fpr_corrected_lower": 0.0005,
+      "null_fpr_corrected_se": 0.0015771810295587506,
+      "null_fpr_corrected_upper": 0.0045,
+      "null_fpr_pvalue": 0.0535,
+      "null_mean_bias0_delta_ece": 0.0023543050267153753,
+      "null_mean_corrected_delta_ece": -1.4797245268137972e-05,
+      "null_mean_raw_delta_ece": 0.002339507781447238,
+      "power_corrected": 1.0,
+      "power_pvalue": 1.0
+    }
+  },
+  "cells": [
+    {
+      "kappa": 10.0,
+      "mean_bias0_delta_ece": 0.002841548146170654,
+      "mean_corrected_delta_ece": 0.08838811129629448,
+      "mean_raw_delta_ece": 0.09122965944246512,
+      "mode": "corrected",
+      "n_boot": 2000,
+      "n_e0": 2000,
+      "n_null_pval": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "null_fpr_corrected": 1.0,
+      "null_fpr_corrected_lower": 0.0,
+      "null_fpr_corrected_se": 0.0,
+      "null_fpr_corrected_upper": 1.0,
+      "null_fpr_pvalue": 1.0,
+      "se_raw_delta_ece": 0.000128439409723802,
+      "setting": "alternative"
+    },
+    {
+      "kappa": 20.0,
+      "mean_bias0_delta_ece": 0.002142607875933566,
+      "mean_corrected_delta_ece": 0.09034984958544241,
+      "mean_raw_delta_ece": 0.09249245746137598,
+      "mode": "corrected",
+      "n_boot": 2000,
+      "n_e0": 2000,
+      "n_null_pval": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "null_fpr_corrected": 1.0,
+      "null_fpr_corrected_lower": 0.0,
+      "null_fpr_corrected_se": 0.0,
+      "null_fpr_corrected_upper": 1.0,
+      "null_fpr_pvalue": 1.0,
+      "se_raw_delta_ece": 9.607555404881975e-05,
+      "setting": "alternative"
+    },
+    {
+      "kappa": 50.0,
+      "mean_bias0_delta_ece": 0.0015425155242652804,
+      "mean_corrected_delta_ece": 0.09238746372384204,
+      "mean_raw_delta_ece": 0.09392997924810732,
+      "mode": "corrected",
+      "n_boot": 2000,
+      "n_e0": 2000,
+      "n_null_pval": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "null_fpr_corrected": 1.0,
+      "null_fpr_corrected_lower": 0.0,
+      "null_fpr_corrected_se": 0.0,
+      "null_fpr_corrected_upper": 1.0,
+      "null_fpr_pvalue": 1.0,
+      "se_raw_delta_ece": 7.034533904465576e-05,
+      "setting": "alternative"
+    },
+    {
+      "kappa": 10.0,
+      "mean_bias0_delta_ece": 0.004338775666109744,
+      "mean_corrected_delta_ece": 2.2320189636791228e-05,
+      "mean_raw_delta_ece": 0.004361095855746536,
+      "mode": "corrected",
+      "n_boot": 2000,
+      "n_e0": 2000,
+      "n_null_pval": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "null_fpr_corrected": 0.005,
+      "null_fpr_corrected_lower": 0.0,
+      "null_fpr_corrected_se": 0.0015771810295587506,
+      "null_fpr_corrected_upper": 0.005,
+      "null_fpr_pvalue": 0.049,
+      "se_raw_delta_ece": 8.756602377443249e-05,
+      "setting": "null"
+    },
+    {
+      "kappa": 20.0,
+      "mean_bias0_delta_ece": 0.0032763674803415552,
+      "mean_corrected_delta_ece": 1.5570081764771814e-05,
+      "mean_raw_delta_ece": 0.0032919375621063276,
+      "mode": "corrected",
+      "n_boot": 2000,
+      "n_e0": 2000,
+      "n_null_pval": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "null_fpr_corrected": 0.003,
+      "null_fpr_corrected_lower": 0.0,
+      "null_fpr_corrected_se": 0.0012229063741758812,
+      "null_fpr_corrected_upper": 0.003,
+      "null_fpr_pvalue": 0.0515,
+      "se_raw_delta_ece": 6.581130914908595e-05,
+      "setting": "null"
+    },
+    {
+      "kappa": 50.0,
+      "mean_bias0_delta_ece": 0.0023543050267153753,
+      "mean_corrected_delta_ece": -1.4797245268137972e-05,
+      "mean_raw_delta_ece": 0.002339507781447238,
+      "mode": "corrected",
+      "n_boot": 2000,
+      "n_e0": 2000,
+      "n_null_pval": 2000,
+      "n_per_stratum": 750,
+      "n_trials": 2000,
+      "null_fpr_corrected": 0.005,
+      "null_fpr_corrected_lower": 0.0005,
+      "null_fpr_corrected_se": 0.0015771810295587506,
+      "null_fpr_corrected_upper": 0.0045,
+      "null_fpr_pvalue": 0.0535,
+      "se_raw_delta_ece": 4.76950584062765e-05,
+      "setting": "null"
+    }
+  ],
+  "conf_shift_hard_alternative": 0.1,
+  "correction": {
+    "always_report_raw_and_corrected": true,
+    "e0_definition": "E0_stratum = mean ECE over 2000 calibrated soft draws (s~Beta(\u03bap,\u03ba(1\u2212p)), share=Bin(100,s)/100) at the stratum's own observed top probabilities",
+    "formula": "corrected_\u0394ECE = (ECE_hard \u2212 E0_hard) \u2212 (ECE_easy \u2212 E0_easy)",
+    "interval": "percentile bootstrap of corrected \u0394ECE (E0 fixed at observed p)",
+    "p_value": "two-sided vs simulated null distribution of raw \u0394ECE at observed probabilities \u2014 correct size by construction given the simulator"
+  },
+  "diagnosis": {
+    "favours_h1": true,
+    "kappa": 20.0,
+    "null_fpr": 0.1115,
+    "null_fpr_lower": 0.0,
+    "null_fpr_upper": 0.1115,
+    "null_mean_delta_ece": 0.003293218226116892,
+    "text": "At \u03ba=20.0, raw null FPR=0.112 splits into upper-tail (CI entirely >0)=0.112 and lower-tail (CI entirely <0)=0.000. Mostly upper-tail: the structural ECE bias favours H1 (positive \u0394ECE toward the hypothesis). Null mean raw \u0394ECE=0.0033 (paper: place next to \u0394ECE=0.09 detectable and \u22640.02 holds thresholds)."
+  },
+  "holds_threshold": 0.02,
+  "jev_data_observed": false,
+  "n_boot": 2000,
+  "n_e0": 2000,
+  "n_null_pval": 2000,
+  "n_per_stratum": 750,
+  "n_trials": 2000,
+  "operating": {
+    "kappa": 20.0,
+    "null_fpr_ci": 0.003,
+    "null_fpr_pvalue": 0.0515,
+    "null_mean_bias0_delta_ece": 0.0032763674803415552,
+    "null_mean_corrected_delta_ece": 1.5570081764771814e-05,
+    "null_mean_raw_delta_ece": 0.0032919375621063276,
+    "power_ci": 1.0,
+    "power_pvalue": 1.0,
+    "primary_test": "parametric_pvalue"
+  },
+  "p_source": "certificate specimen top-probability shape (seed 20260919): separate easy and hard pools of 750 each \u2014 same generative sketch as arena/index.html specimen(); not Jev output",
+  "related_work": {
+    "kumar_liang_ma_2019": {
+      "arxiv": "1909.10155",
+      "citation": "Kumar, Liang & Ma, NeurIPS 2019 (Verified Uncertainty Calibration)",
+      "verified_claims": [
+        "Plugin binned calibration-error estimators are biased; bias accumulates across bins.",
+        "A debiased estimator (from the meteorological literature) improves sample complexity for squared calibration error from O(B) to O(\u221aB).",
+        "Appendix G discusses heuristic debiasing for \u21131 ECE without the same formal guarantees as the squared case."
+      ]
+    },
+    "our_correction": "We do not replace the plugin ECE with ECE_debias/ECE_sweep for the primary endpoint; we subtract a parametric E0 estimated at the observed top probabilities under the Beta\u2013Binomial soft null, and always report raw \u0394ECE beside corrected \u0394ECE.",
+    "roelofs_et_al_2022": {
+      "arxiv": "2012.08668",
+      "citation": "Roelofs, Cain, Shlens & Mozer, AISTATS 2022 (Mitigating Bias in Calibration Error Estimation)",
+      "verified_claims": [
+        "Standard equal-width ECE_bin is systematically biased, including for perfectly calibrated models (BBC framework).",
+        "Equal-mass binning has lower bias than equal-width binning in their simulations.",
+        "ECE_debias (Br\u00f6cker 2012; Ferro & Fricker 2012) and their ECE_sweep are recommended less-biased estimators; ECE_debias is strongest near perfect calibration, ECE_sweep for miscalibrated models."
+      ]
+    }
+  },
+  "schema": "jevbench.soft_bias_correction.v1",
+  "seed": 20260923,
+  "sensitivity": {
+    "kappas": [
+      10,
+      20,
+      50
+    ],
+    "note": "\u03ba is not identifiable from calibrated data alone; report corrected \u0394ECE across \u03ba\u2208{10,20,50}. If the holds / tracks / fails verdict flips with \u03ba, the paper must say the verdict is \u03ba-dependent.",
+    "null_fpr_ci": {
+      "10": 0.005,
+      "20": 0.003,
+      "50": 0.005
+    },
+    "null_fpr_pvalue": {
+      "10": 0.049,
+      "20": 0.0515,
+      "50": 0.0535
+    },
+    "null_mean_corrected_delta_ece": {
+      "10": 2.2320189636791228e-05,
+      "20": 1.5570081764771814e-05,
+      "50": -1.4797245268137972e-05
+    },
+    "power_pvalue": {
+      "10": 1.0,
+      "20": 1.0,
+      "50": 1.0
+    },
+    "verdict_kappa_dependent": false
+  },
+  "target_delta_ece": 0.09
+}

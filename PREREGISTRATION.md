@@ -6,7 +6,7 @@
 **Pinned model:** `jev-1.13.0`
 **Serving path:** `native`
 **Locked at (UTC):** 2026-09-20T02:59:57+00:00
-**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendments 6–7)
+**Amendments dated (UTC):** 2026-09-22; 2026-09-23 (Amendments 6–8)
 
 This document locks hypotheses, metrics, and decision rules **before**
 scored API calls. Analyses that diverge are labelled exploratory.
@@ -147,14 +147,14 @@ for bin occupancy.
 - **Bootstrap (scored):** n_boot = 10 000; report **BCa and percentile**
 - **Asymmetric-noise power (n=750, 400 trials):** soft power = 1.00; hard
   power ≈ 1.00 (`results/power_asymmetric.json`). Soft scoring remains
-  primary. Soft null is the **Beta–Binomial** null of Amendment 7
-  (`results/soft_null_kappa.json`); operating κ = 20; empirical soft null
-  FPR ≈ **0.101** at κ=20 over 2000 trials (≈0.10–0.11 across κ∈{5…200};
-  asymmetric refresh null_fpr_soft = 0.110) — outside [0.03, 0.08]; reported
-  honestly. Hard null FPR = **0.085** (hard scoring puts label noise only in
-  the hard stratum — an artifact). v1 soft null FPR ≈ 0.27 was from
-  hard-label-calibrating soft scores (definition mismatch). v2 soft null
-  FPR = 0.000 was degenerate (share locked to p per item; see Amendment 7).
+  primary. Soft null is the **Beta–Binomial** null of Amendment 7 plus the
+  **parametric ECE bias correction** of Amendment 8
+  (`results/soft_bias_correction.json`). Operating κ = 20. Raw soft null
+  FPR ≈ 0.10–0.11 was structural (upper-tail only; null mean raw
+  ΔECE ≈ **0.0033**); corrected parametric p-value FPR ≈ **0.051** with
+  power 1.00. Always report raw and corrected ΔECE. Hard null FPR =
+  **0.085** (hard scoring puts label noise only in the hard stratum — an
+  artifact). v1/v2 soft-null history: see Amendments 7–8.
 - **BCa diagnostic (5000 trials):** stratum-mean coverage ≈ 95.0% (percentile
   and BCa); ΔECE coverage percentile ≈ 92.3%, BCa ≈ 89.2%. Supported
   explanation: `delta_ece_statistic` (ECE binning non-smoothness, not a bug).
@@ -198,6 +198,7 @@ explicitly marked not scored).
 | 5 (F1 n=750; BCa; kappa) | 2026-09-22 | recorded in-file before paid calls |
 | 6 (ChaosNLI) | 2026-09-23 | see `AMENDMENT_6_COMMIT` below |
 | 7 (soft null Beta–Binomial) | 2026-09-23 | see `AMENDMENT_7_COMMIT` below |
+| 8 (structural ECE bias correction) | 2026-09-24 | see `AMENDMENT_8_COMMIT` below |
 
 ### Amendment 1 — primary endpoint → ΔECE
 
@@ -346,12 +347,55 @@ git log --oneline -- PREREGISTRATION.md
 find runs -name raw.jsonl ! -path 'runs/offline_fixture/*'
 ```
 
+### Amendment 8 — parametric correction for structural ECE bias (PROMPT P)
+
+**Change:**
+
+1. **Diagnosis (κ=20, 2000 trials).** Raw soft null FPR ≈ **0.112** is
+   **entirely upper-tail** (lower-tail = 0.000): the bias favours H1.
+   Null mean raw ΔECE ≈ **0.0033**. Place this number next to the
+   detectable effect (0.09) and the "holds" zone (≤0.02) in the paper.
+   Flat FPR across κ showed the inflation is structural (bin occupancy
+   differs between easy/hard confidence shapes), not item-level scatter.
+2. **Correction.** At the observed top probabilities of each stratum,
+   estimate \(E0=\mathbb{E}[\mathrm{ECE}\mid p]\) by 2000 calibrated
+   Beta–Binomial soft draws. Report
+   \(\mathrm{corrected\ }\Delta\mathrm{ECE}=(ECE_h-E0_h)-(ECE_e-E0_e)\)
+   **beside** raw ΔECE — never corrected alone
+   (`results/soft_bias_correction.json`).
+3. **Test.** Primary: two-sided p-value vs the simulated null
+   distribution of ΔECE at the observed probabilities (correct size by
+   construction). Interval: percentile bootstrap of corrected ΔECE
+   (E0 fixed at observed \(p\); empirically conservative). At κ=20,
+   p-value FPR ≈ **0.051** ∈ [0.03, 0.08]; power = 1.00 at ΔECE=0.09.
+4. **Sensitivity.** Corrected null mean ≈ 0 and FPR ≈ 0.05 across
+   κ∈{10,20,50}; alternative corrected means ≈ 0.09. Verdict is **not**
+   κ-dependent under this simulator; still report the κ table because κ
+   is not identifiable from calibrated data alone.
+5. **Related work (verified before citing).** Kumar, Liang & Ma
+   (NeurIPS 2019): plugin binned CE estimators are biased; debiased
+   estimator improves sample complexity for *squared* CE. Roelofs et al.
+   (AISTATS 2022): equal-width ECE_bin biased even under perfect
+   calibration; equal-mass / ECE_debias / ECE_sweep reduce bias. We keep
+   plugin ECE as the endpoint and subtract parametric \(E0\); see
+   `paper/RELATED_WORK.md`.
+
+**Reason:** Amendment 7 made the soft null non-degenerate, but equal-n
+does not cancel ECE's dependence on how confidence mass is spread across
+bins. Easy packs into a few high-\(p\) bins; hard spreads. Under a true
+null, \(E[\Delta\mathrm{ECE}]\neq 0\), and the excess FPR is one-sided
+toward H1. The "tracks accuracy" verdict (≥0.09) is mostly protected; the
+interval and the margin to the ≤0.02 "holds" zone are not.
+
+**No Jev output observed.** Offline only.
+
 ### Amendment commit hash (binding timestamp)
 
 ```
 AMENDMENT_COMMIT=70be25f7baf91daa748cec11c38f26f17315b17c
 AMENDMENT_6_COMMIT=bf03af91ecd08efa927cea9d1a8eb5adfc941634
 AMENDMENT_7_COMMIT=3891afac56818bed1dc64850d9775e65d64f613c
+AMENDMENT_8_COMMIT=<fill after this commit>
 ```
 
 Verify with:

@@ -43,6 +43,8 @@ Phrase novelty as: *"we are not aware of published work doing X"* — never
 |---|---|---|
 | MAPIE (scikit-learn-contrib) | Calibration + LTT risk control | Use, do not reimplement |
 | netcal | ECE / recalibration | Use |
+| Kumar, Liang & Ma, NeurIPS 2019 (arXiv:1909.10155) | Plugin binned CE estimators are biased; debiased estimator improves sample complexity for *squared* CE (O(B)→O(√B)); App. G heuristic for ℓ1 ECE | Verified against PDF/HTML 2026-09-23. We cite for bias of plugin ECE, not as claiming our parametric E0 is their estimator. |
+| Roelofs, Cain, Shlens & Mozer, AISTATS 2022 (arXiv:2012.08668) | Equal-width ECE_bin biased even under perfect calibration (BBC); equal-mass lower bias; ECE_debias / ECE_sweep recommended | Verified against PMLR/arXiv 2026-09-23. Primary endpoint stays plugin ECE with parametric E0 correction; always report raw beside corrected. |
 | Deferred Crispification (Doan Ngoc, Zenodo 22801506) | Position paper; not empirical refutation of Jev | Cite honestly |
 | Jev in Practice / daf-jev (Zenodo 22816188) | Tools paper; confidence self-consistency claim | C2 target |
 | Public benches: ickma2311, anisselbd, anessbelbati, themsquared, SamuelSacco | Prior measurements | Credit |
