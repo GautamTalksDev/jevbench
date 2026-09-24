@@ -3,7 +3,7 @@
   "meta": {
     "run_id": "specimen-synthetic",
     "git_sha": "0000000",
-    "prereg_commit": "bf03af9",
+    "prereg_commit": "8f15463",
     "model_resolved": "jev-specimen",
     "baseline_model": "adapter-specimen",
     "dataset": "chaosnli_snli_mnli",

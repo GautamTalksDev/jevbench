@@ -20,7 +20,7 @@ from jevbench.verdict import decide_verdict
 
 SCHEMA = "jevbench.certificate.v1"
 MATCH_TOL = 1e-6
-PREREG_COMMIT_EXP1 = "6011c75"  # Amendment 9 binding (see PREREGISTRATION.md)
+PREREG_COMMIT_EXP1 = "66037a7"  # Amendment 9 binding (see PREREGISTRATION.md)
 LABEL_ORDER = NLI_LABEL_ORDER  # entailment, neutral, contradiction
 
 
