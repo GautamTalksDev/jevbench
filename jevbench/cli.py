@@ -163,10 +163,13 @@ def run_cmd(
 ) -> None:
     """Execute an experiment: manifest first, stream raw.jsonl, no metrics."""
     from jevbench.budget import BudgetExceeded
+    from jevbench.envload import load_dotenv
     from jevbench.prereg import PreregistrationError
     from jevbench.runner import Runner, RunnerConfig
 
     root = repo_root()
+    # Load .env before any client call (key never printed / never written to runs).
+    load_dotenv(root / ".env")
     client_names = None
     if clients is not None:
         client_names = [c.strip() for c in clients.split(",") if c.strip()]

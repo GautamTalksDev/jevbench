@@ -9,7 +9,7 @@ KEY_NAME = "TYPESAFE_API_KEY"
 
 
 def load_dotenv(path: Path) -> None:
-    """Set missing variables from a .env file. Values are not logged."""
+    """Set missing/empty variables from a .env file. Values are not logged."""
     if not path.is_file():
         return
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -19,7 +19,10 @@ def load_dotenv(path: Path) -> None:
         name, _, value = stripped.partition("=")
         name = name.strip()
         value = value.strip().strip("'").strip('"')
-        if name and name not in os.environ:
+        if not name:
+            continue
+        # Overwrite empty placeholders so a blank export cannot block .env.
+        if not (os.environ.get(name) or "").strip():
             os.environ[name] = value
 
 

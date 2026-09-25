@@ -409,6 +409,7 @@ def work_units(
 
 
 def load_completed_keys(raw_path: Path) -> set[str]:
+    """Keys that finished successfully. Error rows are not done — resume retries them."""
     done: set[str] = set()
     if not raw_path.is_file():
         return done
@@ -420,6 +421,8 @@ def load_completed_keys(raw_path: Path) -> set[str]:
             try:
                 row = json.loads(line)
             except json.JSONDecodeError:
+                continue
+            if row.get("error"):
                 continue
             key = row.get("unit_key")
             if key:
