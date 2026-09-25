@@ -1682,6 +1682,9 @@ def soft_delta_ece_corrected(
     null_deltas = _soft_ece_batch(p, soft_h_n, n_bins) - _soft_ece_batch(
         q, soft_e_n, n_bins
     )
+    n_ge = int(np.sum(null_deltas >= raw))
+    n_le = int(np.sum(null_deltas <= raw))
+    n_null_extreme = int(min(n_ge, n_le))
     p_upper = float(np.mean(null_deltas >= raw))
     p_lower = float(np.mean(null_deltas <= raw))
     p_value = float(min(1.0, 2.0 * min(p_upper, p_lower)))
@@ -1701,6 +1704,9 @@ def soft_delta_ece_corrected(
         "excludes_zero_lower": lower,
         "p_value": p_value,
         "null_mean_delta_ece_at_observed_p": float(null_deltas.mean()),
+        # Additive reporting only — does not change p_value arithmetic.
+        "n_null_pval": int(n_null_pval),
+        "n_null_extreme": n_null_extreme,
     }
 
 

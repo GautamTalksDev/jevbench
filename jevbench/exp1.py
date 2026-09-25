@@ -18,6 +18,7 @@ from jevbench.chaosnli import contamination_table
 from jevbench.metrics import (
     calibration_by_tier,
     delta_ece,
+    expected_calibration_error,
     hard_correctness,
     jensen_shannon_divergence,
     paired_bootstrap,
@@ -306,6 +307,88 @@ def _holds_effect_reference(*, seed: int = 20260924) -> np.ndarray:
     return sim["corrected"]
 
 
+def _descriptive_direction_cell(
+    probs: np.ndarray,
+    correct: np.ndarray,
+    labels: np.ndarray,
+    *,
+    n_bins: int = 10,
+) -> dict[str, Any]:
+    """Per-stratum direction summary on the exact rows used for ECE."""
+    conf = np.asarray(probs, dtype=float).max(axis=1)
+    correct_arr = np.asarray(correct, dtype=float)
+    mean_conf = float(conf.mean()) if len(conf) else float("nan")
+    mean_correct = float(correct_arr.mean()) if len(correct_arr) else float("nan")
+    ece = expected_calibration_error(
+        probs,
+        labels,
+        n_bins=n_bins,
+        strategy="uniform",
+        correctness=correct_arr,
+    )
+    bins: list[dict[str, Any]] = []
+    for b in range(n_bins):
+        count = int(ece.bin_counts[b])
+        bins.append(
+            {
+                "count": count,
+                "mean_conf": (
+                    float("nan") if count == 0 else float(ece.bin_mean_confidence[b])
+                ),
+                "mean_correct": (
+                    float("nan") if count == 0 else float(ece.bin_accuracy[b])
+                ),
+            }
+        )
+    return {
+        "n": int(len(conf)),
+        "mean_top_label_confidence": mean_conf,
+        "mean_correctness": mean_correct,
+        "overconfidence": float(mean_conf - mean_correct),
+        "bins": bins,
+    }
+
+
+def _descriptive_direction_block(
+    ph: np.ndarray,
+    yh: np.ndarray,
+    pe: np.ndarray,
+    ye: np.ndarray,
+    *,
+    correct_h: np.ndarray | None,
+    correct_e: np.ndarray | None,
+) -> dict[str, Any]:
+    """Arm × stratum × scoring direction tables (additive; not used for verdict)."""
+    hard_h = hard_correctness(ph, yh)
+    hard_e = hard_correctness(pe, ye)
+    out: dict[str, Any] = {
+        "note": (
+            "Descriptive only — same rows/pass/items as the ECE endpoint. "
+            "overconfidence = mean_top_label_confidence − mean_correctness. "
+            "Bins are the 10 uniform confidence bins used for ECE."
+        ),
+        "hard": {
+            "hard": _descriptive_direction_cell(ph, hard_h, yh),
+            "soft": None,
+        },
+        "easy": {
+            "hard": _descriptive_direction_cell(pe, hard_e, ye),
+            "soft": None,
+        },
+    }
+    if correct_h is not None and correct_e is not None:
+        out["hard"]["soft"] = _descriptive_direction_cell(ph, correct_h, yh)
+        out["easy"]["soft"] = _descriptive_direction_cell(pe, correct_e, ye)
+    return out
+
+
+def _p_value_display(p_value: float, *, n_null_pval: int, n_null_extreme: int) -> str:
+    """Report Monte Carlo p; use p < 1/(N+1) when no null draw matches the extreme."""
+    if int(n_null_extreme) == 0:
+        return f"p < 1/{int(n_null_pval) + 1}"
+    return f"p = {float(p_value):.6g}"
+
+
 def _corrected_soft_primary(
     ph: np.ndarray,
     correct_h: np.ndarray,
@@ -335,6 +418,8 @@ def _corrected_soft_primary(
     )
     effect_ref = _holds_effect_reference(seed=seed + 5)
     p_hold = p_holds_one_sided(float(iv["corrected_delta_ece"]), effect_ref)
+    n_null = int(iv.get("n_null_pval", n_null_pval))
+    n_extreme = int(iv.get("n_null_extreme", -1))
     return {
         "delta_raw": float(iv["raw_delta_ece"]),
         "delta_corrected": float(iv["corrected_delta_ece"]),
@@ -346,6 +431,12 @@ def _corrected_soft_primary(
         "ci_low_corrected": float(iv["ci_low"]),
         "ci_high_corrected": float(iv["ci_high"]),
         "kappa": float(kappa),
+        # Additive — existing numeric fields above unchanged.
+        "n_null_pval": n_null,
+        "n_null_extreme": n_extreme,
+        "p_value_display": _p_value_display(
+            float(iv["p_value"]), n_null_pval=n_null, n_null_extreme=n_extreme
+        ),
     }
 
 
@@ -495,6 +586,9 @@ def analyze_client(
         )
     scoring_primary = "soft" if soft_block is not None else "hard"
     primary_block = soft_block if soft_block is not None else hard_block
+    direction = _descriptive_direction_block(
+        ph, yh, pe, ye, correct_h=correct_h, correct_e=correct_e
+    )
 
     # Amendment 9 — parametric corrected primary + divergence secondaries.
     corrected_block: dict[str, Any] | None = None
@@ -606,6 +700,12 @@ def analyze_client(
             None if corrected_block is None else corrected_block["delta_corrected"]
         ),
         "p_value": None if corrected_block is None else corrected_block["p_value"],
+        "n_null_pval": (
+            None if corrected_block is None else corrected_block.get("n_null_pval")
+        ),
+        "p_value_display": (
+            None if corrected_block is None else corrected_block.get("p_value_display")
+        ),
         "p_holds_reject_ge_effect": (
             None
             if corrected_block is None
@@ -624,6 +724,7 @@ def analyze_client(
                 "inflates ΔECE in the direction of the hypothesis."
             ),
         },
+        "descriptive_direction": direction,
         "descriptive_calibration_by_tier": (
             {
                 "tier_names": list(cal.tier_names),
@@ -880,11 +981,15 @@ def run_exp1_analysis(
         "delta_raw": jev.get("delta_raw"),
         "delta_corrected": jev.get("delta_corrected"),
         "p_value": jev.get("p_value"),
+        "n_null_pval": jev.get("n_null_pval"),
+        "p_value_display": jev.get("p_value_display"),
         "verdict": result_verdict,
         "primitive_arm": "choice",
         "noul_verdict": jev_noul.get("verdict"),
         "noul_delta_corrected": jev_noul.get("delta_corrected"),
         "noul_p_value": jev_noul.get("p_value"),
+        "noul_n_null_pval": jev_noul.get("n_null_pval"),
+        "noul_p_value_display": jev_noul.get("p_value_display"),
     }
 
     out_path = out_path or (RESULTS / "exp1.json")
