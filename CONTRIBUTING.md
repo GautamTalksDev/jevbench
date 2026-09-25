@@ -1,52 +1,40 @@
 # Contributing
 
-This repo is meant to outlive one video. The useful fork is: add a task, pin a
-newer Jev version, re-run the harness, and keep the same metrics.
+Independent study. Not affiliated with or endorsed by TypeSafe AI.
 
-## What to add
+## Welcome
 
-1. **A task** under `datasets/<name>/` with `items.jsonl`, `labels.jsonl`,
-   [`LABEL_GUIDE.md`](datasets/support_tickets/LABEL_GUIDE.md), and
-   [`DISPUTED.md`](datasets/support_tickets/DISPUTED.md).
-2. **An experiment YAML** under `experiments/` that points at that task and
-   pins `jev-<version>` (never `jev-latest` for scored runs).
-3. **Pre-registration** — `jevbench preregister <exp>` before any scored call.
-4. **Dry-run cost** — `jevbench run … --dry-run` before you spend.
+- Bug reports against the harness, the arena page, or the docs
+- Replication runs that name the commit, the serving path, n, the cost, and any deviation
+- Documentation that keeps the facts and the status line (preregistered, EXP-1 not yet run)
 
-## What not to do
+One topic per pull request. Tests must pass (`make test`).
 
-- Do not cite Arena Live / playground numbers as scored results.
-- Do not compute ECE by hand — use `jevbench.metrics` (netcal wrappers).
-- Do not pass `confidence` into calibration functions (raises `TypeError`).
-- Do not write scored artifacts from the Arena UI into `runs/<id>/`.
+## Not merged as an ordinary pull request
 
-## Reproduce before you open a PR
+These go through the public amendment process below:
+
+- Any change to the preregistered analysis (hypotheses, metrics, decision rules, sample size)
+- Any change to a frozen file: `PREREGISTRATION.md`, `preregistration.lock.json`, or `experiments/exp1_difficulty_calibration.yaml`
+- Any change to results after unblinding
+
+A pull request that edits those files to "fix" a number after a run will be closed.
+
+## Public amendment process
+
+1. Open an issue that states the reason, what would change, and why the locked rule cannot stand.
+2. Wait for the discussion to be public. Do not edit the frozen files in that issue's pull request.
+3. If the maintainer accepts the amendment, they commit it themselves: update `PREREGISTRATION.md` with a dated amendment, and update `EXPECTED_PREREG_SHA256` in `scripts/verify_prereg_integrity.py` in the same commit.
+4. Dataset byte changes are a new protocol. Prior scored runs stay exploratory. They are not quietly reused.
+
+Until EXP-1 has been run, there are no results to unblind.
+
+## Local check
 
 ```bash
-make install
 make test
-make reproduce
-make check-repro
+python3 scripts/verify_citations.py
+python3 scripts/check_prose_dashes.py
 ```
 
-CI fails if `results/` drifts after `make reproduce` (bit-for-bit vs the
-committed tree). If your change *intentionally* updates goldens, regenerate
-with `make reproduce` and commit the new `results/` artifacts.
-
-## Rerunning against a newer Jev
-
-1. Update the pinned model in the experiment YAML and `PREREGISTRATION.md`.
-2. Re-lock hashes only if the **dataset** changed — not because the model did.
-3. Run scored calls with the native serving path stated in the prereg (or
-   measure both paths and label them).
-4. Leave the offline fixture (`runs/offline_fixture/`) alone unless you are
-   refreshing the demo pack — that fixture is for harness CI, not claims.
-
-## Code style
-
-- Prefer libraries over reimplementation (`netcal`, `mapie`, sklearn).
-- Latency: report p50 / p95 / p99 only.
-- Score floats stay floats — never cast System One Score expectations to int.
-
-Questions and task proposals: open an issue. Cross-links to prior Jev benches
-are welcome — credit is cheap and compounds.
+Code of conduct: [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). Security reports: [`SECURITY.md`](SECURITY.md).

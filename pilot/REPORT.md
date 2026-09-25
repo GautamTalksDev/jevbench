@@ -1,4 +1,4 @@
-# Pilot REPORT — PROMPT S / R
+# Pilot REPORT. PROMPT S / R
 
 **Run id:** `pilot_20260924T190111Z`  
 **UTC:** 2026-09-24T19:01:36.020154+00:00  
@@ -7,7 +7,7 @@
 **Items:** 20 mid-entropy only (seed `20260924`)  
 **Outputs analysed for ΔECE:** NO  
 **Credit expiry (fill from console):** unknown (console: "See credit details for expiry.")  
-**Console balance after pilot:** **$5.00** (screenshot; display unchanged — pilot spend $0.000494 is below console precision)  
+**Console balance after pilot:** **$5.00** (screenshot; display unchanged, pilot spend $0.000494 is below console precision) 
 **Console balance Δ vs ledger:** not comparable on pilot (console still shows $5.00; ledger Δ = $0.000494). Defer ledger-vs-console check to EXP-1 (~$0.05 pause).
 
 ## Item guard
@@ -28,7 +28,7 @@
 ## Checks
 
 ### 1. Resolved `model` on every Jev row
-- OK: **True** — `['jev-1.13.0']`
+- OK: **True**`['jev-1.13.0']`
 
 ### 2. Choice vs Noul shapes
 - Choice all 3 labels: **True**
@@ -67,5 +67,5 @@
 Code changes after this pilot prompted by Jev output → cite this pilot run id and mid-entropy-only items.
 
 Raw (stripped, safe to commit): `pilot/stripped/pilot_20260924T190111Z.jsonl`  
-Raw (full, gitignored — has request bodies): `pilot/full/pilot_20260924T190111Z.jsonl`  
+Raw (full, gitignored, has request bodies): `pilot/full/pilot_20260924T190111Z.jsonl` 
 Rebuild/verify: `.venv/bin/python scripts/rebuild_requests.py`

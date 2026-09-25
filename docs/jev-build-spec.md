@@ -1,11 +1,11 @@
-# JEV TEARDOWN — Build Spec
+# JEV TEARDOWN. Build Spec
 
 Companion to: `jev-teardown-script.md`  
 Scope: what to build, Cursor prompts, verified API surface  
 Verified: 19 September 2026 · **Part 5 refinements from FINAL_PLAN applied**
 
 Authoritative API surface lives in repo root: [`API_REFERENCE.md`](../API_REFERENCE.md).  
-Constitution: [`CONSTITUTION.md`](../CONSTITUTION.md) (includes rules 8–10).  
+Constitution: [`CONSTITUTION.md`](../CONSTITUTION.md) (includes rules 8 to 10). 
 Architecture: [`ARCHITECTURE.md`](../ARCHITECTURE.md).
 
 ---
@@ -15,7 +15,7 @@ Architecture: [`ARCHITECTURE.md`](../ARCHITECTURE.md).
 | Tier | Build? |
 |---|---|
 | TypeSafe Playground | Use for exploration; never cite as evidence |
-| **jevbench** headless harness | **YES** — the credential |
+| **jevbench** headless harness | **YES**, the credential |
 | **jev-arena** small local replay UI | YES, small; never produces unscored numbers |
 
 **Do not build:** auth, database, hosted service, realtime collab, custom charting libs.
@@ -24,17 +24,17 @@ Architecture: [`ARCHITECTURE.md`](../ARCHITECTURE.md).
 
 ---
 
-## PROMPT 0 — Constitution (done at scaffold)
+## PROMPT 0. Constitution (done at scaffold)
 
 See `CONSTITUTION.md`. Setup targets: `pyproject.toml` (Python 3.11, deps including
 **netcal**, **mapie**), directory tree, Makefile (`install`, `test`, `reproduce`,
 `charts`, `lint-claims`), MIT LICENSE.
 
-Stop after scaffold before clients — then proceed prompt-by-prompt.
+Stop after scaffold before clients, then proceed prompt-by-prompt.
 
 ---
 
-## PROMPT 4 — Metrics (REPLACE — libraries only)
+## PROMPT 4. Metrics (REPLACE, libraries only)
 
 ```
 Build jevbench/metrics.py.
@@ -75,7 +75,7 @@ ARCHITECTURE: thin wrappers + validation suite.
 
 ---
 
-## PROMPT 8 — Stability EXP-6 (NEW)
+## PROMPT 8. Stability EXP-6 (NEW)
 
 ```
 Build jevbench/stability.py + experiments/exp6_stability.yaml.
@@ -99,7 +99,7 @@ explicit statement which prior result our data supports and when.
 
 ---
 
-## PROMPT 9 — Paper artifact (NEW)
+## PROMPT 9. Paper artifact (NEW)
 
 ```
 Build paper/ (main.md, RELATED_WORK.md, figures→results symlink,

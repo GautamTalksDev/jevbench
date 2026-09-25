@@ -1,7 +1,7 @@
 # Project Constitution
 
 These rules override any instinct. Read `API_REFERENCE.md` before writing client code.
-If something isn't documented there, add a TODO and ask — do not invent it.
+If something isn't documented there, add a TODO and ask, do not invent it.
 
 1. **SCIENCE IS HEADLESS.** The harness is CLI + files. No web server, no
    database, no auth, no ORM. Results are JSONL on disk.

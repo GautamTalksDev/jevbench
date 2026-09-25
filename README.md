@@ -2,124 +2,134 @@
 
 Independent study. Not affiliated with or endorsed by TypeSafe AI.
 
-**Status:** Preregistered. EXP-1 not yet run. No results exist yet.
+This repository is a pre-registered test of whether TypeSafe Jev stays calibrated when natural-language inference items get harder. Expected calibration error (ECE) is the gap between predicted confidence and how often that confidence is right. The study compares ECE on easy items with ECE on hard items. EXP-1 has not been run, so this repository does not contain a Jev result.
 
-## How to verify offline
+## Status
+
+Preregistered. EXP-1 not yet run. No results exist yet.
+
+The offline numbers under `results/harness_fixture/` come from a committed fixture. They check that the pipeline is deterministic. They are not a finding about Jev.
+
+## The question in plain English
+
+When an item is harder for humans, does Jev's confidence still match the chance it is right?
+
+A stratum is a difficulty group. This study uses two strata, easy and hard, cut from ChaosNLI by annotator disagreement. Delta ECE (written ΔECE) is ECE on the hard stratum minus ECE on the easy stratum. A bootstrap is a way to redraw the sample many times and see how much a number moves. The pre-registered rule looks at the corrected ΔECE, not at a story written after the numbers appear.
+
+## How it works
+
+The harness calls a pinned model, writes every response to JSONL, and computes metrics later, offline. Primary scoring is soft. Soft correctness is the share of ChaosNLI annotators who picked the model's top label. Hard scoring (top label versus the majority label) is reported beside it. Sentence text is not stored in this repository.
+
+The two strata:
+
+- Easy: the lowest quartile of per-item Shannon entropy of the 100-annotator label distribution, then cut to 750 items.
+- Hard: the highest quartile, also cut to 750 items.
+
+Equal counts matter. A larger hard set could move ΔECE even if calibration did not change. Paraphrases (50 extra items per stratum) are a contamination check and are excluded from ΔECE. The pinned model is `jev-1.13.0`. The serving path for scored calls is `native`.
+
+## Why you can trust it
+
+The analysis was written down before any scored Jev call. That document is the preregistration: [`PREREGISTRATION.md`](PREREGISTRATION.md), with dataset hashes in [`preregistration.lock.json`](preregistration.lock.json). Changing the locked item or label bytes makes a scored run refuse to start.
+
+Hashes: item and label files are pinned by SHA-256. Citation checks confirm that commit ids named in the docs exist in this repository.
+
+Equal-n: easy and hard use the same count, so a sample-size gap cannot imitate a calibration gap.
+
+Bias correction: binned ECE is biased even when a model is perfectly calibrated. The preregistration requires a parametric correction and says to publish the raw number beside the corrected one.
+
+Publish-regardless: the locked text says the result will be published whichever way it goes, including a null and including a result that supports TypeSafe's claims.
+
+What you should not trust yet:
+
+- The fixture finding is not EXP-1. Do not cite it as a product claim.
+- The fixture has 44 Jev rows. Bootstrap intervals on that pack are wide.
+- Support-ticket labels in `datasets/support_tickets/` are author-assigned, with a written guide and a disputed file. They are not the ChaosNLI 100-annotator labels used for EXP-1.
+- Latency and cost from a path other than `native` are not interchangeable with the scored path.
+- ECE without bin counts is not interpretable here. Empty high-confidence bins are a warning.
+- Jev's `confidence` field is sharpness, not a probability of being correct. Metrics refuse to treat it as one.
+- The fixture baseline is simulated. It is not a production invoice for another model.
+- Arena replay does not write a scored run. A specimen stamp means the gauge is synthetic.
+- Chart PNG hashes match Linux CI (Agg backend, DejaVu). macOS pixels can differ. `make check-repro` on Ubuntu is the check that counts.
+
+## Quick start
+
+Offline. No API key. No network.
 
 ```bash
-make install   # once
-make reproduce # regenerates metrics + charts from committed JSONL
+make install
+make reproduce
 make check-repro
 ```
 
-No API key. No network. Under two minutes. CI runs the same commands and
-fails if any chart or metric in `results/harness_fixture/` changes bit-for-bit
-(`results/SHA256SUMS`).
+`make reproduce` rebuilds metrics and charts from committed JSONL. CI fails if `results/harness_fixture/` drifts from [`results/SHA256SUMS`](results/SHA256SUMS). Source rows: [`runs/offline_fixture/raw.jsonl`](runs/offline_fixture/raw.jsonl).
 
-Source records: [`runs/offline_fixture/raw.jsonl`](runs/offline_fixture/raw.jsonl).
+A skeptic's checklist is in [`docs/HOW_TO_VERIFY.md`](docs/HOW_TO_VERIFY.md). Terms are in [`docs/GLOSSARY.md`](docs/GLOSSARY.md).
 
-## Certificate page
+## Run with Jev
 
-Host [`arena/`](arena/) from this repo (GitHub Pages workflow in
-`.github/workflows/pages.yml`). See [`arena/PUBLISH.md`](arena/PUBLISH.md).
-**Do not share the old claude.ai public link** — it still has the
-pre–Amendment 9 interval-based verdict.
+You need your own key in `.env` (see [`.env.example`](.env.example)). The key is never printed and never written into a run file. CI does not receive it.
 
-## Method
+The EXP-1 hard cap is $1.00. Estimate before you pay:
 
-- **Pre-registration:** [`PREREGISTRATION.md`](PREREGISTRATION.md) /
-  [`preregistration.lock.json`](preregistration.lock.json) — hypotheses and
-  dataset SHA-256 locked before scored calls.
-- **Label guide:** [`datasets/support_tickets/LABEL_GUIDE.md`](datasets/support_tickets/LABEL_GUIDE.md)
-  · disputed items: [`DISPUTED.md`](datasets/support_tickets/DISPUTED.md).
-- **Pinned model:** `jev-1.13.0` (never `jev-latest` for scored numbers).
-- **Serving path:** `native` (stated in the prereg).
-- **Task / geography:** support-ticket routing labels
-  (`billing` / `technical` / `other`), four difficulty tiers, English text.
-- **Calibration:** probabilities / noul only — never Jev `confidence`
-  (sharpness). ECE via netcal wrappers with mandatory occupancy
-  (`jevbench.metrics`).
+```bash
+jevbench run experiments/exp1_difficulty_calibration.yaml --dry-run
+```
 
-## Limitations
+Do not run EXP-1 until the preregistration has a public DOI. This tree does not mint that DOI for you.
 
-Write these down before anyone else does:
+Hypothetical replay of fixture tokens at the `2026-09-19` price snapshot is recorded in `results/harness_fixture/metrics.json` under `cost.hypothetical_live_usd_if_replayed`. `make reproduce` itself costs $0.00.
 
-- **This README finding is an offline fixture**, including synthetic tier
-  fillers for Arena occupancy demos. It is not EXP-1. Do not cite it as a
-  Jev product claim.
-- **n is small** (44 Jev rows in the fixture; 8 locked real tickets in the
-  prereg dataset until the full EXP-1 pack lands). Bootstrap intervals are
-  wide; occupancy in some bins is a handful of points.
-- **Labels are author-assigned** with a written guide and a disputed file —
-  not multi-annotator gold. Disputed items remain in the set and can move
-  both accuracy and ECE.
-- **Serving path is pinned to native.** Latency and cost numbers from other
-  paths (OpenRouter, Vercel) are not interchangeable.
-- **ECE without occupancy is meaningless** here: a single crowded bin can
-  dominate. Charts and metrics always ship bin counts; treat empty high-
-  confidence bins as a red flag, not a clean ECE.
-- **Confidence ≠ calibration.** Using Jev `confidence` as a correctness
-  probability is a category error; the metrics API raises `TypeError`.
-- **Baseline in the fixture is simulated / adapter-shaped**, not a
-  production Haiku/Flash invoice. Comparative accuracy deltas on this pack
-  are harness smoke, not a model bake-off.
-- **Arena Live is Demo — not scored.** Keys stay in memory; the UI cannot
-  write scored `runs/<id>/`.
-- **Chart bit-for-bit hashes are for Linux CI (Agg + DejaVu).** Local macOS
-  PNG pixels may differ; `make check-repro` is authoritative on Ubuntu.
+## Repo map
+
+| Folder | What's in it |
+|---|---|
+| `jevbench/` | Harness: clients, metrics, runner, preregistration lock checks |
+| `experiments/` | Experiment YAML, including the locked EXP-1 spec |
+| `datasets/chaosnli/` | Item ids, annotator counts, entropy, stratum. No sentence text |
+| `datasets/support_tickets/` | Small labelled ticket set used by the offline fixture |
+| `runs/offline_fixture/` | Committed responses the offline rebuild reads |
+| `results/` | Charts, power notes, and the fixture checksum file |
+| `results/harness_fixture/` | Regenerated fixture metrics. Not an EXP-1 result |
+| `arena/` | Static certificate page. Replay only |
+| `paper/` | Methods notes and the related-work search log |
+| `docs/` | Glossary, FAQ, verification steps |
+| `tests/` | Pytest suite, including supply-chain checks |
+| `.github/` | CI workflows, Dependabot, secret scan |
+
+## Data licence
+
+ChaosNLI is CC BY-NC 4.0. SNLI is CC BY-SA 4.0. MNLI has mixed terms. Sentence text is not in this repository. The fetch script is [`scripts/fetch_chaosnli.py`](scripts/fetch_chaosnli.py). It checks pinned SHA-256 values and writes a gitignored cache.
 
 ## Prior work
 
-Existing Jev benchmarks — credit by name:
+Credit these benches by name:
 
 - [jev-baselines-eval](https://github.com/ickma2311/jev-baselines-eval) (ickma2311)
 - [jev-phishing-bench](https://github.com/anisselbd/jev-phishing-bench) (anisselbd)
 - [jev-rerank-bench](https://github.com/anessbelbati/jev-rerank-bench) (anessbelbati)
 - [jev-benchmark](https://github.com/themsquared/jev-benchmark) (themsquared)
 - [jev-exploration](https://github.com/SamuelSacco/jev-exploration) (SamuelSacco)
+- [jev-frontier-bench](https://github.com/manjunathshiva/jev-frontier-bench) (manjunathshiva)
+- [jev-decision-bench](https://github.com/OmarMujahid/jev-decision-bench) (OmarMujahid)
+- [jev-calibration-audit](https://github.com/MohitSV/jev-calibration-audit) (MohitSV)
+- [jev-bench](https://huggingface.co/datasets/Praveenrajus/jev-bench) (Praveenrajus)
 
-Related position / tools papers: Deferred Crispification (Zenodo 22801506),
-Jev in Practice / daf-jev (Zenodo 22816188). Search log:
-[`paper/RELATED_WORK.md`](paper/RELATED_WORK.md).
+Position and tools papers: Deferred Crispification (Zenodo 22801506) and Jev in Practice / daf-jev (Zenodo 22816188). The search log is [`paper/RELATED_WORK.md`](paper/RELATED_WORK.md). Samuel Sacco's issue #1 is the origin of the flagship question. This study does not claim to have invented it.
 
-## Cost of the run
+## How to cite
 
-| What | USD |
-|---|---|
-| `make reproduce` (this repo, offline) | **$0.00** |
-| Hypothetical replay of fixture tokens at snapshot `2026-09-19` | see `results/harness_fixture/metrics.json` → `cost.hypothetical_live_usd_if_replayed` |
-| Scored EXP-1 live API | not run yet — estimate with `jevbench run … --dry-run` first |
+Use [`CITATION.cff`](CITATION.cff).
 
-## How to extend it to your own data
+## Security
 
-1. Copy `datasets/support_tickets/` → `datasets/<your_task>/` and write a real
-   label guide + disputed file.
-2. Add `experiments/<exp>.yaml` pinning `jev-1.13.0` (or a newer **pinned**
-   version) and the native serving path you will measure.
-3. `jevbench preregister <exp>` → lock hashes **before** any scored call.
-4. `jevbench run … --dry-run` → then the scored run; metrics stay offline.
-5. Point `make reproduce` at your committed `runs/<id>/raw.jsonl` (or keep
-   the offline fixture for CI and score separately).
-6. Open a PR. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+This is a static repository. There is no login and no database. CI is read-only, third-party actions are pinned, and the Jev API key is not a workflow secret. The certificate page accepts only a same-origin `data/*.json` path. Details: [`SECURITY.md`](SECURITY.md), [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md), [`.github/workflows/security.yml`](.github/workflows/security.yml).
 
-## Arena (replay instrument)
+## Contributing
 
-```bash
-cd arena && python3 -m http.server 8765
-# http://127.0.0.1:8765/
-# ?chrome=off  — hide nav for capture
-# ?slow=4      — baseline crawl 4× (badge on screen; disclose in VO)
-```
+Bug reports, replication runs, and docs are welcome. Changes to the preregistered analysis, the frozen files, or results after unblinding are not merged as ordinary pull requests. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-Lab-instrument UI: [`arena/UI_SPEC.md`](arena/UI_SPEC.md). Shared tokens:
-[`arena/tokens.json`](arena/tokens.json).
+## Licence
 
-## Constitution (short)
+MIT. See [`LICENSE`](LICENSE).
 
-- Harness is CLI + JSONL. Arena is replay-only for scored numbers.
-- Calibration uses **netcal** / **MAPIE** — no hand-rolled ECE.
-- Measure calibration on `probabilities` / `noul`, never on `confidence`.
-- Pin `jev-1.13.0`. Log the resolved `model` field every call.
-
-Full rules: [`CONSTITUTION.md`](CONSTITUTION.md). Cite:
-[`CITATION.cff`](CITATION.cff). License: MIT.
+The certificate page is a lab instrument: [`arena/UI_SPEC.md`](arena/UI_SPEC.md), [`arena/PUBLISH.md`](arena/PUBLISH.md). Do not share an old hosted link that still shows the pre-Amendment 9 interval verdict. Project rules: [`CONSTITUTION.md`](CONSTITUTION.md).

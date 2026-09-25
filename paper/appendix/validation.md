@@ -23,10 +23,10 @@ hard vs easy with unequal `n` can produce positive ΔECE from sample size alone.
 Controls:
 
 1. Equal `n` per stratum (`subsample_to_equal_n` + hard guard in `delta_ece`)
-2. Null simulation in `tests/test_delta_ece.py` — calibrated strata → CI crosses 0
+2. Null simulation in `tests/test_delta_ece.py`calibrated strata → CI crosses 0
 3. Report `null_delta_ece_band(...)` in methods
 
-### Methods sentence (operating n — Prompt F4)
+### Methods sentence (operating n. Prompt F4)
 
 > At n=750 per stratum with 10 bins, a perfectly calibrated model yields mean ECE 0.0247; our pre-specified effect size of 0.09 is 3.65x that floor.
 
@@ -47,7 +47,7 @@ percentile is closer to nominal and is the current primary.
 
 Required n is chosen at the pessimistic corner
 (`label_noise=0.05`, `difficulty_sd=0.10`), not the clean simulator.
-At that corner, power ≥ 0.80 first at **n=750** per stratum — above the
+At that corner, power ≥ 0.80 first at **n=750** per stratum, above the
 labelling ceiling of 500. **Do not proceed underpowered**; pre-specify a
 larger detectable effect size or raise labelling capacity before any paid run.
 
@@ -55,7 +55,7 @@ larger detectable effect size or raise labelling capacity before any paid run.
 
 The Amendment 9 **tracks** gate is `corrected ΔECE ≥ 0.09 AND p < 0.05`.
 At a true effect of exactly 0.09, requiring the point estimate to clear 0.09
-is a median split — composite power ≈ **0.52** by construction
+is a median split, composite power ≈ **0.52** by construction
 (`results/verdict_size.json`). Parametric p-value power at that effect remains
 ≈ 1.0. Do not claim 80% power for the composite gate at the boundary.
 
@@ -87,7 +87,7 @@ sharpness) or a `confidence=` kwarg is passed.
 ## Flagship descriptive figure
 
 `calibration_by_tier` (ECE vs accuracy slope across four tiers) remains a
-**descriptive** figure — four points, two residual df. The **primary endpoint**
+**descriptive** figure, four points, two residual df. The **primary endpoint**
 is `delta_ece` (hard∪ambiguous vs trivial∪easy).
 
 Re-run:

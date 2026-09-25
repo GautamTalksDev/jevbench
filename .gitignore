@@ -37,6 +37,10 @@ runs/*
 !runs/demo/
 !runs/demo/.gitkeep
 
+# One-off smoke task / experiment (written by scripts/smoke_live.py)
+datasets/smoke_pilot/
+experiments/smoke_live.yaml
+
 # Local ChaosNLI sentence cache (fetched; not redistributed)
 datasets/chaosnli/cache/
 # Frozen paraphrase sentence text (SHA-256 is public; text is not)

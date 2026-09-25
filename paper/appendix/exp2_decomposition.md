@@ -1,4 +1,4 @@
-# EXP-2 — Decomposition (methods note)
+# EXP-2. Decomposition (methods note)
 
 ## Honest claim
 

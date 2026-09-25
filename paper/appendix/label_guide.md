@@ -1,4 +1,4 @@
-# Label guide — support ticket department triage
+# Label guide, support ticket department triage
 
 **Task:** Assign each ticket to exactly one department label **and** exactly
 one difficulty tier. Tier is a property of the **item**, assigned **before**
@@ -28,11 +28,11 @@ Allowed labels: `{billing, technical, other}` only.
 
 ---
 
-## Tier criteria (concrete — a stranger must reproduce)
+## Tier criteria (concrete, a stranger must reproduce)
 
 Tier is assigned from the **ticket text alone**, using the checklist below.
 Do **not** use model confidence, entropy, or whether you personally find the
-department label hard — those are contamination.
+department label hard, those are contamination.
 
 ### `trivial`
 
@@ -67,13 +67,13 @@ At least one of the following holds:
 - **Multi-issue:** two or more asks that could route to different departments
   (e.g. seat charge + stuck webhooks).
 - **Urgency / framing trap:** language that nudges toward the wrong team
-  (e.g. "Urgent: production is fine but CFO wants a VAT invoice" — money, not
+ (e.g. "Urgent: production is fine but CFO wants a VAT invoice", money, not
   ops).
 - Requires applying the multi-issue rule (primary-ask / first-unblock) rather
   than keyword matching.
 
 If you used the multi-issue rule or noticed a framing trap, the tier is
-`hard` (or `ambiguous` if the department itself is unclear — see below).
+`hard` (or `ambiguous` if the department itself is unclear, see below).
 
 ### `ambiguous`
 
@@ -90,7 +90,7 @@ must be listed in `DISPUTED.md` with a one-line reason.
 
 ---
 
-## Pooling for the EXP-1 endpoint (do not label these — analysis only)
+## Pooling for the EXP-1 endpoint (do not label these, analysis only)
 
 | Stratum | Tiers |
 |---|---|
@@ -108,7 +108,7 @@ Target from power analysis (pessimistic corner): **n = 750 per stratum**.
 
 A random 15% subset is labelled by a **second** labeler (`labels_pass2.jsonl`).
 Cohen's κ must be ≥ 0.6 before any paid run. If κ < 0.6: tighten this guide,
-re-label, and say so — do not hope.
+re-label, and say so, do not hope.
 
 ---
 
@@ -116,7 +116,7 @@ re-label, and say so — do not hope.
 
 - Do not open `runs/`, model logs, Arena, or any file containing predictions
   while labelling. The labeller CLI is structurally incapable of showing
-  model output — do not bypass it.
+ model output, do not bypass it.
 - Do not invent labels outside `{billing, technical, other}`.
 - Do not invent tiers outside `{trivial, easy, hard, ambiguous}`.
 - Do not use confidence, probability, or model hints when labelling.

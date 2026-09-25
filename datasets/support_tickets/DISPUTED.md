@@ -1,4 +1,4 @@
-# Disputed labels — support_tickets
+# Disputed labels, support_tickets
 
 Items where a reasonable second labeler could disagree. Published, not hidden.
 Do **not** resolve these after seeing model predictions.

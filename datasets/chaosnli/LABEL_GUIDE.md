@@ -4,7 +4,7 @@ Population: ChaosNLI v1.0, SNLI subset (1,514) plus MNLI-matched subset (1,599) 
 
 ## Why αNLI is out
 
-αNLI is a different task. The input is an observation-start, two hypotheses, and an observation-end, and the label is which hypothesis better explains the transition — a 2-way abductive choice. SNLI and MNLI are 3-way entailment / neutral / contradiction on one premise–hypothesis pair. Entropy is not on the same scale (maximum log2(2) = 1 versus log2(3) ≈ 1.585). ChaosNLI-α (1,532 items) is excluded.
+αNLI is a different task. The input is an observation-start, two hypotheses, and an observation-end, and the label is which hypothesis better explains the transition, a 2-way abductive choice. SNLI and MNLI are 3-way entailment / neutral / contradiction on one premise and hypothesis pair. Entropy is not on the same scale (maximum log2(2) = 1 versus log2(3) ≈ 1.585). ChaosNLI-α (1,532 items) is excluded.
 
 ## Strata
 

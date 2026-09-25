@@ -21,16 +21,16 @@ original→paraphrase drop is weaker evidence of “no memorisation” than a
 human rewrite would be. Treat the control as directional, not dispositive.
 
 **What is public.** This repository does **not** redistribute paraphrase
-sentence text (cautious reading of SNLI/MNLI source licenses — the
+sentence text (cautious reading of SNLI/MNLI source licenses, the
 paraphrases are rewrites of those sentences). Public artifacts:
 
-- `datasets/chaosnli/paraphrases.sha256` — SHA-256 of the exact frozen
+- `datasets/chaosnli/paraphrases.sha256`SHA-256 of the exact frozen
   `paraphrases.jsonl` bytes
-- `datasets/chaosnli/paraphrase_ids.json` — the 100 source item IDs and
+- `datasets/chaosnli/paraphrase_ids.json`the 100 source item IDs and
   tier membership
 
 **What stays local (gitignored).**  
-`datasets/chaosnli/local/paraphrases.jsonl` — the sentence text. Verify:
+`datasets/chaosnli/local/paraphrases.jsonl`the sentence text. Verify:
 
 ```bash
 cd datasets/chaosnli && sha256sum -c paraphrases.sha256

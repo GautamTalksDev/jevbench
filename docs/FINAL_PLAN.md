@@ -1,4 +1,4 @@
-# FINAL PLAN — Paper first (supersedes product pitch)
+# FINAL PLAN. Paper first (supersedes product pitch)
 
 **Verified:** 19 September 2026  
 **Companions:** `jev-teardown-script.md`, `jev-build-spec.md`
@@ -24,16 +24,16 @@ difficulty-stratified calibration + resolution of the stability contradiction
 
 ## Experiments
 
-1–5 as in teardown; **6** stability (new); **7** MAPIE Learn-Then-Test risk
+1 to 5 as in teardown; **6** stability (new); **7** MAPIE Learn-Then-Test risk
 control (new).
 
 ## Publishing
 
 Zenodo first (CC BY 4.0, concept DOI). arXiv when endorser materialises.
-Email TypeSafe short, no ask — Discord / `nathan@typesafe.ai` / HN
+Email TypeSafe short, no ask. Discord / `nathan@typesafe.ai` / HN
 `CompleteSkeptic`.
 
-## Sequence (days 1–7)
+## Sequence (days 1 to 7)
 
 Related-work + PREREGISTRATION + labels → harness/metrics → EXP-1/6 →
 EXP-2/3 → EXP-4/5/7 → analysis/draft → **publish repo + DOI** → video after.

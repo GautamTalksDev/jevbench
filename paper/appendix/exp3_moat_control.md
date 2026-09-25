@@ -1,4 +1,4 @@
-# EXP-3 — Moat control (methods note)
+# EXP-3. Moat control (methods note)
 
 ## Honest claim
 
@@ -54,7 +54,7 @@ percentile intervals (`n_boot=10000`).
 Local GPU inference and a hosted API are not comparable: network RTT,
 batching, cold start and queueing differ. Report wall-clock flagged unfair,
 plus compute-only generation time for the local model. **Do not use EXP-3
-for video latency claims** — those come from EXP-1's matched serving path.
+for video latency claims**, those come from EXP-1's matched serving path.
 
 ## Gate
 

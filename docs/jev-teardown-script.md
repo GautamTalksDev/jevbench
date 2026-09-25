@@ -1,6 +1,6 @@
-# JEV TEARDOWN — Research dossier, test plan & video script
+# JEV TEARDOWN. Research dossier, test plan & video script
 
-**Subject:** Jev / System One — TypeSafe AI  
+**Subject:** Jev / System One. TypeSafe AI 
 **Research cutoff:** 19 September 2026  
 **Full dossier:** pasted into the planning session that created this repo.
 **Superseding plan:** [`FINAL_PLAN.md`](FINAL_PLAN.md) (paper first; no product).
@@ -35,7 +35,7 @@ stability contradiction + workflow conformal risk control. Not another me-too EC
 
 ## Video
 
-~38–44 min, chaptered; **repo + Zenodo DOI ship before the video**.  
+~38 to 44 min, chaptered; **repo + Zenodo DOI ship before the video**. 
 Preferred title if EXP-1 lands: *Five People Benchmarked Jev And Got Different Answers. I Found Out Why.*
 
 ## Primary sources (verify before asserting)

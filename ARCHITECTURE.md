@@ -75,4 +75,4 @@ jevbench/
 3. `raw.jsonl` is verbatim. Never post-processed in place.
 4. `DISPUTED.md` exists from day one.
 5. Arena replay mode (default) reads committed JSONL only. Live mode writes to
-   `runs/demo/` and is labelled DEMO — never scored.
+ `runs/demo/` and is labelled DEMO, never scored.

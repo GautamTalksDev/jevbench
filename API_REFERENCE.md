@@ -1,8 +1,8 @@
-# API Reference — TypeSafe Jev / System One
+# API Reference. TypeSafe Jev / System One
 
 **Authoritative for this repo.** Do not infer, guess, or "correct" any API shape
 from model memory. Jev launched 15 September 2026; it is not in training data.
-If something is missing here, add a TODO and ask — do not invent it.
+If something is missing here, add a TODO and ask, do not invent it.
 
 Verified: 19 September 2026 · SDK line: 0.6.0 (Python and JavaScript)
 
@@ -59,7 +59,7 @@ response = client.system_one(
 
 ### Critical shape notes
 
-- `Choice.criteria` is a **dict** — option name → description (or `None`).
+- `Choice.criteria` is a **dict**, option name → description (or `None`).
 - `Score.criteria` is an **ordered, non-empty sequence** (list). Order is the rubric. Sent as an array on the wire.
 - `state` accepts a string, a JSON object, or an array of text values.
 - `instructions` and description accept JSON structure, not just strings. Omitted vs explicit null are distinct.
@@ -93,10 +93,10 @@ response = client.system_one(
 
 ### Four things that break naive code
 
-1. **`score` is a FLOAT, not an index.** `1.035` is an expectation across levels with a legend mapping integer keys to labels. Do not round it and do not interpolate a magnitude from it — TypeSafe's jaggedness page warns score levels are weak in numerical calibration. You may threshold the expectation. Treat the probability distribution over levels as the real output.
+1. **`score` is a FLOAT, not an index.** `1.035` is an expectation across levels with a legend mapping integer keys to labels. Do not round it and do not interpolate a magnitude from it. TypeSafe's jaggedness page warns score levels are weak in numerical calibration. You may threshold the expectation. Treat the probability distribution over levels as the real output.
 2. **`noul` has no `confidence` field.** Only Choice and Score do. Any code assuming a uniform answer shape will crash.
 3. **`output_tokens` is reported but free.** Don't put it in the cost calculation. Do log it.
-4. **`model` in the response is the resolved versioned ID.** Log it on every call — `jev-latest` is a moving alias and this field is provenance.
+4. **`model` in the response is the resolved versioned ID.** Log it on every call`jev-latest` is a moving alias and this field is provenance.
 
 ### Access patterns
 
