@@ -117,13 +117,26 @@ def auroc_binary(signal: ArrayLike, positive: ArrayLike) -> float:
         return float("nan")
     if y.min() == y.max():
         return float("nan")
-    pos = s[y == 1]
-    neg = s[y == 0]
-    correct = 0.0
-    for p in pos:
-        correct += float(np.sum(p > neg) + 0.5 * np.sum(p == neg))
-    return correct / (len(pos) * len(neg))
-
+    # Mann–Whitney / ROC via ranks (O(n log n)); avoids O(n⁺·n⁻) Python loops.
+    order = np.argsort(s)
+    ranks = np.empty(s.size, dtype=float)
+    ranks[order] = np.arange(1, s.size + 1, dtype=float)
+    # Average ranks for ties
+    sorted_s = s[order]
+    i = 0
+    while i < s.size:
+        j = i + 1
+        while j < s.size and sorted_s[j] == sorted_s[i]:
+            j += 1
+        if j > i + 1:
+            avg = 0.5 * (i + 1 + j)
+            ranks[order[i:j]] = avg
+        i = j
+    n_pos = int(np.sum(y == 1))
+    n_neg = int(np.sum(y == 0))
+    sum_ranks_pos = float(np.sum(ranks[y == 1]))
+    # AUC = (sum_ranks_pos - n_pos*(n_pos+1)/2) / (n_pos * n_neg)
+    return (sum_ranks_pos - n_pos * (n_pos + 1) / 2.0) / (n_pos * n_neg)
 
 def auroc_vs_entropy(signal: ArrayLike, entropy: ArrayLike) -> float:
     """AUROC treating high-entropy (above median) as the positive class."""
