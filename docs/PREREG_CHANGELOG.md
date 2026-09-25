@@ -31,7 +31,7 @@ Tonight's Zenodo deposit is the true public freeze: current file, both SHA-256 v
 | `2ca7762` | 2026-09-24T19:21:21Z | after | clerical | Refreshes Amendment 6 to 11 pin hashes to post-history-rewrite ids; points at `docs/HISTORY_REWRITE.md`. |
 | `6b0c88b` | 2026-09-24T19:26:10Z | after | clerical | Corrects paraphrase authorship from hand-authored to Cursor-generated. |
 | `e703d1d` | 2026-09-24T19:38:31Z | after | clerical | Expands the FINDINGS.md permalink; refuses to invent a paraphrase model name; adds the limitation that the contamination control is directional, not dispositive. |
-| _(pending commit)_ | 2026-09-25 (local) | after | non-analytic safety guard | Runner refuses unhydrated or hash-mismatched paraphrase inputs before any client call; no effect on valid inputs; added before any EXP-1 call. |
+| `733cb7c` | 2026-09-25 (local) | after | non-analytic safety guard | Runner refuses unhydrated or hash-mismatched paraphrase inputs before any client call; no effect on valid inputs; added before any EXP-1 call. |
 
 Full line-level drift: `/tmp/prereg_drift.diff` (also copied to the Windows Desktop as `prereg_drift.diff`). Command that produced it:
 
