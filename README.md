@@ -2,14 +2,7 @@
 
 Independent study. Not affiliated with or endorsed by TypeSafe AI.
 
-On the committed offline fixture (n=44 Jev items — **not** a scored live API
-run), the OLS slope of uniform ECE versus tier accuracy is **−0.136**
-(95% bootstrap CI **[−1.420, 0.841]**, 10 000 resamples, seed `20260919`).
-The interval crosses zero: the harness check is inconclusive on whether
-calibration tracks accuracy. Per-tier occupancy is required to read any ECE;
-this pack validates the pipeline until EXP-1 scores against a locked dataset.
-
-![ECE vs accuracy by difficulty tier](results/charts/ece_vs_accuracy_by_tier_1080p.png)
+**Status:** Preregistered. EXP-1 not yet run. No results exist yet.
 
 ## How to verify offline
 
@@ -20,7 +13,7 @@ make check-repro
 ```
 
 No API key. No network. Under two minutes. CI runs the same commands and
-fails if any chart or metric in `results/` changes bit-for-bit
+fails if any chart or metric in `results/harness_fixture/` changes bit-for-bit
 (`results/SHA256SUMS`).
 
 Source records: [`runs/offline_fixture/raw.jsonl`](runs/offline_fixture/raw.jsonl).
@@ -94,7 +87,7 @@ Jev in Practice / daf-jev (Zenodo 22816188). Search log:
 | What | USD |
 |---|---|
 | `make reproduce` (this repo, offline) | **$0.00** |
-| Hypothetical replay of fixture tokens at snapshot `2026-09-19` | see `results/metrics.json` → `cost.hypothetical_live_usd_if_replayed` |
+| Hypothetical replay of fixture tokens at snapshot `2026-09-19` | see `results/harness_fixture/metrics.json` → `cost.hypothetical_live_usd_if_replayed` |
 | Scored EXP-1 live API | not run yet — estimate with `jevbench run … --dry-run` first |
 
 ## How to extend it to your own data

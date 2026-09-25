@@ -18,9 +18,10 @@ def test_reproduce_and_check(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     # Smoke: full reproduce against repo fixture, then --check
     summary = reproduce(check=False)
     assert summary["elapsed_s"] < 120
-    assert (RESULTS / "metrics.json").is_file()
-    assert (RESULTS / "finding.json").is_file()
+    harness = RESULTS / "harness_fixture"
+    assert (harness / "metrics.json").is_file()
+    assert (harness / "finding.json").is_file()
     assert (RESULTS / "SHA256SUMS").is_file()
-    money = RESULTS / "charts" / "ece_vs_accuracy_by_tier_1080p.png"
+    money = harness / "charts" / "ece_vs_accuracy_by_tier_1080p.png"
     assert money.is_file()
     reproduce(check=True)

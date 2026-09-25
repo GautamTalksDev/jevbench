@@ -33,9 +33,9 @@ jobs:
       - name: Fail if any golden artifact drifted
         run: |
           # Reproduce goldens only (bias_floor.json is written by test_ece, committed separately)
-          git add -A results/metrics.json results/finding.json results/SHA256SUMS results/charts/
-          git diff --cached --exit-code -- results/metrics.json results/finding.json results/SHA256SUMS results/charts/ \
-            || (echo "::error::results/ drifted from committed goldens. If intentional, commit make reproduce output."; git diff --cached --stat -- results/; exit 1)
+          git add -A results/harness_fixture/metrics.json results/harness_fixture/finding.json results/SHA256SUMS results/harness_fixture/charts/
+          git diff --cached --exit-code -- results/harness_fixture/metrics.json results/harness_fixture/finding.json results/SHA256SUMS results/harness_fixture/charts/ \
+            || (echo "::error::results/harness_fixture/ drifted from committed goldens. If intentional, commit make reproduce output."; git diff --cached --stat -- results/harness_fixture/; exit 1)
 
       - name: Checksum gate
         run: make check-repro

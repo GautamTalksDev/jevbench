@@ -183,7 +183,7 @@ def run_cmd(
 def charts_cmd(
     out: Annotated[
         Path | None,
-        typer.Option("--out", help="Output directory (default: results/charts)"),
+        typer.Option("--out", help="Output directory (default: results/harness_fixture/charts)"),
     ] = None,
     run_id: Annotated[str, typer.Option("--run-id")] = "demo-run",
     model: Annotated[str, typer.Option("--model")] = "jev-1.13.0",
@@ -199,7 +199,7 @@ def charts_cmd(
     from jevbench.charts import _demo_all, make_context
 
     root = repo_root()
-    out_dir = (out if out is not None else Path("results/charts"))
+    out_dir = (out if out is not None else Path("results/harness_fixture/charts"))
     if not out_dir.is_absolute():
         out_dir = root / out_dir
     ctx = make_context(

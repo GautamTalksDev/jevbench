@@ -1,7 +1,8 @@
 """Offline reproduction: metrics + charts from committed JSONL.
 
-No network. No API key. Regenerates every number and chart under ``results/``
-from ``runs/offline_fixture/raw.jsonl`` in under two minutes.
+No network. No API key. Regenerates every number and chart under
+``results/harness_fixture/`` from ``runs/offline_fixture/raw.jsonl`` in under
+two minutes. These are harness-check goldens only — not study results.
 
 Bit-for-bit check: ``make check-repro`` verifies ``results/SHA256SUMS``.
 """
@@ -22,6 +23,8 @@ import numpy as np
 # Deterministic Agg backend before any pyplot import via charts.
 mpl.use("Agg")
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/jevbench-mpl")
+# Freeze SVG <dc:date> so make reproduce is bit-stable across wall-clock times.
+os.environ.setdefault("SOURCE_DATE_EPOCH", "1726790400")
 mpl.rcParams["svg.hashsalt"] = "jevbench-repro-v1"
 
 from jevbench.charts import (  # noqa: E402
@@ -41,9 +44,10 @@ FIXTURE_DIR = REPO / "runs" / "offline_fixture"
 RAW_JSONL = FIXTURE_DIR / "raw.jsonl"
 MANIFEST = FIXTURE_DIR / "manifest.json"
 RESULTS = REPO / "results"
-CHARTS = RESULTS / "charts"
-METRICS_PATH = RESULTS / "metrics.json"
-FINDING_PATH = RESULTS / "finding.json"
+HARNESS = RESULTS / "harness_fixture"
+CHARTS = HARNESS / "charts"
+METRICS_PATH = HARNESS / "metrics.json"
+FINDING_PATH = HARNESS / "finding.json"
 SUMS_PATH = RESULTS / "SHA256SUMS"
 
 LABEL_ORDER = ("billing", "technical", "other")
@@ -367,7 +371,7 @@ def reproduce(*, check: bool = False) -> dict[str, Any]:
         "slope_ci_low": slope_ci.low,
         "slope_ci_high": slope_ci.high,
         "n": len(kept),
-        "chart": "results/charts/ece_vs_accuracy_by_tier_1080p.png",
+        "chart": "results/harness_fixture/charts/ece_vs_accuracy_by_tier_1080p.png",
         "actual_cost_usd": 0.0,
     }
     write_json(FINDING_PATH, finding)

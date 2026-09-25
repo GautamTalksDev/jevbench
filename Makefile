@@ -34,5 +34,5 @@ check-lock:
 	python3 -m jevbench.cli check-lock
 
 clean:
-	rm -rf results/charts results/metrics.json results/finding.json results/SHA256SUMS
+	rm -rf results/harness_fixture/charts results/harness_fixture/metrics.json results/harness_fixture/finding.json results/SHA256SUMS
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
