@@ -27,4 +27,4 @@ cd arena && python3 -m http.server 8765 --bind 127.0.0.1
 ## Hand-off
 
 If Pages is not ready, send the reviewer the `arena/` tree from the binding
-commit (zip or raw files) — never the stale claude.ai URL.
+commit (zip or raw files), never the stale claude.ai URL.

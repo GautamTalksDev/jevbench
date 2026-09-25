@@ -1,7 +1,7 @@
 # Arena UI Spec
 
 A benchmark instrument, not a SaaS dashboard. As of the certificate page
-(`index.html`), the organising artefact is a **certificate** — a plain-language
+(`index.html`), the organising artefact is a **certificate**, a plain-language
 verdict from the pre-registered ΔECE rule, with empirical coverage as a headline
 field and a Gate for operational decisions. Live API mode is gone; timing is a
 replay of recorded latencies.
@@ -17,7 +17,7 @@ Lab certificate. Not a subscription dashboard. Not a live API console.
 ## 4.2 The organising idea: verdict, then bins
 
 The top of the page is the verdict in plain words, then the result on a gauge
-with decision zones (≤0.02 holds, 0.02–0.09 inconclusive, ≥0.09 tracks
+with decision zones (≤0.02 holds, 0.02 to 0.09 inconclusive, ≥0.09 tracks
 accuracy). Calibration charts remain bin-aware: occupancy and soft-correctness
 against people, not identical rounded cards.
 
@@ -49,8 +49,8 @@ generic dark+neon generated-UI look. Light theme is supported via
 
 ## 4.4 Type
 
-- **Archivo** (variable) — all textual UI.
-- **JetBrains Mono** — numerals only (probabilities, latencies, ΔECE).
+- **Archivo** (variable), all textual UI.
+- **JetBrains Mono**, numerals only (probabilities, latencies, ΔECE).
 - Scale (1.25): 13 / 16 / 20 / 25 / 31. Body &lt; 80 chars/line. Sentence case.
 
 ## 4.5 Certificate rules

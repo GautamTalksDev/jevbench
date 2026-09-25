@@ -1,6 +1,6 @@
 # Arena
 
-Single-page **lab instrument** for jevbench — measures and prints, does not
+Single-page **lab instrument** for jevbench, measures and prints, does not
 sell. **No build step.** Spec: [`UI_SPEC.md`](UI_SPEC.md).
 
 ```bash
@@ -16,8 +16,8 @@ Build for capture at 1920×1080 CSS pixels.
 
 | Mode | Needs key? | Writes scored runs? |
 |---|---|---|
-| **Replay** (default) | No | **Never** — reads `data/*.json` only |
-| **Live** | Optional (memory only) | **Never** — badge **Demo — not scored**; download → `runs/demo/` only |
+| **Replay** (default) | No | **Never**, reads `data/*.json` only |
+| **Live** | Optional (memory only) | **Never**, badge **Demo, not scored**; download → `runs/demo/` only |
 
 ## Structural constraint
 
@@ -26,10 +26,10 @@ folders. The harness is the source of truth.
 
 ## Views
 
-1. **Race** (live) — Jev snaps in one frame; baseline types at token rate
-2. **Calibration** (replay) — square reliability plot; occupancy **bins** under a shared x-axis (width = count)
-3. **Gate** (replay) — drag threshold → % automated vs accuracy
-4. **Items** (replay) — default: high confidence & wrong
+1. **Race** (live). Jev snaps in one frame; baseline types at token rate
+2. **Calibration** (replay), square reliability plot; occupancy **bins** under a shared x-axis (width = count)
+3. **Gate** (replay), drag threshold → % automated vs accuracy
+4. **Items** (replay), default: high confidence & wrong
 
 ## Tokens / type
 

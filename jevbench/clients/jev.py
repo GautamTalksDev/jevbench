@@ -83,6 +83,10 @@ class JevClient:
             kwargs["base_url"] = base
         if self.config.api_key is not None:
             kwargs["api_key"] = self.config.api_key
+        else:
+            from jevbench.envload import require_typesafe_api_key
+
+            kwargs["api_key"] = require_typesafe_api_key()
         self._sdk_client = TypeSafeClient(**kwargs)
         return self._sdk_client
 
