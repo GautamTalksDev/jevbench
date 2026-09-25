@@ -1,0 +1,25 @@
+name: Bug report
+description: A defect in the harness, the arena page, or the docs
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Facts only. Do not paste API keys.
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: git rev-parse HEAD
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+    validations:
+      required: true

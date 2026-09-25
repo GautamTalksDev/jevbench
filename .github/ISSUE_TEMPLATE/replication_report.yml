@@ -1,0 +1,39 @@
+name: Replication report
+description: You reran a locked experiment
+title: "[replication] "
+labels: ["replication"]
+body:
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+    validations:
+      required: true
+  - type: input
+    id: serving
+    attributes:
+      label: Serving path
+      description: native or the gateway you actually used
+    validations:
+      required: true
+  - type: input
+    id: n
+    attributes:
+      label: n
+      description: Number of scored items
+    validations:
+      required: true
+  - type: input
+    id: cost
+    attributes:
+      label: Cost
+      description: USD spent
+    validations:
+      required: true
+  - type: textarea
+    id: deviations
+    attributes:
+      label: Deviations
+      description: Anything that was not the locked protocol. Write "none" if there were none.
+    validations:
+      required: true
