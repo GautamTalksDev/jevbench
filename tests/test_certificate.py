@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import socket
 import subprocess
 import threading
@@ -29,6 +30,7 @@ def test_specimen_match_and_cw_count() -> None:
     assert check["symbol"] == "✓"
     assert abs(doc["result"]["delta_ece"] - 0.167) < 0.01
     assert doc["meta"]["synthetic"] is True
+    assert doc["result"]["delta_corrected"] != doc["result"]["delta_raw"]
     cw = [
         it
         for it in doc["items"]
@@ -38,22 +40,87 @@ def test_specimen_match_and_cw_count() -> None:
     assert len(cw) == 85
 
 
-def test_export_specimen_cli_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    # Use real repo root so arena/data update is optional; write under results/
-    path = export_certificate(ROOT, "specimen-synthetic", synthetic=True)
+def test_specimen_delta_corrected_differs_from_raw() -> None:
+    doc = build_specimen()
+    assert doc["result"]["delta_corrected"] != doc["result"]["delta_raw"]
+
+
+def test_export_specimen_cli_path(tmp_path: Path) -> None:
+    (tmp_path / "results").mkdir()
+    path = export_certificate(tmp_path, "specimen-synthetic", synthetic=True)
     assert path.name == "certificate.json"
     doc = json.loads(path.read_text(encoding="utf-8"))
     assert match_check(doc)["ok"]
-    assert doc["result"]["delta_ece"] == doc["result"]["delta_ece"]  # harness stamp
-    # Exporter must stamp recomputed-from-items values for specimen only
+    assert doc["result"]["delta_corrected"] != doc["result"]["delta_raw"]
     assert match_check(doc)["abs_delta"]["delta_ece"] == 0.0
 
 
-def test_write_arena_specimen() -> None:
-    path = write_arena_specimen(ROOT)
+def test_write_arena_specimen(tmp_path: Path) -> None:
+    path = write_arena_specimen(tmp_path)
     assert path.is_file()
     doc = json.loads(path.read_text(encoding="utf-8"))
     assert match_check(doc)["symbol"] == "✓"
+    assert doc["meta"]["synthetic"] is True
+
+
+def test_committed_specimen_synthetic_flag() -> None:
+    for rel in (
+        "arena/data/specimen.json",
+        "results/specimen-synthetic/certificate.json",
+    ):
+        doc = json.loads((ROOT / rel).read_text(encoding="utf-8"))
+        assert doc["meta"]["synthetic"] is True, rel
+
+
+def test_export_requires_delta_corrected(tmp_path: Path) -> None:
+    run_id = "run-missing-corr"
+    runs = tmp_path / "runs" / run_id
+    runs.mkdir(parents=True)
+    (runs / "raw.jsonl").write_text(
+        json.dumps(
+            {
+                "item_id": "x",
+                "client": "jev",
+                "probs": [0.8, 0.1, 0.1],
+                "human": [0.7, 0.2, 0.1],
+                "stratum": "easy",
+                "choice": "entailment",
+                "latency_ms": 10,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "results").mkdir()
+    (tmp_path / "results" / "exp1.json").write_text(
+        json.dumps(
+            {
+                "jev": {
+                    "primary_delta_ece": {
+                        "soft": {
+                            "delta_ece": 0.1,
+                            "ci_low": 0.0,
+                            "ci_high": 0.2,
+                            "ece_easy": 0.05,
+                            "ece_hard": 0.15,
+                        }
+                    },
+                    "delta_raw": 0.1,
+                    "p_value": 0.01,
+                    "verdict": "tracks",
+                },
+                "result": {
+                    "delta_raw": 0.1,
+                    # delta_corrected intentionally absent
+                    "p_value": 0.01,
+                    "verdict": "tracks",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="delta_corrected"):
+        export_certificate(tmp_path, run_id)
 
 
 def _free_port() -> int:
@@ -63,11 +130,17 @@ def _free_port() -> int:
 
 
 @pytest.fixture(scope="module")
-def arena_server():
-    """Serve arena/ so the certificate page can fetch data/specimen.json."""
-    write_arena_specimen(ROOT)
+def arena_server(tmp_path_factory):
+    """Serve a temp copy of arena/ so tests never rewrite committed specimen.json."""
+    base = tmp_path_factory.mktemp("arena_serve")
+    arena = base / "arena"
+    shutil.copytree(
+        ROOT / "arena",
+        arena,
+        ignore=shutil.ignore_patterns(".git", "__pycache__"),
+    )
+    write_arena_specimen(base)
     port = _free_port()
-    arena = ROOT / "arena"
 
     class Handler(SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -80,7 +153,6 @@ def arena_server():
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     url = f"http://127.0.0.1:{port}/"
-    # Wait until accepting
     for _ in range(50):
         try:
             with socket.create_connection(("127.0.0.1", port), timeout=0.2):

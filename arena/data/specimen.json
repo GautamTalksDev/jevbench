@@ -3,7 +3,7 @@
   "meta": {
     "run_id": "specimen-synthetic",
     "git_sha": "0000000",
-    "prereg_commit": "8f15463",
+    "prereg_commit": "66037a7",
     "model_resolved": "jev-specimen",
     "baseline_model": "adapter-specimen",
     "dataset": "chaosnli_snli_mnli",
@@ -18,14 +18,14 @@
   "result": {
     "delta_ece": 0.16890116332776264,
     "delta_raw": 0.16890116332776264,
-    "delta_corrected": 0.16890116332776264,
-    "ci_low": 0.14890116332776265,
-    "ci_high": 0.18890116332776263,
+    "delta_corrected": 0.16541332148843296,
+    "ci_low": 0.15181211423597432,
+    "ci_high": 0.17909298059781079,
     "ece_easy": 0.0015039923952070203,
     "ece_hard": 0.17040515572296966,
-    "p_value": 0.001,
+    "p_value": 0.0,
     "verdict": "tracks",
-    "verdict_reason": "corrected \u0394ECE=0.1689 \u2265 0.09 and parametric p=0.0010 < 0.05."
+    "verdict_reason": "corrected \u0394ECE=0.1654 \u2265 0.09 and parametric p=0.0000 < 0.05."
   },
   "items": [
     {

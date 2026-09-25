@@ -16,6 +16,7 @@ import numpy as np
 
 from jevbench.chaosnli import LABEL_ORDER as NLI_LABEL_ORDER
 from jevbench.metrics import expected_calibration_error, soft_correctness
+from jevbench.power import SOFT_NULL_OPERATING_KAPPA, soft_delta_ece_corrected
 from jevbench.verdict import decide_verdict
 
 SCHEMA = "jevbench.certificate.v1"
@@ -241,12 +242,36 @@ def build_specimen(*, seed: int = 20260923) -> dict[str, Any]:
         except (OSError, ValueError, TypeError, json.JSONDecodeError):
             pass
 
-    # Specimen is built to land in the tracks zone; stamp a harness verdict.
-    delta = float(recomputed["delta_ece"])
+    # Parametric E0 correction at the specimen's observed top-probs (same path as EXP-1).
+    easy_items = [it for it in items if it["stratum"] == "easy"]
+    hard_items = [it for it in items if it["stratum"] == "hard"]
+    pe = np.asarray([it["probs"] for it in easy_items], dtype=float)
+    ph = np.asarray([it["probs"] for it in hard_items], dtype=float)
+    de = np.asarray([it["human"] for it in easy_items], dtype=float)
+    dh = np.asarray([it["human"] for it in hard_items], dtype=float)
+    soft_e = soft_correctness(pe, de)
+    soft_h = soft_correctness(ph, dh)
+    corr_rng = np.random.default_rng(seed + 17)
+    corrected = soft_delta_ece_corrected(
+        ph.max(axis=1),
+        soft_h,
+        pe.max(axis=1),
+        soft_e,
+        kappa=SOFT_NULL_OPERATING_KAPPA,
+        n_boot=2000,
+        n_e0=2000,
+        n_null_pval=2000,
+        rng=corr_rng,
+    )
+    delta_raw = float(corrected["raw_delta_ece"])
+    delta_corrected = float(corrected["corrected_delta_ece"])
+    p_value = float(corrected["p_value"])
+    # Holds arm needs a one-sided effect-reference sim; specimen is in the tracks
+    # zone by construction, so a non-rejecting holds p does not change the verdict.
     specimen_verdict = decide_verdict(
-        corrected_delta_ece=delta,
-        p_value=0.001,
-        p_holds_reject_ge_effect=0.99,
+        corrected_delta_ece=delta_corrected,
+        p_value=p_value,
+        p_holds_reject_ge_effect=1.0,
     )
 
     return {
@@ -268,13 +293,13 @@ def build_specimen(*, seed: int = 20260923) -> dict[str, Any]:
         },
         "result": {
             "delta_ece": recomputed["delta_ece"],
-            "delta_raw": recomputed["delta_ece"],
-            "delta_corrected": recomputed["delta_ece"],
-            "ci_low": recomputed["delta_ece"] - 0.02,
-            "ci_high": recomputed["delta_ece"] + 0.02,
+            "delta_raw": delta_raw,
+            "delta_corrected": delta_corrected,
+            "ci_low": float(corrected["ci_low"]),
+            "ci_high": float(corrected["ci_high"]),
             "ece_easy": recomputed["ece_easy"],
             "ece_hard": recomputed["ece_hard"],
-            "p_value": 0.001,
+            "p_value": p_value,
             "verdict": specimen_verdict["verdict"],
             "verdict_reason": specimen_verdict["reason"],
         },
@@ -339,11 +364,18 @@ def export_certificate(
     ece_hard = _req(soft, "ece_hard")
 
     # Amendment 9 fields — copy from harness result / jev block; never invent.
+    # Never fall back to raw ΔECE for delta_corrected (H1-favouring silent error).
     result_block = exp1.get("result") or {}
-    delta_raw = result_block.get("delta_raw", jev.get("delta_raw", delta))
-    delta_corrected = result_block.get(
-        "delta_corrected", jev.get("delta_corrected", delta)
-    )
+
+    def _req_amendment_field(name: str) -> float:
+        if name in result_block and result_block[name] is not None:
+            return float(result_block[name])
+        if name in jev and jev[name] is not None:
+            return float(jev[name])
+        raise ValueError(f"missing {name}")
+
+    delta_raw = _req_amendment_field("delta_raw")
+    delta_corrected = _req_amendment_field("delta_corrected")
     p_value = result_block.get("p_value", jev.get("p_value"))
     verdict = result_block.get("verdict", jev.get("verdict"))
     if verdict is None:

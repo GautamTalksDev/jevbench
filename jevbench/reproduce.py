@@ -23,9 +23,10 @@ import numpy as np
 # Deterministic Agg backend before any pyplot import via charts.
 mpl.use("Agg")
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/jevbench-mpl")
-# Freeze SVG <dc:date> so make reproduce is bit-stable across wall-clock times.
-os.environ.setdefault("SOURCE_DATE_EPOCH", "1726790400")
 mpl.rcParams["svg.hashsalt"] = "jevbench-repro-v1"
+
+# Fixture-only SVG date freeze (2026-09-19). Set inside reproduce(), not at import.
+_REPRO_SOURCE_DATE_EPOCH = "1789776000"
 
 from jevbench.charts import (  # noqa: E402
     ece_vs_accuracy_by_tier,
@@ -278,6 +279,18 @@ def reproduce(*, check: bool = False) -> dict[str, Any]:
         verify_checksums()
         return {}
 
+    prior_epoch = os.environ.get("SOURCE_DATE_EPOCH")
+    os.environ["SOURCE_DATE_EPOCH"] = _REPRO_SOURCE_DATE_EPOCH
+    try:
+        return _reproduce_body(t0=t0)
+    finally:
+        if prior_epoch is None:
+            os.environ.pop("SOURCE_DATE_EPOCH", None)
+        else:
+            os.environ["SOURCE_DATE_EPOCH"] = prior_epoch
+
+
+def _reproduce_body(*, t0: float) -> dict[str, Any]:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8")) if MANIFEST.is_file() else {}
     records = load_records()
     probs, labels, kept = group_by_tier(records)
