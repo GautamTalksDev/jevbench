@@ -61,8 +61,106 @@ from jevbench.rate_limit import (
     RateLimitConfig,
     TokenBucketLimiter,
 )
+from jevbench.request_canon import build_request_body
 
 console = Console(stderr=True)
+
+_HYDRATED_STATUSES = frozenset({"fetched", "local_paraphrase_hydrated"})
+_FORBIDDEN_BODY_TOKENS = (
+    "text_status",
+    "local_paraphrase_required",
+    "fetch_required",
+    "frozen_before_any_model_run",
+)
+
+
+def _expected_paraphrases_sha256(pin_path: Path) -> str:
+    """First whitespace-separated field of paraphrases.sha256 (never log file text)."""
+    line = pin_path.read_text(encoding="utf-8").strip().splitlines()[0]
+    digest = line.split()[0].strip().lower()
+    if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+        raise PreregistrationError(
+            f"{pin_path} does not start with a 64-char hex SHA-256 digest"
+        )
+    return digest
+
+
+def assert_hydrated_inputs_safe(
+    repo_root: Path,
+    dataset: Dataset,
+    *,
+    questions: dict[str, Any],
+    model: str,
+) -> None:
+    """Refuse unhydrated or tampered ChaosNLI inputs before any client call.
+
+    Safety guard only: no effect when local paraphrases match the pin and every
+    item was hydrated to a request-safe status.
+    """
+    has_paraphrase = any(li.item.role == "paraphrase" for li in dataset.by_id.values())
+    if has_paraphrase:
+        chaos = repo_root / "datasets" / "chaosnli"
+        para_path = chaos / "local" / "paraphrases.jsonl"
+        pin_path = chaos / "paraphrases.sha256"
+        if not para_path.is_file():
+            raise PreregistrationError(
+                "Paraphrase items are present but "
+                "datasets/chaosnli/local/paraphrases.jsonl is missing. "
+                "Restore the gitignored local file before any run."
+            )
+        if not pin_path.is_file():
+            raise PreregistrationError(
+                "Paraphrase items are present but "
+                "datasets/chaosnli/paraphrases.sha256 is missing."
+            )
+        expected = _expected_paraphrases_sha256(pin_path)
+        got = sha256_file(para_path)
+        if got != expected:
+            raise PreregistrationError(
+                "datasets/chaosnli/local/paraphrases.jsonl SHA-256 does not match "
+                "datasets/chaosnli/paraphrases.sha256. Refusing to run "
+                "(tamper or wrong file).\n"
+                f"  pin:     {expected}\n"
+                f"  on disk: {got}"
+            )
+
+    bad_status: list[str] = []
+    for li in dataset.by_id.values():
+        state = li.item.state
+        if not isinstance(state, dict):
+            continue
+        status = state.get("text_status")
+        if status not in _HYDRATED_STATUSES:
+            bad_status.append(li.id)
+    if bad_status:
+        sample = ", ".join(bad_status[:5])
+        more = f" (and {len(bad_status) - 5} more)" if len(bad_status) > 5 else ""
+        raise PreregistrationError(
+            f"{len(bad_status)} item(s) are not hydrated to a request-safe "
+            f"text_status (need fetched or local_paraphrase_hydrated). "
+            f"Offending ids: {sample}{more}. "
+            "Run scripts/fetch_chaosnli.py and ensure local paraphrases.jsonl "
+            "is present and matches paraphrases.sha256."
+        )
+
+    for li in dataset.by_id.values():
+        state = li.item.state
+        if not isinstance(state, dict):
+            continue
+        body = build_request_body(
+            item_id=li.id,
+            client="preflight",
+            model=model,
+            state=state,
+            questions=questions,
+        )
+        blob = json.dumps(body, ensure_ascii=False)
+        for token in _FORBIDDEN_BODY_TOKENS:
+            if token in blob:
+                raise PreregistrationError(
+                    f"Request body for item {li.id!r} still contains {token!r}. "
+                    "Placeholder metadata must never reach a client."
+                )
 
 PACKAGE_NAMES = (
     "jevbench",
@@ -336,16 +434,29 @@ def load_completed_keys(raw_path: Path) -> set[str]:
 
 def append_raw(raw_path: Path, record: dict[str, Any], lock: threading.Lock) -> None:
     line = json.dumps(record, ensure_ascii=False) + "\n"
+    assert_run_text_has_no_api_key(line)
     with lock, raw_path.open("a", encoding="utf-8") as f:
         f.write(line)
         f.flush()
         os.fsync(f.fileno())
 
 
+def assert_run_text_has_no_api_key(text: str) -> None:
+    """Refuse to persist a run file that contains the live API key."""
+    secret = os.environ.get("TYPESAFE_API_KEY", "").strip()
+    if secret and secret in text:
+        raise RuntimeError(
+            "Refusing to write a run file that contains TYPESAFE_API_KEY. "
+            "The key value is never stored."
+        )
+
+
 def write_manifest(path: Path, manifest: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+    assert_run_text_has_no_api_key(payload)
     tmp = path.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    tmp.write_text(payload, encoding="utf-8")
     tmp.replace(path)
 
 
@@ -677,6 +788,13 @@ class Runner:
 
     def run(self) -> Path | dict[str, Any]:
         self._guard()
+        # Always, before any client call (dry-run or live). Safety guard only.
+        assert_hydrated_inputs_safe(
+            self.repo_root,
+            self.dataset,
+            questions=self.spec.question_map(),
+            model=self.spec.model,
+        )
         if not self.spec.questions:
             raise ValueError(
                 f"experiment {self.spec.name!r} has no questions — cannot run"
