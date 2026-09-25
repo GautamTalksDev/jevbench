@@ -36,7 +36,7 @@ After the history rewrite, commit `ed4655f9` contains the placeholder `items.jso
 | `733cb7c` | 2026-09-25 (local) | after | non-analytic safety guard | Runner refuses unhydrated or hash-mismatched paraphrase inputs before any client call; no effect on valid inputs; added before any EXP-1 call. |
 | `20ee218` | 2026-09-25 | after | non-analytic | `--clients` split for scheduling; Qwen float32 for CPU performance; same model, same prompts, logprob method unchanged. PrefillClient now caches the loaded model until release() (previously reloaded per call); outputs unchanged, performance only. |
 | `01e6851` | 2026-09-25 | after | non-analytic | CLI loads `.env` before live runs (smoke already did); resume ignores error rows so failed keys are retried. No change to prompts, models, or scoring. |
-| _(pending)_ | 2026-09-25 | after | non-analytic | analysis input-selection bug: analyze-exp1 defaulted to the demo fixture and emitted an unsupported verdict; fixed before any real EXP-1 analysis output was viewed. No change to statistical methods. |
+| `311a731` | 2026-09-25 | after | non-analytic | analysis input-selection bug: analyze-exp1 defaulted to the demo fixture and emitted an unsupported verdict; fixed before any real EXP-1 analysis output was viewed. No change to statistical methods. |
 
 Full line-level drift: `/tmp/prereg_drift.diff` (also copied to the Windows Desktop as `prereg_drift.diff`). Command that produced it:
 
