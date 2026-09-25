@@ -28,6 +28,8 @@ Tonight's Zenodo deposit is the true public freeze: current file, both SHA-256 v
 | `690c169` | 2026-09-24T05:24:40Z | after | clerical | Records `AMENDMENT_11_COMMIT` (a file cannot contain its own commit hash until a follow-up commit). |
 | `9ae9aa1` | 2026-09-24T05:29:46Z | after | clerical | GLiClass wording: model card does not list MNLI or SNLI; that is not a claim it was untrained on them. Arm assignment unchanged. |
 | `4ab5c91` | 2026-09-24T19:18:36Z | after | clerical | Strips paraphrase sentence text from the public tree; rehashes `items.jsonl` (`38c8c5b2…` to `1fbb1ab3…`); points at `paraphrases.sha256` instead of shipping text; labels, n, and strata unchanged. Lock `items_sha256` updated in the same commit. Verified content-preserving: hydrated text equals pre-rewrite text for 100/100 paraphrase items (and 20/20 sampled primary items); see `tests/test_hydration_integrity.py`. |
+
+After the history rewrite, commit `ed4655f9` contains the placeholder `items.jsonl` (`1fbb1ab3…`) while its lock records `38c8c5b2…`. The pre-rewrite file is preserved in the local backup; its hash and a field-by-field comparison (1,600 IDs identical; only 100 paraphrase-role state fields differ) are recorded here.
 | `2ca7762` | 2026-09-24T19:21:21Z | after | clerical | Refreshes Amendment 6 to 11 pin hashes to post-history-rewrite ids; points at `docs/HISTORY_REWRITE.md`. |
 | `6b0c88b` | 2026-09-24T19:26:10Z | after | clerical | Corrects paraphrase authorship from hand-authored to Cursor-generated. |
 | `e703d1d` | 2026-09-24T19:38:31Z | after | clerical | Expands the FINDINGS.md permalink; refuses to invent a paraphrase model name; adds the limitation that the contamination control is directional, not dispositive. |

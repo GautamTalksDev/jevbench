@@ -11,6 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 FROZEN = {
     ROOT / "PREREGISTRATION.md",
     ROOT / "results" / "harness_fixture" / "README.md",
+    # Historical records restored with original em/en dashes; do not rewrite.
+    ROOT / "docs" / "HISTORY_REWRITE.md",
+    ROOT / "pilot" / "REPORT.md",
 }
 SKIP_PARTS = {".git", ".venv", "node_modules"}
 EM = "\u2014"
