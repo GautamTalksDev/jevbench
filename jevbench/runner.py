@@ -469,12 +469,18 @@ def build_manifest(
     repeats: int,
     concurrency: int,
     geography_note: str,
+    clients_this_invocation: list[str] | None = None,
 ) -> dict[str, Any]:
     lock = load_lock(repo_root)
     hashes = {
         "items_sha256": sha256_file(dataset.root / "items.jsonl"),
         "labels_sha256": sha256_file(dataset.root / "labels.jsonl"),
     }
+    invocation_names = (
+        list(clients_this_invocation)
+        if clients_this_invocation is not None
+        else [c.name for c in spec.clients]
+    )
     return {
         "run_id": run_id,
         "status": "running",
@@ -505,6 +511,13 @@ def build_manifest(
         "labels_sha256": hashes["labels_sha256"],
         "preregistration_lock": lock.to_dict() if lock else None,
         "clients": [c.model_dump() for c in spec.clients],
+        "clients_this_invocation": invocation_names,
+        "client_invocations": [
+            {
+                "utc": utc_now_iso(),
+                "clients": invocation_names,
+            }
+        ],
         "questions": {k: q.model_dump() for k, q in spec.questions.items()},
         "repeats": repeats,
         "concurrency": concurrency,
@@ -520,7 +533,9 @@ def build_manifest(
         "resolved_models_seen": [],
         "notes": (
             "Runner records only. Metrics are a separate step. "
-            "raw.jsonl is append-only and resumable."
+            "raw.jsonl is append-only and resumable. "
+            "clients_this_invocation lists who ran in the latest invocation; "
+            "client_invocations is the full schedule history."
         ),
     }
 
@@ -530,21 +545,23 @@ def dry_run_estimate(
     spec: ExperimentSpec,
     dataset: Dataset,
     repeats: int | None = None,
+    clients: list[ClientSpec] | None = None,
 ) -> dict[str, Any]:
     """Estimate tokens and cost for Jev vs baselines — spend nothing."""
     n_repeats = repeats if repeats is not None else spec.effective_repeats()
     q_tokens = build_questions_token_estimate(spec)
     items = list(dataset.by_id.values())
-    clients = spec.clients or [
-        ClientSpec(name="jev", type="jev", model=spec.model),
-    ]
+    selected = clients if clients is not None else (
+        spec.clients
+        or [ClientSpec(name="jev", type="jev", model=spec.model)]
+    )
 
     by_client: dict[str, dict[str, float | int | str]] = {}
     total_jev = 0.0
     total_baseline = 0.0
     total_calls = 0
 
-    for cspec in clients:
+    for cspec in selected:
         n_rep = int(cspec.repeats) if cspec.repeats is not None else int(n_repeats)
         input_tok = 0
         output_tok = 0  # unknown; assume ~50 for structured answers dry-run
@@ -590,6 +607,7 @@ def dry_run_estimate(
         "repeats": n_repeats,
         "total_calls": total_calls,
         "pricing_snapshot_date": spec.pricing_snapshot_date,
+        "clients_this_invocation": [c.name for c in selected],
         "by_client": by_client,
         "split_usd": {
             "jev": round(total_jev, 6),
@@ -644,6 +662,38 @@ class RunnerConfig:
     client_factory: Callable[[ClientSpec], DecisionClient] | None = None
     progress: bool = True
     skip_budget_guard: bool = False  # tests only
+    # Subset of YAML client names for this invocation (None = all).
+    client_names: list[str] | None = None
+
+
+def resolve_client_specs(
+    spec: ExperimentSpec,
+    client_names: list[str] | None,
+) -> list[ClientSpec]:
+    """Return YAML clients for this invocation. Unknown names raise ValueError."""
+    if not spec.clients:
+        raise ValueError(
+            f"experiment {spec.name!r} has no clients — declare clients: in YAML"
+        )
+    if not client_names:
+        return list(spec.clients)
+    by_name = {c.name: c for c in spec.clients}
+    unknown = [n for n in client_names if n not in by_name]
+    if unknown:
+        known = ", ".join(sorted(by_name))
+        raise ValueError(
+            f"unknown client name(s): {', '.join(unknown)}. "
+            f"Known in YAML: {known}"
+        )
+    # Preserve CLI order for scheduling, but dedupe.
+    seen: set[str] = set()
+    out: list[ClientSpec] = []
+    for name in client_names:
+        if name in seen:
+            continue
+        seen.add(name)
+        out.append(by_name[name])
+    return out
 
 
 class Runner:
@@ -661,6 +711,7 @@ class Runner:
             config.concurrency if config.concurrency is not None else self.spec.concurrency
         )
         self.geography = config.geography_note or self.spec.geography_note
+        self.selected_clients = resolve_client_specs(self.spec, config.client_names)
         self._raw_lock = threading.Lock()
         self._manifest_lock = threading.Lock()
         self._stats = RunStats()
@@ -773,12 +824,8 @@ class Runner:
         )
 
     def _clients(self) -> dict[str, tuple[ClientSpec, DecisionClient]]:
-        if not self.spec.clients:
-            raise ValueError(
-                f"experiment {self.spec.name!r} has no clients — declare clients: in YAML"
-            )
         out: dict[str, tuple[ClientSpec, DecisionClient]] = {}
-        for cspec in self.spec.clients:
+        for cspec in self.selected_clients:
             if self.config.client_factory is not None:
                 client = self.config.client_factory(cspec)
             else:
@@ -801,7 +848,10 @@ class Runner:
             )
         if self.config.dry_run:
             estimate = dry_run_estimate(
-                spec=self.spec, dataset=self.dataset, repeats=self.repeats
+                spec=self.spec,
+                dataset=self.dataset,
+                repeats=self.repeats,
+                clients=self.selected_clients,
             )
             print_dry_run(estimate)
             if not self.config.skip_budget_guard:
@@ -832,13 +882,16 @@ class Runner:
             )
 
         items = sorted(self.dataset.by_id.values(), key=lambda x: x.id)
-        units = work_units(items, self.spec.clients, self.repeats)
+        units = work_units(items, self.selected_clients, self.repeats)
 
         ledger = BudgetLedger.load(self.repo_root)
         run_kind = classify_run_kind(self.spec.name)
         if not self.config.skip_budget_guard:
             estimate = dry_run_estimate(
-                spec=self.spec, dataset=self.dataset, repeats=self.repeats
+                spec=self.spec,
+                dataset=self.dataset,
+                repeats=self.repeats,
+                clients=self.selected_clients,
             )
             print_dry_run(estimate)
             ledger.assert_can_start(
@@ -846,6 +899,8 @@ class Runner:
                 projected_usd=float(estimate["split_usd"]["total"]),
                 run_id="preflight",
             )
+
+        invocation_names = [c.name for c in self.selected_clients]
 
         if self.config.resume_run_id:
             run_id = self.config.resume_run_id
@@ -856,8 +911,16 @@ class Runner:
             raw_path = rdir / "raw.jsonl"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             done = load_completed_keys(raw_path)
+            # Record this scheduling slice; never drop prior invocation history.
+            history = list(manifest.get("client_invocations") or [])
+            history.append({"utc": utc_now_iso(), "clients": invocation_names})
+            manifest["client_invocations"] = history
+            manifest["clients_this_invocation"] = invocation_names
+            manifest["status"] = "running"
+            write_manifest(manifest_path, manifest)
             console.print(
-                f"[cyan]Resuming[/cyan] {run_id} — {len(done)} calls already recorded"
+                f"[cyan]Resuming[/cyan] {run_id} — {len(done)} calls already recorded; "
+                f"this invocation clients={','.join(invocation_names)}"
             )
         else:
             run_id = new_run_id(self.spec.name)
@@ -875,6 +938,7 @@ class Runner:
                 repeats=self.repeats,
                 concurrency=self.concurrency,
                 geography_note=self.geography,
+                clients_this_invocation=invocation_names,
             )
             write_manifest(manifest_path, manifest)
             done = set()

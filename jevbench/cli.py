@@ -151,6 +151,15 @@ def run_cmd(
         "--geography",
         help="Override geography note recorded in the manifest.",
     ),
+    clients: str | None = typer.Option(
+        None,
+        "--clients",
+        help=(
+            "Comma-separated client names from the experiment YAML "
+            "(default: all). Resume with a subset appends those clients "
+            "to the same run_id without re-sending completed keys."
+        ),
+    ),
 ) -> None:
     """Execute an experiment: manifest first, stream raw.jsonl, no metrics."""
     from jevbench.budget import BudgetExceeded
@@ -158,6 +167,12 @@ def run_cmd(
     from jevbench.runner import Runner, RunnerConfig
 
     root = repo_root()
+    client_names = None
+    if clients is not None:
+        client_names = [c.strip() for c in clients.split(",") if c.strip()]
+        if not client_names:
+            console.print("[red]run failed:[/red] --clients was empty")
+            raise typer.Exit(code=1)
     cfg = RunnerConfig(
         repo_root=root,
         experiment=experiment,
@@ -167,6 +182,7 @@ def run_cmd(
         dry_run=dry_run,
         confirm=confirm,
         geography_note=geography,
+        client_names=client_names,
     )
     try:
         result = Runner(cfg).run()
@@ -226,6 +242,20 @@ def analyze_exp1_cmd(
     ),
     quick: bool = typer.Option(False, "--quick", help="n_boot=500 smoke"),
     scored: bool = typer.Option(False, "--scored"),
+    clients: str | None = typer.Option(
+        None,
+        "--clients",
+        help=(
+            "Comma-separated client subset for an interim write "
+            "(e.g. --clients jev → results/exp1_jev_only.json). "
+            "Final results/exp1.json requires every YAML client complete."
+        ),
+    ),
+    experiment: str = typer.Option(
+        "exp1_difficulty_calibration",
+        "--experiment",
+        help="Experiment YAML used to know the full client set.",
+    ),
 ) -> None:
     """Run EXP-1 ΔECE analysis → results/exp1.json."""
     import subprocess
@@ -239,6 +269,9 @@ def analyze_exp1_cmd(
         cmd.append("--quick")
     if scored:
         cmd.append("--scored")
+    if clients is not None:
+        cmd.extend(["--clients", clients])
+    cmd.extend(["--experiment", experiment])
     raise typer.Exit(code=subprocess.call(cmd))
 
 

@@ -34,6 +34,7 @@ After the history rewrite, commit `ed4655f9` contains the placeholder `items.jso
 | `6b0c88b` | 2026-09-24T19:26:10Z | after | clerical | Corrects paraphrase authorship from hand-authored to Cursor-generated. |
 | `e703d1d` | 2026-09-24T19:38:31Z | after | clerical | Expands the FINDINGS.md permalink; refuses to invent a paraphrase model name; adds the limitation that the contamination control is directional, not dispositive. |
 | `733cb7c` | 2026-09-25 (local) | after | non-analytic safety guard | Runner refuses unhydrated or hash-mismatched paraphrase inputs before any client call; no effect on valid inputs; added before any EXP-1 call. |
+| _(pending)_ | 2026-09-25 | after | non-analytic | `--clients` split for scheduling; Qwen float32 for CPU performance; same model, same prompts, logprob method unchanged. PrefillClient now caches the loaded model until release() (previously reloaded per call); outputs unchanged, performance only. |
 
 Full line-level drift: `/tmp/prereg_drift.diff` (also copied to the Windows Desktop as `prereg_drift.diff`). Command that produced it:
 

@@ -155,12 +155,13 @@ class TransformersPrefillBackend:
                 "transformers+torch required for backend='transformers'. "
                 "pip install transformers accelerate"
             ) from exc
-        # float16 ~halves RSS vs float32. On a ~10 GB WSL box, float32
-        # Qwen2.5-1.5B (~6.5 GB weights + activations) gets OOM-killed mid-load.
+        # float32 on CPU: same weights/prompts/logprob method; better CPU throughput
+        # than float16 on machines without a GPU. low_cpu_mem_usage keeps peak lower
+        # during load; release() still unloads between clients.
         self._tok = AutoTokenizer.from_pretrained(self.model_id, trust_remote_code=True)
         self._model = AutoModelForCausalLM.from_pretrained(
             self.model_id,
-            dtype=torch.float16,
+            dtype=torch.float32,
             low_cpu_mem_usage=True,
             trust_remote_code=True,
         )
@@ -216,7 +217,7 @@ class TransformersPrefillBackend:
         inputs = tok(prompt, return_tensors="pt")
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
         t0 = time.perf_counter()
-        with torch.no_grad():
+        with torch.inference_mode():
             out = mdl(**inputs)
             logits = out.logits[0, -1, :]
         compute_ms = (time.perf_counter() - t0) * 1000.0
@@ -562,32 +563,34 @@ class PrefillClient:
         if self._backend is not None:
             return self._backend
         if self.config.backend == "transformers":
-            return TransformersPrefillBackend(
+            self._backend = TransformersPrefillBackend(
                 model_id=self.config.model,
                 device=self.config.device,
                 tokenizer=self._tokenizer,
             )
-        if self.config.backend == "vllm":
+        elif self.config.backend == "vllm":
             if not self.config.base_url:
                 raise ValueError(
                     "PrefillClientConfig.base_url required for vllm backend"
                 )
-            return HttpVllmBackend(
+            self._backend = HttpVllmBackend(
                 base_url=self.config.base_url,
                 api_key=self.config.api_key,
                 tokenizer=self._tokenizer,
             )
-        if self.config.backend == "mlx":
+        elif self.config.backend == "mlx":
             raise NotImplementedError(
                 "MLX backend: inject a PrefillBackend that calls mlx_lm with "
                 "constrained decoding + logprobs, or use backend='transformers' "
                 "on CPU / 'vllm' against a local server. Logprob access is "
                 "REQUIRED for EXP-3."
             )
-        raise ValueError(
-            f"Unknown backend {self.config.backend!r}; pass an injected "
-            "PrefillBackend for tests"
-        )
+        else:
+            raise ValueError(
+                f"Unknown backend {self.config.backend!r}; pass an injected "
+                "PrefillBackend for tests"
+            )
+        return self._backend
 
     def _options_for(self, question: Question) -> list[str]:
         if isinstance(question, ChoiceQuestion):
