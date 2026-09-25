@@ -238,10 +238,14 @@ def charts_cmd(
 
 @app.command("analyze-exp1")
 def analyze_exp1_cmd(
-    raw: Path | None = typer.Option(
-        None,
-        "--raw",
-        help="raw.jsonl path (default: runs/offline_fixture/raw.jsonl)",
+    run: str = typer.Option(
+        ...,
+        "--run",
+        help=(
+            "EXP-1 run_id under runs/, or 'latest-exp1' "
+            "(newest runs/exp1_* with task=chaosnli, scored!=false). "
+            "Required — never defaults to offline_fixture."
+        ),
     ),
     quick: bool = typer.Option(False, "--quick", help="n_boot=500 smoke"),
     scored: bool = typer.Option(False, "--scored"),
@@ -265,9 +269,12 @@ def analyze_exp1_cmd(
     import sys
 
     root = repo_root()
-    cmd = [sys.executable, str(root / "scripts" / "run_exp1_analyze.py")]
-    if raw is not None:
-        cmd.extend(["--raw", str(raw)])
+    cmd = [
+        sys.executable,
+        str(root / "scripts" / "run_exp1_analyze.py"),
+        "--run",
+        run,
+    ]
     if quick:
         cmd.append("--quick")
     if scored:

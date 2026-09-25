@@ -659,8 +659,29 @@ def _accuracy(rows: list[dict[str, Any]]) -> float:
     return float(np.mean(correct))
 
 
-def build_verdict(payload: dict[str, Any]) -> str:
-    """One-paragraph plain-language verdict (Amendment 9 parametric rule)."""
+def no_verdict_reason(payload: dict[str, Any]) -> str:
+    """Why Amendment 9 cannot emit tracks/holds/inconclusive yet."""
+    jev = payload.get("jev") or {}
+    gate = payload.get("gates") or {}
+    if gate.get("block_reason"):
+        return f"gate blocked: {gate['block_reason']}"
+    if jev.get("delta_corrected") is None or jev.get("p_value") is None:
+        return (
+            "delta_corrected or p_value is None — Amendment 9 verdict requires "
+            "corrected soft ΔECE (ChaosNLI label_dist / soft scoring); "
+            "refusing to emit 'inconclusive' as a stand-in"
+        )
+    if jev.get("verdict") is None:
+        return "choice-arm verdict label is None"
+    return "verdict unavailable"
+
+
+def build_verdict(payload: dict[str, Any]) -> str | None:
+    """Plain-language Amendment 9 verdict, or None when metrics are missing.
+
+    Never substitutes ``\"inconclusive\"`` when ``delta_corrected`` or
+    ``p_value`` is None — that label is only valid after the parametric test.
+    """
     jev = payload.get("jev") or {}
     jev_noul = payload.get("jev_noul") or {}
     gate = payload.get("gates") or {}
@@ -671,7 +692,11 @@ def build_verdict(payload: dict[str, Any]) -> str:
             f"No hypothesis is supported until the gate clears."
         )
 
-    label = jev.get("verdict") or "inconclusive"
+    if jev.get("delta_corrected") is None or jev.get("p_value") is None:
+        return None
+    label = jev.get("verdict")
+    if label is None:
+        return None
     detail = jev.get("verdict_detail") or {}
     noul_label = jev_noul.get("verdict")
     parts = [
@@ -844,12 +869,18 @@ def run_exp1_analysis(
         ),
     }
     payload["verdict"] = build_verdict(payload)
+    if payload["verdict"] is None:
+        payload["no_verdict_reason"] = no_verdict_reason(payload)
     # Certificate / paper primary stamp is Choice arm unless gate blocks.
+    # Never promote a missing corrected test into an Amendment 9 label.
+    result_verdict = jev.get("verdict")
+    if jev.get("delta_corrected") is None or jev.get("p_value") is None:
+        result_verdict = None
     payload["result"] = {
         "delta_raw": jev.get("delta_raw"),
         "delta_corrected": jev.get("delta_corrected"),
         "p_value": jev.get("p_value"),
-        "verdict": jev.get("verdict"),
+        "verdict": result_verdict,
         "primitive_arm": "choice",
         "noul_verdict": jev_noul.get("verdict"),
         "noul_delta_corrected": jev_noul.get("delta_corrected"),
