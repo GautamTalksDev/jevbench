@@ -1,0 +1,135 @@
+{
+  "choice": {
+    "after_mean": {
+      "delta_ece_raw": -0.04660610749795085,
+      "jsd_easy": 0.07832704123558402,
+      "jsd_hard": 0.0880345096433558,
+      "soft_ece_easy": 0.14554603953518122,
+      "soft_ece_hard": 0.09893993203723037
+    },
+    "arm": "choice",
+    "before_mean": {
+      "delta_ece_raw": 0.2578933333333334,
+      "jsd_easy": 0.05631573108982859,
+      "jsd_hard": 0.17562040998660622,
+      "soft_ece_easy": 0.08115999999999994,
+      "soft_ece_hard": 0.3390533333333333
+    },
+    "fit_objective": "cross_entropy_to_human_vote_distribution",
+    "folds": [
+      {
+        "after": {
+          "delta_ece_raw": -0.05003335387162704,
+          "jsd_easy": 0.07400474421877082,
+          "jsd_hard": 0.08886063003999262,
+          "soft_ece_easy": 0.15090059645494047,
+          "soft_ece_hard": 0.10086724258331344
+        },
+        "before": {
+          "delta_ece_raw": 0.2594666666666667,
+          "jsd_easy": 0.05246219606133619,
+          "jsd_hard": 0.17559162695249833,
+          "soft_ece_easy": 0.08656000000000003,
+          "soft_ece_hard": 0.3460266666666667
+        },
+        "fold": 0,
+        "n_test": 750,
+        "n_train": 750,
+        "temperature": 5.0
+      },
+      {
+        "after": {
+          "delta_ece_raw": -0.04317886112427466,
+          "jsd_easy": 0.08264933825239723,
+          "jsd_hard": 0.08720838924671898,
+          "soft_ece_easy": 0.14019148261542197,
+          "soft_ece_hard": 0.09701262149114731
+        },
+        "before": {
+          "delta_ece_raw": 0.2563200000000001,
+          "jsd_easy": 0.06016926611832099,
+          "jsd_hard": 0.17564919302071413,
+          "soft_ece_easy": 0.07575999999999986,
+          "soft_ece_hard": 0.33207999999999993
+        },
+        "fold": 1,
+        "n_test": 750,
+        "n_train": 750,
+        "temperature": 5.0
+      }
+    ],
+    "mean_temperature": 5.0,
+    "prereg_clause": "Amendment 10.3 S3 Temperature scaling",
+    "schema": "jevbench.secondary.s3_temperature.v1",
+    "seed": 20260924
+  },
+  "n_items": 1500,
+  "noul": {
+    "after_mean": {
+      "delta_ece_raw": -0.00814565642260777,
+      "jsd_easy": 0.061521307919586446,
+      "jsd_hard": 0.05660562701673843,
+      "soft_ece_easy": 0.12968436410150674,
+      "soft_ece_hard": 0.12153870767889897
+    },
+    "arm": "noul",
+    "before_mean": {
+      "delta_ece_raw": 0.07814570593651907,
+      "jsd_easy": 0.047682909365207735,
+      "jsd_hard": 0.06823188328591678,
+      "soft_ece_easy": 0.08217752910708853,
+      "soft_ece_hard": 0.1603232350436076
+    },
+    "fit_objective": "cross_entropy_to_human_vote_distribution",
+    "folds": [
+      {
+        "after": {
+          "delta_ece_raw": -0.011663483134009889,
+          "jsd_easy": 0.05955574838627994,
+          "jsd_hard": 0.060597711649810426,
+          "soft_ece_easy": 0.13434452137796513,
+          "soft_ece_hard": 0.12268103824395524
+        },
+        "before": {
+          "delta_ece_raw": 0.07514316712314463,
+          "jsd_easy": 0.045520790238750906,
+          "jsd_hard": 0.07224331487484478,
+          "soft_ece_easy": 0.08542007470669365,
+          "soft_ece_hard": 0.16056324182983828
+        },
+        "fold": 0,
+        "n_test": 750,
+        "n_train": 750,
+        "temperature": 1.2000000000000002
+      },
+      {
+        "after": {
+          "delta_ece_raw": -0.00462782971120565,
+          "jsd_easy": 0.06348686745289295,
+          "jsd_hard": 0.05261354238366643,
+          "soft_ece_easy": 0.12502420682504836,
+          "soft_ece_hard": 0.12039637711384271
+        },
+        "before": {
+          "delta_ece_raw": 0.08114824474989352,
+          "jsd_easy": 0.04984502849166456,
+          "jsd_hard": 0.06422045169698877,
+          "soft_ece_easy": 0.0789349835074834,
+          "soft_ece_hard": 0.16008322825737692
+        },
+        "fold": 1,
+        "n_test": 750,
+        "n_train": 750,
+        "temperature": 1.2000000000000002
+      }
+    ],
+    "mean_temperature": 1.2000000000000002,
+    "prereg_clause": "Amendment 10.3 S3 Temperature scaling",
+    "schema": "jevbench.secondary.s3_temperature.v1",
+    "seed": 20260931
+  },
+  "prereg_clause": "Amendment 10.3 S3 Temperature scaling",
+  "raw": "/home/gautamtalksdev/projects/jevbench/runs/exp1_difficulty_calibration_20260925T070159Z_84db02c9/raw.jsonl",
+  "run_id": "exp1_difficulty_calibration_20260925T070159Z_84db02c9",
+  "schema": "jevbench.exp1_s3.v1"
+}

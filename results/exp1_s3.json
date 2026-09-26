@@ -1,12 +1,13 @@
 {
   "choice": {
     "after_mean": {
-      "delta_ece_raw": -0.04660610749795085,
-      "jsd_easy": 0.07832704123558402,
-      "jsd_hard": 0.0880345096433558,
-      "soft_ece_easy": 0.14554603953518122,
-      "soft_ece_hard": 0.09893993203723037
+      "delta_ece_raw": -0.15461240352729544,
+      "jsd_easy": 0.10317076167062296,
+      "jsd_hard": 0.055160179827447184,
+      "soft_ece_easy": 0.19831906946697725,
+      "soft_ece_hard": 0.04370666593968181
     },
+    "any_fold_at_bound": false,
     "arm": "choice",
     "before_mean": {
       "delta_ece_raw": 0.2578933333333334,
@@ -15,15 +16,22 @@
       "soft_ece_easy": 0.08115999999999994,
       "soft_ece_hard": 0.3390533333333333
     },
+    "fit_grid": {
+      "n_grid": 200,
+      "note": "Post-data fix: prior grid capped at 5.0 and Choice landed on the cap; widened to geomspace(0.05, 100, 200) + golden-section.",
+      "refine": "golden_section",
+      "t_hi": 100.0,
+      "t_lo": 0.05
+    },
     "fit_objective": "cross_entropy_to_human_vote_distribution",
     "folds": [
       {
         "after": {
-          "delta_ece_raw": -0.05003335387162704,
-          "jsd_easy": 0.07400474421877082,
-          "jsd_hard": 0.08886063003999262,
-          "soft_ece_easy": 0.15090059645494047,
-          "soft_ece_hard": 0.10086724258331344
+          "delta_ece_raw": -0.15694208367652618,
+          "jsd_easy": 0.09811289522229034,
+          "jsd_hard": 0.0563912514260877,
+          "soft_ece_easy": 0.20046372494501383,
+          "soft_ece_hard": 0.04352164126848766
         },
         "before": {
           "delta_ece_raw": 0.2594666666666667,
@@ -32,18 +40,24 @@
           "soft_ece_easy": 0.08656000000000003,
           "soft_ece_hard": 0.3460266666666667
         },
+        "bound_side": null,
+        "ce_min": 0.8368909827549933,
         "fold": 0,
+        "n_grid": 200,
         "n_test": 750,
         "n_train": 750,
-        "temperature": 5.0
+        "t_hi": 100.0,
+        "t_lo": 0.05,
+        "temperature": 11.862046934207672,
+        "within_1pct_of_bound": false
       },
       {
         "after": {
-          "delta_ece_raw": -0.04317886112427466,
-          "jsd_easy": 0.08264933825239723,
-          "jsd_hard": 0.08720838924671898,
-          "soft_ece_easy": 0.14019148261542197,
-          "soft_ece_hard": 0.09701262149114731
+          "delta_ece_raw": -0.15228272337806467,
+          "jsd_easy": 0.10822862811895557,
+          "jsd_hard": 0.053929108228806664,
+          "soft_ece_easy": 0.19617441398894064,
+          "soft_ece_hard": 0.043891690610875965
         },
         "before": {
           "delta_ece_raw": 0.2563200000000001,
@@ -52,13 +66,19 @@
           "soft_ece_easy": 0.07575999999999986,
           "soft_ece_hard": 0.33207999999999993
         },
+        "bound_side": null,
+        "ce_min": 0.8366535982749614,
         "fold": 1,
+        "n_grid": 200,
         "n_test": 750,
         "n_train": 750,
-        "temperature": 5.0
+        "t_hi": 100.0,
+        "t_lo": 0.05,
+        "temperature": 12.01817248420945,
+        "within_1pct_of_bound": false
       }
     ],
-    "mean_temperature": 5.0,
+    "mean_temperature": 11.94010970920856,
     "prereg_clause": "Amendment 10.3 S3 Temperature scaling",
     "schema": "jevbench.secondary.s3_temperature.v1",
     "seed": 20260924
@@ -66,12 +86,13 @@
   "n_items": 1500,
   "noul": {
     "after_mean": {
-      "delta_ece_raw": -0.00814565642260777,
-      "jsd_easy": 0.061521307919586446,
-      "jsd_hard": 0.05660562701673843,
-      "soft_ece_easy": 0.12968436410150674,
-      "soft_ece_hard": 0.12153870767889897
+      "delta_ece_raw": -0.02423216953230191,
+      "jsd_easy": 0.06465139446737751,
+      "jsd_hard": 0.05483760575266984,
+      "soft_ece_easy": 0.13880980154463157,
+      "soft_ece_hard": 0.11457763201232965
     },
+    "any_fold_at_bound": false,
     "arm": "noul",
     "before_mean": {
       "delta_ece_raw": 0.07814570593651907,
@@ -80,15 +101,22 @@
       "soft_ece_easy": 0.08217752910708853,
       "soft_ece_hard": 0.1603232350436076
     },
+    "fit_grid": {
+      "n_grid": 200,
+      "note": "Post-data fix: prior grid capped at 5.0 and Choice landed on the cap; widened to geomspace(0.05, 100, 200) + golden-section.",
+      "refine": "golden_section",
+      "t_hi": 100.0,
+      "t_lo": 0.05
+    },
     "fit_objective": "cross_entropy_to_human_vote_distribution",
     "folds": [
       {
         "after": {
-          "delta_ece_raw": -0.011663483134009889,
-          "jsd_easy": 0.05955574838627994,
-          "jsd_hard": 0.060597711649810426,
-          "soft_ece_easy": 0.13434452137796513,
-          "soft_ece_hard": 0.12268103824395524
+          "delta_ece_raw": -0.026927558571683913,
+          "jsd_easy": 0.06255085092214495,
+          "jsd_hard": 0.058913376303322156,
+          "soft_ece_easy": 0.14307245697116017,
+          "soft_ece_hard": 0.11614489839947625
         },
         "before": {
           "delta_ece_raw": 0.07514316712314463,
@@ -97,18 +125,24 @@
           "soft_ece_easy": 0.08542007470669365,
           "soft_ece_hard": 0.16056324182983828
         },
+        "bound_side": null,
+        "ce_min": 0.7890595291355094,
         "fold": 0,
+        "n_grid": 200,
         "n_test": 750,
         "n_train": 750,
-        "temperature": 1.2000000000000002
+        "t_hi": 100.0,
+        "t_lo": 0.05,
+        "temperature": 1.239793798135146,
+        "within_1pct_of_bound": false
       },
       {
         "after": {
-          "delta_ece_raw": -0.00462782971120565,
-          "jsd_easy": 0.06348686745289295,
-          "jsd_hard": 0.05261354238366643,
-          "soft_ece_easy": 0.12502420682504836,
-          "soft_ece_hard": 0.12039637711384271
+          "delta_ece_raw": -0.021536780492919905,
+          "jsd_easy": 0.06675193801261008,
+          "jsd_hard": 0.05076183520201753,
+          "soft_ece_easy": 0.13454714611810295,
+          "soft_ece_hard": 0.11301036562518305
         },
         "before": {
           "delta_ece_raw": 0.08114824474989352,
@@ -117,19 +151,26 @@
           "soft_ece_easy": 0.0789349835074834,
           "soft_ece_hard": 0.16008322825737692
         },
+        "bound_side": null,
+        "ce_min": 0.7921496847987123,
         "fold": 1,
+        "n_grid": 200,
         "n_test": 750,
         "n_train": 750,
-        "temperature": 1.2000000000000002
+        "t_hi": 100.0,
+        "t_lo": 0.05,
+        "temperature": 1.2445332464860774,
+        "within_1pct_of_bound": false
       }
     ],
-    "mean_temperature": 1.2000000000000002,
+    "mean_temperature": 1.2421635223106118,
     "prereg_clause": "Amendment 10.3 S3 Temperature scaling",
     "schema": "jevbench.secondary.s3_temperature.v1",
     "seed": 20260931
   },
+  "post_data_fix": "Temperature grid widened from [0.05,5] to geomspace(0.05,100,200) + golden-section refine. Prior file: results/exp1_s3_grid5_superseded.json",
   "prereg_clause": "Amendment 10.3 S3 Temperature scaling",
   "raw": "/home/gautamtalksdev/projects/jevbench/runs/exp1_difficulty_calibration_20260925T070159Z_84db02c9/raw.jsonl",
   "run_id": "exp1_difficulty_calibration_20260925T070159Z_84db02c9",
-  "schema": "jevbench.exp1_s3.v1"
+  "schema": "jevbench.exp1_s3.v2"
 }
