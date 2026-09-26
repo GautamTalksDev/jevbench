@@ -44,7 +44,7 @@ After the history rewrite, commit `ed4655f9` contains the placeholder `items.jso
 Full line-level drift: `/tmp/prereg_drift.diff` (also copied to the Windows Desktop as `prereg_drift.diff`). Command that produced it:
 
 `bash
-git --no-pager diff ed4655f9 HEAD -- PREREGISTRATION.md
+`git --no-pager diff ed4655f9 HEAD -- PREREGISTRATION.md`
 `
 
 Nothing in that diff changes H1, the soft ΔECE endpoint, the 0.09 / 0.02 gates, the parametric verdict, n = 750 per stratum, or the entropy thresholds.
