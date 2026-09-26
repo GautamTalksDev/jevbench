@@ -274,28 +274,112 @@ def fit_temperature(
     human_dist: ArrayLike,
     *,
     grid: tuple[float, ...] | None = None,
+    t_lo: float = 0.05,
+    t_hi: float = 100.0,
+    n_grid: int = 200,
 ) -> float:
     """Fit one temperature minimizing cross-entropy to the human vote dist."""
+    return float(
+        fit_temperature_detailed(
+            probs,
+            human_dist,
+            grid=grid,
+            t_lo=t_lo,
+            t_hi=t_hi,
+            n_grid=n_grid,
+        )["temperature"]
+    )
+
+
+def _golden_section_minimize(
+    fn,
+    a: float,
+    b: float,
+    *,
+    tol: float = 1e-5,
+    max_iter: int = 80,
+) -> tuple[float, float]:
+    """1-D golden-section search on [a, b]; returns (argmin, f(argmin))."""
+    if not (a < b):
+        raise ValueError(f"golden-section requires a < b; got [{a}, {b}]")
+    phi = (1.0 + 5.0**0.5) / 2.0
+    inv = 1.0 / phi
+    c = b - (b - a) * inv
+    d = a + (b - a) * inv
+    fc = float(fn(c))
+    fd = float(fn(d))
+    for _ in range(max_iter):
+        if abs(b - a) < tol:
+            break
+        if fc < fd:
+            b, d, fd = d, c, fc
+            c = b - (b - a) * inv
+            fc = float(fn(c))
+        else:
+            a, c, fc = c, d, fd
+            d = a + (b - a) * inv
+            fd = float(fn(d))
+    # Evaluate midpoint of final bracket
+    mid = 0.5 * (a + b)
+    fmid = float(fn(mid))
+    candidates = [(c, fc), (d, fd), (mid, fmid)]
+    best_t, best_f = min(candidates, key=lambda x: x[1])
+    return float(best_t), float(best_f)
+
+
+def fit_temperature_detailed(
+    probs: ArrayLike,
+    human_dist: ArrayLike,
+    *,
+    grid: tuple[float, ...] | None = None,
+    t_lo: float = 0.05,
+    t_hi: float = 100.0,
+    n_grid: int = 200,
+) -> dict[str, Any]:
+    """Log-spaced grid then golden-section refine; record bound flags."""
     p = np.asarray(probs, dtype=float)
     h = np.asarray(human_dist, dtype=float)
+
+    def _ce(t: float) -> float:
+        return cross_entropy_to_humans(temperature_scale_probs(p, t), h)
+
     if grid is None:
-        grid = tuple(
-            float(x)
-            for x in np.concatenate(
-                [
-                    np.linspace(0.5, 2.0, 16),
-                    np.linspace(2.0, 5.0, 8),
-                ]
-            )
-        )
-    best_t, best_loss = 1.0, float("inf")
-    for t in grid:
-        q = temperature_scale_probs(p, t)
-        loss = cross_entropy_to_humans(q, h)
-        if loss < best_loss:
-            best_loss = loss
-            best_t = float(t)
-    return best_t
+        grid_arr = np.geomspace(float(t_lo), float(t_hi), int(n_grid))
+    else:
+        grid_arr = np.asarray(list(grid), dtype=float)
+        t_lo = float(grid_arr.min())
+        t_hi = float(grid_arr.max())
+        n_grid = int(grid_arr.size)
+
+    losses = np.asarray([_ce(float(t)) for t in grid_arr], dtype=float)
+    best_i = int(np.argmin(losses))
+    ce_grid_min = float(losses[best_i])
+    # Bracket around the best grid point for golden-section refine.
+    left = float(grid_arr[max(0, best_i - 1)])
+    right = float(grid_arr[min(len(grid_arr) - 1, best_i + 1)])
+    if left == right:
+        # Expand slightly within bounds if grid collapsed (single-point edge).
+        left = max(t_lo, left / 1.05)
+        right = min(t_hi, right * 1.05)
+    t_star, ce_min = _golden_section_minimize(_ce, left, right)
+    within = bool(t_star <= t_lo * 1.01 or t_star >= t_hi * 0.99)
+    return {
+        "temperature": float(t_star),
+        "ce_min": float(ce_min),
+        "ce_grid_min": ce_grid_min,
+        "grid_best_t": float(grid_arr[best_i]),
+        "t_lo": float(t_lo),
+        "t_hi": float(t_hi),
+        "n_grid": int(n_grid),
+        "within_1pct_of_bound": within,
+        "bound_side": (
+            "lo"
+            if t_star <= t_lo * 1.01
+            else "hi"
+            if t_star >= t_hi * 0.99
+            else None
+        ),
+    }
 
 
 def _stratum_soft_ece(
@@ -372,12 +456,19 @@ def temperature_scaling_cv(
     tr0, te0 = _split()
     folds: list[dict[str, Any]] = []
     for fold_i, (tr, te) in enumerate(((tr0, te0), (te0, tr0))):
-        t = fit_temperature(p[tr], h[tr])
+        fit = fit_temperature_detailed(p[tr], h[tr])
+        t = float(fit["temperature"])
         q_scaled = temperature_scale_probs(p, t)
         folds.append(
             {
                 "fold": fold_i,
                 "temperature": t,
+                "within_1pct_of_bound": bool(fit["within_1pct_of_bound"]),
+                "bound_side": fit["bound_side"],
+                "ce_min": float(fit["ce_min"]),
+                "t_lo": float(fit["t_lo"]),
+                "t_hi": float(fit["t_hi"]),
+                "n_grid": int(fit["n_grid"]),
                 "n_train": int(len(tr)),
                 "n_test": int(len(te)),
                 "before": _eval(p, te),
@@ -392,8 +483,19 @@ def temperature_scaling_cv(
         "schema": "jevbench.secondary.s3_temperature.v1",
         "prereg_clause": "Amendment 10.3 S3 Temperature scaling",
         "fit_objective": "cross_entropy_to_human_vote_distribution",
+        "fit_grid": {
+            "t_lo": 0.05,
+            "t_hi": 100.0,
+            "n_grid": 200,
+            "refine": "golden_section",
+            "note": (
+                "Post-data fix: prior grid capped at 5.0 and Choice landed on "
+                "the cap; widened to geomspace(0.05, 100, 200) + golden-section."
+            ),
+        },
         "folds": folds,
         "mean_temperature": float(np.mean([f["temperature"] for f in folds])),
+        "any_fold_at_bound": any(bool(f["within_1pct_of_bound"]) for f in folds),
         "before_mean": {
             "soft_ece_hard": _mean_key("before", "soft_ece_hard"),
             "soft_ece_easy": _mean_key("before", "soft_ece_easy"),

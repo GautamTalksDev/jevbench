@@ -340,6 +340,20 @@ def build_client(
                 role=cspec.role or "supervised_in_domain_reference",
             )
         )
+    if cspec.type == "bart_mnli_nli":
+        from jevbench.clients.bart_mnli import (
+            BartMnliNliClient,
+            BartMnliNliClientConfig,
+        )
+
+        return BartMnliNliClient(
+            BartMnliNliClientConfig(
+                model_id=cspec.model or "facebook/bart-large-mnli",
+                resolved_model=cspec.model,
+                device=str(cspec.extras.get("device", "cpu")),
+                role=cspec.role or "supervised_in_domain_reference",
+            )
+        )
     if cspec.type == "trivial":
         from jevbench.clients.trivial import (
             KeywordRule,
@@ -589,7 +603,7 @@ def dry_run_estimate(
             total_jev += cost
         else:
             # Local baselines are $0
-            if cspec.type in ("prefill", "gliclass", "trivial", "bart_mnli"):
+            if cspec.type in ("prefill", "gliclass", "trivial", "bart_mnli", "bart_mnli_nli"):
                 cost = 0.0
             total_baseline += cost
         by_client[cspec.name] = {
@@ -1110,7 +1124,7 @@ class Runner:
                 cspec, client = clients[cname]
                 workers = (
                     1
-                    if cspec.type in ("prefill", "gliclass", "bart_mnli")
+                    if cspec.type in ("prefill", "gliclass", "bart_mnli", "bart_mnli_nli")
                     else self.concurrency
                 )
                 with ThreadPoolExecutor(max_workers=workers) as pool:

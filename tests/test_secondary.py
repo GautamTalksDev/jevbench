@@ -127,3 +127,8 @@ def test_s3_temperature_recovers_sharp_distribution() -> None:
     assert cv["mean_temperature"] > 0
     assert "before" in cv["folds"][0] and "after" in cv["folds"][0]
     assert "soft_ece_hard" in cv["before_mean"]
+    fold0 = cv["folds"][0]
+    assert "within_1pct_of_bound" in fold0
+    assert "ce_min" in fold0
+    assert cv["fit_grid"]["t_hi"] == 100.0
+    assert cv["fit_grid"]["n_grid"] == 200

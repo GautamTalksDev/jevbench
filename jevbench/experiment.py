@@ -55,7 +55,9 @@ class ClientSpec(BaseModel):
     """One client arm in the experiment."""
 
     name: str
-    type: Literal["jev", "adapter", "prefill", "trivial", "gliclass", "bart_mnli"]
+    type: Literal[
+        "jev", "adapter", "prefill", "trivial", "gliclass", "bart_mnli", "bart_mnli_nli"
+    ]
     model: str | None = None
     serving_path: str | None = None  # overrides experiment serving_path for jev
     # Per-client repeat override (Amendment 11): local greedy models use 1.

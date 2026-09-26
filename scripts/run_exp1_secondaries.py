@@ -278,6 +278,13 @@ def main() -> int:
     s1, s2, s3 = build_s1_s2_s3(
         rows, n_boot=args.n_boot, seed=args.seed, quick=args.quick
     )
+    # S3 post-data grid fix: keep the capped-at-5.0 result as superseded.
+    if args.out_s3.is_file() and "grid5_superseded" not in args.out_s3.name:
+        superseded = args.out_s3.with_name("exp1_s3_grid5_superseded.json")
+        if not superseded.is_file():
+            superseded.write_text(args.out_s3.read_text(encoding="utf-8"), encoding="utf-8")
+            print(f"kept old S3 as {superseded}")
+
     for path, doc in (
         (args.out_s1, s1),
         (args.out_s2, s2),
@@ -286,6 +293,12 @@ def main() -> int:
         doc = dict(doc)
         doc["run_id"] = run_id
         doc["raw"] = str(raw_path)
+        if path == args.out_s3:
+            doc["schema"] = "jevbench.exp1_s3.v2"
+            doc["post_data_fix"] = (
+                "Temperature grid widened from [0.05,5] to geomspace(0.05,100,200) "
+                "+ golden-section refine. Prior file: results/exp1_s3_grid5_superseded.json"
+            )
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             json.dumps(doc, indent=2, sort_keys=True) + "\n", encoding="utf-8"

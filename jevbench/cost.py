@@ -13,7 +13,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
-ClientType = Literal["jev", "adapter", "trivial", "prefill", "gliclass", "bart_mnli"]
+ClientType = Literal[
+    "jev", "adapter", "trivial", "prefill", "gliclass", "bart_mnli", "bart_mnli_nli"
+]
 
 # Snapshot → model_id → {input, output} USD / Mtok
 # Jev key is always "jev". Adapter keys are provider/model ids.
@@ -31,6 +33,7 @@ _SNAPSHOTS: dict[str, dict[str, dict[str, float]]] = {
         "prefill": {"input": 0.0, "output": 0.0},
         "gliclass": {"input": 0.0, "output": 0.0},
         "bart_mnli": {"input": 0.0, "output": 0.0},
+        "bart_mnli_nli": {"input": 0.0, "output": 0.0},
     },
 }
 
@@ -142,6 +145,13 @@ def resolve_price(
     if ct == "bart_mnli":
         row = snap.get("bart_mnli") or {"input": 0.0, "output": 0.0}
         return Price("bart_mnli", snapshot_date, row["input"], row["output"])
+
+    if ct == "bart_mnli_nli":
+        row = snap.get("bart_mnli_nli") or snap.get("bart_mnli") or {
+            "input": 0.0,
+            "output": 0.0,
+        }
+        return Price("bart_mnli_nli", snapshot_date, row["input"], row["output"])
 
     if ct == "adapter":
         if not model or not str(model).strip():

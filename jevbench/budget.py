@@ -204,7 +204,7 @@ def cost_for_call(
     output_tokens: int,
 ) -> float:
     """USD for one call. Local clients (prefill/gliclass/trivial) are $0."""
-    if client_type in ("prefill", "gliclass", "trivial", "bart_mnli"):
+    if client_type in ("prefill", "gliclass", "trivial", "bart_mnli", "bart_mnli_nli"):
         return 0.0
     price = resolve_price(snapshot_date, client_type, model)
     if client_type == "jev":
