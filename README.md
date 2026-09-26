@@ -1,5 +1,14 @@
 # jevbench
 
+**Paper:** [doi.org/10.5281/zenodo.22971492](https://doi.org/10.5281/zenodo.22971492)  
+**Preregistration:** [doi.org/10.5281/zenodo.22971413](https://doi.org/10.5281/zenodo.22971413)
+
+> **About the red CI marks.** GitHub Actions on this repository are currently blocked by an account
+> billing issue, so workflow runs fail within seconds, before any code executes. This is not a test
+> failure. At commit `4291542` the full suite passes locally (184 tests). To check for yourself, run
+> `pytest -q` and `make reproduce` (no API key needed). The note will be removed once CI runs again.
+
+
 Independent study. Not affiliated with or endorsed by TypeSafe AI.
 
 This repository is a pre-registered test of whether TypeSafe Jev stays calibrated when natural-language inference items get harder. Expected calibration error (ECE) is the gap between predicted confidence and how often that confidence is right. The study compares ECE on easy items with ECE on hard items.
