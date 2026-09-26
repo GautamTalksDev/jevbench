@@ -11,7 +11,9 @@
 
 Independent study. Not affiliated with or endorsed by TypeSafe AI.
 
-This repository is a pre-registered test of whether TypeSafe Jev stays calibrated when natural-language inference items get harder. Expected calibration error (ECE) is the gap between predicted confidence and how often that confidence is right. The study compares ECE on easy items with ECE on hard items.
+This repository is a preregistered test of whether TypeSafe AI's Jev lowers its confidence on items where people disagree. It uses ChaosNLI, where every item has 100 human annotations, and compares items where annotators agree with items where they split.
+
+**Result (Jev Choice probabilities):** close to calibrated where annotators agree; overconfident where they split (mean confidence 0.81 vs. 0.47 annotator agreement; bias-corrected ΔECE 0.264, verdict "tracks"). Normalised Noul probabilities degrade less (0.076, verdict "inconclusive"). Full details in the paper linked above. Expected calibration error (ECE) is the gap between predicted confidence and how often that confidence is right. The study compares ECE on low-disagreement (easy) items with ECE on high-disagreement (hard) items.
 
 ## Status
 
