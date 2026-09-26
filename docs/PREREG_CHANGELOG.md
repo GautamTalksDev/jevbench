@@ -38,8 +38,8 @@ After the history rewrite, commit `ed4655f9` contains the placeholder `items.jso
 | `01e6851` | 2026-09-25 | after | non-analytic | CLI loads `.env` before live runs (smoke already did); resume ignores error rows so failed keys are retried. No change to prompts, models, or scoring. |
 | `311a731` | 2026-09-25 | after | non-analytic | analysis input-selection bug: analyze-exp1 defaulted to the demo fixture and emitted an unsupported verdict; fixed before any real EXP-1 analysis output was viewed. No change to statistical methods. |
 | `ec1e3ac` / `a1797b6` | 2026-09-25 | after | non-analytic | analysis completion: baseline arms analysed with existing analyze_client (previously pointed at removed adapter client); S1-S3 and determinism check implemented as specified in Amendments 10-11; no method changes. |
-| ``34ee034`` | 2026-09-26 | after | post-data bug fix | BART client used zero-shot-classification on str(state) instead of NLI on (premise, hypothesis); re-run as bart_mnli_nli; broken run retained and reported. |
-| ``34ee034`` | 2026-09-26 | after | post-data fix | S3 temperature grid capped at 5.0; optimum was at the cap; grid widened to 0.05-100. |
+| `7ebc64b` | 2026-09-26 | after | post-data bug fix | BART client used zero-shot-classification on str(state) instead of NLI on (premise, hypothesis); re-run as bart_mnli_nli; broken run retained and reported. |
+| `7ebc64b` | 2026-09-26 | after | post-data fix | S3 temperature grid capped at 5.0; optimum was at the cap; grid widened to 0.05-100. |
 
 Full line-level drift: `/tmp/prereg_drift.diff` (also copied to the Windows Desktop as `prereg_drift.diff`). Command that produced it:
 
