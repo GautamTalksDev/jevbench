@@ -1,0 +1,37 @@
+{
+  "exploratory": true,
+  "n_boot": 10000,
+  "n_items": 1500,
+  "partial_spearman_flip_entropy_given_margin": {
+    "p": 0.06382361492534137,
+    "rho": -0.04786731311134799
+  },
+  "prereg_clause": "Amendment 10.3 S2 Stability reconciliation",
+  "primary_unchanged": true,
+  "raw": "/home/gautamtalksdev/projects/jevbench/runs/exp1_difficulty_calibration_20260925T070159Z_84db02c9/raw.jsonl",
+  "run_id": "exp1_difficulty_calibration_20260925T070159Z_84db02c9",
+  "schema": "jevbench.secondary.s2_stability.v1",
+  "seed": 20260924,
+  "spearman_flip_entropy": {
+    "p": 7.456742311657426e-07,
+    "rho": 0.12736995332626955
+  },
+  "spearman_flip_entropy_bootstrap": {
+    "ci_high": 0.17286156620890933,
+    "ci_low": 0.07857881654419485,
+    "n_boot": 10000,
+    "point": 0.12736995332626955,
+    "seed": 20260924
+  },
+  "spearman_flip_margin": {
+    "p": 7.383587861667969e-43,
+    "rho": -0.3437614750192933
+  },
+  "spearman_flip_margin_bootstrap": {
+    "ci_high": -0.3037217068658074,
+    "ci_low": -0.38172435600672616,
+    "n_boot": 10000,
+    "point": -0.3437614750192933,
+    "seed": 20260925
+  }
+}

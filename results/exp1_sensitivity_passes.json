@@ -1,0 +1,279 @@
+{
+  "arms": {
+    "choice": {
+      "by_pass": {
+        "0": {
+          "delta_corrected": 0.2636222846666666,
+          "delta_raw": 0.26573333333333327,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "1": {
+          "delta_corrected": 0.26406670453333336,
+          "delta_raw": 0.26622666666666667,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "2": {
+          "delta_corrected": 0.2610485013333333,
+          "delta_raw": 0.2630533333333333,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "3": {
+          "delta_corrected": 0.26429188000000003,
+          "delta_raw": 0.26648000000000005,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "4": {
+          "delta_corrected": 0.26156707266666684,
+          "delta_raw": 0.26380000000000015,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "5": {
+          "delta_corrected": 0.26492869626666654,
+          "delta_raw": 0.26723999999999987,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "6": {
+          "delta_corrected": 0.2620781562666668,
+          "delta_raw": 0.2644000000000001,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "7": {
+          "delta_corrected": 0.26584553000000005,
+          "delta_raw": 0.2680133333333334,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "8": {
+          "delta_corrected": 0.2639100184000004,
+          "delta_raw": 0.266106666666667,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "9": {
+          "delta_corrected": 0.26185855319999995,
+          "delta_raw": 0.2639733333333333,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        }
+      },
+      "delta_corrected_all": [
+        0.2636222846666666,
+        0.26406670453333336,
+        0.2610485013333333,
+        0.26429188000000003,
+        0.26156707266666684,
+        0.26492869626666654,
+        0.2620781562666668,
+        0.26584553000000005,
+        0.2639100184000004,
+        0.26185855319999995,
+        0.2644655573333333
+      ],
+      "delta_corrected_max": 0.26584553000000005,
+      "delta_corrected_min": 0.2610485013333333,
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "mean_across_passes"
+      ],
+      "locked_n_easy": 750,
+      "locked_n_hard": 750,
+      "mean_across_passes": {
+        "delta_corrected": 0.2644655573333333,
+        "delta_raw": 0.2667346666666666,
+        "n_easy": 750,
+        "n_hard": 750,
+        "n_null_pval": 2000,
+        "p_value": 0.0,
+        "p_value_display": "p < 1/2001"
+      }
+    },
+    "noul": {
+      "by_pass": {
+        "0": {
+          "delta_corrected": 0.07618982838597314,
+          "delta_raw": 0.0773709272844431,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "1": {
+          "delta_corrected": 0.07823839769774182,
+          "delta_raw": 0.07941505986606096,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "2": {
+          "delta_corrected": 0.07183073324286993,
+          "delta_raw": 0.07286560831124361,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "3": {
+          "delta_corrected": 0.07179286179186097,
+          "delta_raw": 0.07280546108272865,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "4": {
+          "delta_corrected": 0.07378151637058672,
+          "delta_raw": 0.07489226499764105,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "5": {
+          "delta_corrected": 0.07550368002980921,
+          "delta_raw": 0.07667547310855817,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "6": {
+          "delta_corrected": 0.07357004590182359,
+          "delta_raw": 0.07472432231257779,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "7": {
+          "delta_corrected": 0.07865042410431246,
+          "delta_raw": 0.07977532959347323,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "8": {
+          "delta_corrected": 0.075075513985441,
+          "delta_raw": 0.07627358959093543,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        },
+        "9": {
+          "delta_corrected": 0.06860104557501716,
+          "delta_raw": 0.06984939447851483,
+          "n_easy": 750,
+          "n_hard": 750,
+          "n_null_pval": 2000,
+          "p_value": 0.0,
+          "p_value_display": "p < 1/2001"
+        }
+      },
+      "delta_corrected_all": [
+        0.07618982838597314,
+        0.07823839769774182,
+        0.07183073324286993,
+        0.07179286179186097,
+        0.07378151637058672,
+        0.07550368002980921,
+        0.07357004590182359,
+        0.07865042410431246,
+        0.075075513985441,
+        0.06860104557501716,
+        0.07571426265407508
+      ],
+      "delta_corrected_max": 0.07865042410431246,
+      "delta_corrected_min": 0.06860104557501716,
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "mean_across_passes"
+      ],
+      "locked_n_easy": 750,
+      "locked_n_hard": 750,
+      "mean_across_passes": {
+        "delta_corrected": 0.07571426265407508,
+        "delta_raw": 0.07690532972969652,
+        "n_easy": 750,
+        "n_hard": 750,
+        "n_null_pval": 2000,
+        "p_value": 0.0,
+        "p_value_display": "p < 1/2001"
+      }
+    }
+  },
+  "label": "NOT PREREGISTERED \u2014 robustness only",
+  "n_null_pval": 2000,
+  "note": "Post-hoc robustness only. Soft corrected \u0394ECE on each of passes 0..9 and on per-item mean probabilities across the 10 passes. Same 750/750 locked items and soft_delta_ece_corrected settings (n_null_pval=2000) as primary. Not a registered endpoint.",
+  "schema": "jevbench.exp1_sensitivity_passes.v1",
+  "source": {
+    "client": "jev",
+    "raw": "/home/gautamtalksdev/projects/jevbench/runs/exp1_difficulty_calibration_20260925T070159Z_84db02c9/raw.jsonl",
+    "run_id": "exp1_difficulty_calibration_20260925T070159Z_84db02c9"
+  }
+}

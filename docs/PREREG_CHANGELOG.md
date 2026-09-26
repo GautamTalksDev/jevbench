@@ -37,7 +37,7 @@ After the history rewrite, commit `ed4655f9` contains the placeholder `items.jso
 | `20ee218` | 2026-09-25 | after | non-analytic | `--clients` split for scheduling; Qwen float32 for CPU performance; same model, same prompts, logprob method unchanged. PrefillClient now caches the loaded model until release() (previously reloaded per call); outputs unchanged, performance only. |
 | `01e6851` | 2026-09-25 | after | non-analytic | CLI loads `.env` before live runs (smoke already did); resume ignores error rows so failed keys are retried. No change to prompts, models, or scoring. |
 | `311a731` | 2026-09-25 | after | non-analytic | analysis input-selection bug: analyze-exp1 defaulted to the demo fixture and emitted an unsupported verdict; fixed before any real EXP-1 analysis output was viewed. No change to statistical methods. |
-| (this commit) | 2026-09-25 | after | non-analytic | analysis completion: baseline arms analysed with existing analyze_client (previously pointed at removed adapter client); S1-S3 and determinism check implemented as specified in Amendments 10-11; no method changes. |
+| `ec1e3ac` / `a1797b6` | 2026-09-25 | after | non-analytic | analysis completion: baseline arms analysed with existing analyze_client (previously pointed at removed adapter client); S1-S3 and determinism check implemented as specified in Amendments 10-11; no method changes. |
 
 Full line-level drift: `/tmp/prereg_drift.diff` (also copied to the Windows Desktop as `prereg_drift.diff`). Command that produced it:
 

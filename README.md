@@ -2,11 +2,11 @@
 
 Independent study. Not affiliated with or endorsed by TypeSafe AI.
 
-This repository is a pre-registered test of whether TypeSafe Jev stays calibrated when natural-language inference items get harder. Expected calibration error (ECE) is the gap between predicted confidence and how often that confidence is right. The study compares ECE on easy items with ECE on hard items. EXP-1 has not been run, so this repository does not contain a Jev result.
+This repository is a pre-registered test of whether TypeSafe Jev stays calibrated when natural-language inference items get harder. Expected calibration error (ECE) is the gap between predicted confidence and how often that confidence is right. The study compares ECE on easy items with ECE on hard items.
 
 ## Status
 
-Preregistered. EXP-1 not yet run. No results exist yet.
+Preregistered. EXP-1 scored run is complete (`runs/` is local; committed summaries live under `results/exp1*.json`). Primary Choice-arm Amendment 9 verdict in `results/exp1.json`: **tracks**. Offline numbers under `results/harness_fixture/` remain a pipeline check only, not a Jev finding.
 
 The offline numbers under `results/harness_fixture/` come from a committed fixture. They check that the pipeline is deterministic. They are not a finding about Jev.
 
@@ -75,7 +75,7 @@ The EXP-1 hard cap is $1.00. Estimate before you pay:
 jevbench run experiments/exp1_difficulty_calibration.yaml --dry-run
 ```
 
-Do not run EXP-1 until the preregistration has a public DOI. This tree does not mint that DOI for you.
+EXP-1 has been scored in this tree. A public DOI for the preregistration is still recommended before treating the write-up as archival; this tree does not mint that DOI for you.
 
 Hypothetical replay of fixture tokens at the `2026-09-19` price snapshot is recorded in `results/harness_fixture/metrics.json` under `cost.hypothetical_live_usd_if_replayed`. `make reproduce` itself costs $0.00.
 

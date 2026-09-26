@@ -1,0 +1,779 @@
+{
+  "arms": {
+    "bart_mnli_ref": {
+      "accuracy_vs_majority": 0.3273333333333333,
+      "by_source": {
+        "mnli": {
+          "accuracy": 0.33031088082901555,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                150,
+                0,
+                176
+              ],
+              [
+                99,
+                1,
+                197
+              ],
+              [
+                45,
+                0,
+                104
+              ]
+            ]
+          },
+          "mean_top_prob": 0.6245177354375715,
+          "n": 772,
+          "predicted_label_frequencies": {
+            "contradiction": 477,
+            "entailment": 294,
+            "neutral": 1
+          }
+        },
+        "snli": {
+          "accuracy": 0.3241758241758242,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                173,
+                0,
+                60
+              ],
+              [
+                263,
+                0,
+                94
+              ],
+              [
+                75,
+                0,
+                63
+              ]
+            ]
+          },
+          "mean_top_prob": 0.5812785775229964,
+          "n": 728,
+          "predicted_label_frequencies": {
+            "contradiction": 217,
+            "entailment": 511
+          }
+        }
+      },
+      "client": "bart_mnli_ref",
+      "confusion_matrix": {
+        "note": "rows = majority label; cols = predicted; order entailment/neutral/contradiction",
+        "order": [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        "rows_majority_cols_predicted": [
+          [
+            323,
+            0,
+            236
+          ],
+          [
+            362,
+            1,
+            291
+          ],
+          [
+            120,
+            0,
+            167
+          ]
+        ]
+      },
+      "label_order_for_probability_dict": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "mean_top_prob": 0.6035323307963644,
+      "n_primary": 1500,
+      "observed_probability_key_orders_sample": [
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ]
+      ],
+      "predicted_label_frequencies": {
+        "contradiction": 694,
+        "entailment": 805,
+        "neutral": 1
+      }
+    },
+    "gliclass": {
+      "accuracy_vs_majority": 0.36866666666666664,
+      "by_source": {
+        "mnli": {
+          "accuracy": 0.36139896373056996,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                170,
+                112,
+                44
+              ],
+              [
+                161,
+                95,
+                41
+              ],
+              [
+                87,
+                48,
+                14
+              ]
+            ]
+          },
+          "mean_top_prob": 0.33508957736626016,
+          "n": 772,
+          "predicted_label_frequencies": {
+            "contradiction": 99,
+            "entailment": 418,
+            "neutral": 255
+          }
+        },
+        "snli": {
+          "accuracy": 0.37637362637362637,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                207,
+                24,
+                2
+              ],
+              [
+                291,
+                66,
+                0
+              ],
+              [
+                114,
+                23,
+                1
+              ]
+            ]
+          },
+          "mean_top_prob": 0.33359458063561975,
+          "n": 728,
+          "predicted_label_frequencies": {
+            "contradiction": 3,
+            "entailment": 612,
+            "neutral": 113
+          }
+        }
+      },
+      "client": "gliclass",
+      "confusion_matrix": {
+        "note": "rows = majority label; cols = predicted; order entailment/neutral/contradiction",
+        "order": [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        "rows_majority_cols_predicted": [
+          [
+            377,
+            136,
+            46
+          ],
+          [
+            452,
+            161,
+            41
+          ],
+          [
+            201,
+            71,
+            15
+          ]
+        ]
+      },
+      "label_order_for_probability_dict": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "mean_top_prob": 0.334364005619656,
+      "n_primary": 1500,
+      "observed_probability_key_orders_sample": [
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ]
+      ],
+      "predicted_label_frequencies": {
+        "contradiction": 102,
+        "entailment": 1030,
+        "neutral": 368
+      }
+    },
+    "jev": {
+      "accuracy_vs_majority": 0.7493333333333333,
+      "by_source": {
+        "mnli": {
+          "accuracy": 0.6295336787564767,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                142,
+                161,
+                23
+              ],
+              [
+                10,
+                250,
+                37
+              ],
+              [
+                1,
+                54,
+                94
+              ]
+            ]
+          },
+          "mean_top_prob": 0.8213471502590672,
+          "n": 772,
+          "predicted_label_frequencies": {
+            "contradiction": 154,
+            "entailment": 153,
+            "neutral": 465
+          }
+        },
+        "snli": {
+          "accuracy": 0.8763736263736264,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                180,
+                50,
+                3
+              ],
+              [
+                3,
+                342,
+                12
+              ],
+              [
+                1,
+                21,
+                116
+              ]
+            ]
+          },
+          "mean_top_prob": 0.9030906593406594,
+          "n": 728,
+          "predicted_label_frequencies": {
+            "contradiction": 131,
+            "entailment": 184,
+            "neutral": 413
+          }
+        }
+      },
+      "client": "jev",
+      "confusion_matrix": {
+        "note": "rows = majority label; cols = predicted; order entailment/neutral/contradiction",
+        "order": [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        "rows_majority_cols_predicted": [
+          [
+            322,
+            211,
+            26
+          ],
+          [
+            13,
+            592,
+            49
+          ],
+          [
+            2,
+            75,
+            210
+          ]
+        ]
+      },
+      "label_order_for_probability_dict": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "mean_top_prob": 0.86102,
+      "n_primary": 1500,
+      "observed_probability_key_orders_sample": [
+        [
+          "contradiction",
+          "entailment",
+          "neutral"
+        ],
+        [
+          "neutral",
+          "contradiction",
+          "entailment"
+        ],
+        [
+          "neutral",
+          "contradiction",
+          "entailment"
+        ]
+      ],
+      "predicted_label_frequencies": {
+        "contradiction": 285,
+        "entailment": 337,
+        "neutral": 878
+      }
+    },
+    "prefill_qwen15": {
+      "accuracy_vs_majority": 0.308,
+      "by_source": {
+        "mnli": {
+          "accuracy": 0.2707253886010363,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                64,
+                22,
+                240
+              ],
+              [
+                10,
+                3,
+                284
+              ],
+              [
+                6,
+                1,
+                142
+              ]
+            ]
+          },
+          "mean_top_prob": 0.8082348508080405,
+          "n": 772,
+          "predicted_label_frequencies": {
+            "contradiction": 666,
+            "entailment": 80,
+            "neutral": 26
+          }
+        },
+        "snli": {
+          "accuracy": 0.3475274725274725,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                107,
+                14,
+                112
+              ],
+              [
+                17,
+                11,
+                329
+              ],
+              [
+                3,
+                0,
+                135
+              ]
+            ]
+          },
+          "mean_top_prob": 0.7870578496885486,
+          "n": 728,
+          "predicted_label_frequencies": {
+            "contradiction": 576,
+            "entailment": 127,
+            "neutral": 25
+          }
+        }
+      },
+      "client": "prefill_qwen15",
+      "confusion_matrix": {
+        "note": "rows = majority label; cols = predicted; order entailment/neutral/contradiction",
+        "order": [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        "rows_majority_cols_predicted": [
+          [
+            171,
+            36,
+            352
+          ],
+          [
+            27,
+            14,
+            613
+          ],
+          [
+            9,
+            1,
+            277
+          ]
+        ]
+      },
+      "label_order_for_probability_dict": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "mean_top_prob": 0.7979569462647137,
+      "n_primary": 1500,
+      "observed_probability_key_orders_sample": [
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ]
+      ],
+      "predicted_label_frequencies": {
+        "contradiction": 1242,
+        "entailment": 207,
+        "neutral": 51
+      }
+    },
+    "trivial": {
+      "accuracy_vs_majority": 0.436,
+      "by_source": {
+        "mnli": {
+          "accuracy": 0.38471502590673573,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                0,
+                326,
+                0
+              ],
+              [
+                0,
+                297,
+                0
+              ],
+              [
+                0,
+                149,
+                0
+              ]
+            ]
+          },
+          "mean_top_prob": 1.0,
+          "n": 772,
+          "predicted_label_frequencies": {
+            "neutral": 772
+          }
+        },
+        "snli": {
+          "accuracy": 0.49038461538461536,
+          "confusion_matrix": {
+            "order": [
+              "entailment",
+              "neutral",
+              "contradiction"
+            ],
+            "rows_majority_cols_predicted": [
+              [
+                0,
+                233,
+                0
+              ],
+              [
+                0,
+                357,
+                0
+              ],
+              [
+                0,
+                138,
+                0
+              ]
+            ]
+          },
+          "mean_top_prob": 1.0,
+          "n": 728,
+          "predicted_label_frequencies": {
+            "neutral": 728
+          }
+        }
+      },
+      "client": "trivial",
+      "confusion_matrix": {
+        "note": "rows = majority label; cols = predicted; order entailment/neutral/contradiction",
+        "order": [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        "rows_majority_cols_predicted": [
+          [
+            0,
+            559,
+            0
+          ],
+          [
+            0,
+            654,
+            0
+          ],
+          [
+            0,
+            287,
+            0
+          ]
+        ]
+      },
+      "label_order_for_probability_dict": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "mean_top_prob": 1.0,
+      "n_primary": 1500,
+      "observed_probability_key_orders_sample": [
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ]
+      ],
+      "predicted_label_frequencies": {
+        "contradiction": 0,
+        "entailment": 0,
+        "neutral": 1500
+      }
+    }
+  },
+  "label_mapping": {
+    "chaosnli_label_order": [
+      "entailment",
+      "neutral",
+      "contradiction"
+    ],
+    "clients": {
+      "bart_mnli_ref": {
+        "code_pipeline": {
+          "excerpts": [
+            {
+              "match_line_index_in_module_source": 102,
+              "text": "\n                t0 = time.perf_counter()\n                out = pipe(text, candidate_labels=labels, multi_label=False)\n                latency_ms = (time.perf_counter() - t0) * 1000.0\n                labs: Sequence[str] = out[\"labels\"]"
+            }
+          ],
+          "module": "/home/gautamtalksdev/projects/jevbench/jevbench/clients/bart_mnli.py",
+          "needle": "pipe(text, candidate_labels=labels"
+        },
+        "code_state": {
+          "excerpts": [
+            {
+              "match_line_index_in_module_source": 85,
+              "text": "    def decide(self, request: SystemOneRequest) -> list[Decision]:\n        pipe = self._get_pipeline()\n        text = request.state if isinstance(request.state, str) else str(request.state)\n        decisions: list[Decision] = []\n        resolved = self.config.resolved_model or self.config.model_id"
+            }
+          ],
+          "module": "/home/gautamtalksdev/projects/jevbench/jevbench/clients/bart_mnli.py",
+          "needle": "text = request.state if isinstance"
+        },
+        "hf_config_id2label": {
+          "attempted_load": true,
+          "id2label": {
+            "0": "contradiction",
+            "1": "neutral",
+            "2": "entailment"
+          },
+          "model_id": "facebook/bart-large-mnli",
+          "note": "facebook/bart-large-mnli typical id2label is {0: 'contradiction', 1: 'neutral', 2: 'entailment'}. This study does NOT use that head directly: BartMnliClient calls transformers zero-shot-classification with candidate_labels = list(question.criteria.keys())."
+        },
+        "runtime_labels": "zero-shot-classification candidate_labels = list(question.criteria.keys()) \u2014 NOT the MNLI head id2label",
+        "state_text": "str(request.state) when state is a dict"
+      },
+      "gliclass": {
+        "classification_type": "multi-label (then renormalised over the three)",
+        "code_labels": {
+          "excerpts": [
+            {
+              "match_line_index_in_module_source": 121,
+              "text": "            try:\n                if isinstance(question, ChoiceQuestion):\n                    labels = list(question.criteria.keys())\n                elif isinstance(question, NoulQuestion):\n                    labels = [\"yes\", \"no\"]"
+            }
+          ],
+          "module": "/home/gautamtalksdev/projects/jevbench/jevbench/clients/gliclass.py",
+          "needle": "labels = list(question.criteria.keys())"
+        },
+        "code_state": {
+          "excerpts": [
+            {
+              "match_line_index_in_module_source": 113,
+              "text": "    def decide(self, request: SystemOneRequest) -> list[Decision]:\n        scorer = self._get_scorer()\n        text = request.state if isinstance(request.state, str) else str(request.state)\n        decisions: list[Decision] = []\n        resolved = self.config.resolved_model or self.config.model_id"
+            }
+          ],
+          "module": "/home/gautamtalksdev/projects/jevbench/jevbench/clients/gliclass.py",
+          "needle": "text = request.state if isinstance"
+        },
+        "labels_passed_to_pipeline": "list(question.criteria.keys())",
+        "state_text": "str(request.state) when state is a dict"
+      },
+      "jev": {
+        "code": {
+          "excerpts": [
+            {
+              "match_line_index_in_module_source": 150,
+              "text": "    if not decisions:\n        return None\n    # Prefer the Choice decision for the primary probabilities field.\n    d = decisions[0]\n    for cand in decisions:"
+            }
+          ],
+          "module": "/home/gautamtalksdev/projects/jevbench/jevbench/exp1.py",
+          "needle": "Prefer the Choice decision"
+        },
+        "probability_dict_keys": "Whatever the API returns; flatten prefers Choice decision probabilities keyed by label name."
+      },
+      "prefill_qwen15": {
+        "code_build_sentinel_mapping": {
+          "excerpts": [
+            {
+              "match_line_index_in_module_source": 250,
+              "text": "\n\ndef build_sentinel_mapping(\n    options: list[str],\n    *,"
+            }
+          ],
+          "module": "/home/gautamtalksdev/projects/jevbench/jevbench/clients/prefill.py",
+          "needle": "def build_sentinel_mapping"
+        },
+        "code_options_for": {
+          "excerpts": [
+            {
+              "match_line_index_in_module_source": 597,
+              "text": "    def _options_for(self, question: Question) -> list[str]:\n        if isinstance(question, ChoiceQuestion):\n            return list(question.criteria.keys())\n        if isinstance(question, NoulQuestion):\n            return [self.config.noul_true_label, self.config.noul_false_label]"
+            }
+          ],
+          "module": "/home/gautamtalksdev/projects/jevbench/jevbench/clients/prefill.py",
+          "needle": "return list(question.criteria.keys())"
+        },
+        "note": "pass_idx>0 permutes sentinel\u2194label; EXP-1 local arms use repeats=1 so pass_idx=0 \u2192 unpermuted 1/2/3.",
+        "protocol": "Options mapped to digit/letter SENTINELS via build_sentinel_mapping(list(criteria.keys()), pass_idx). Prefill scores logprobs of sentinel tokens '123' for the three labels in criteria key order, then maps sentinel\u2192label.",
+        "tokens_scored_for_labels_pass0_unpermuted": {
+          "contradiction": "3",
+          "entailment": "1",
+          "neutral": "2"
+        }
+      },
+      "trivial": {
+        "code": {
+          "excerpts": [
+            {
+              "match_line_index_in_module_source": 144,
+              "text": "        )\n        if majority is not None:\n            meta[\"strategy\"] = \"majority_class\"\n            if kind == \"noul\":\n                return float(majority), None, meta"
+            }
+          ],
+          "module": "/home/gautamtalksdev/projects/jevbench/jevbench/clients/trivial.py",
+          "needle": "meta[\"strategy\"] = \"majority_class\""
+        },
+        "probability_dict": "one-hot on the chosen label",
+        "strategy": "majority_class='neutral' for ChaosNLI choice (runner default)"
+      }
+    },
+    "diagnostic_hypothesis": "If BART (MNLI-supervised) and Qwen fall at or below a constant majority guess on in-domain items, suspect label-name / sentinel mapping or state serialisation \u2014 not model competence. This file reports only; it does not fix clients.",
+    "experiment_yaml_criteria_key_order": [
+      "entailment",
+      "neutral",
+      "contradiction"
+    ],
+    "prereg_clause": "Amendment 10/11 baseline labelling; diagnostic only (Step 15 A)"
+  },
+  "label_order": [
+    "entailment",
+    "neutral",
+    "contradiction"
+  ],
+  "prereg_clause": "Step 15 A / Amendments 10\u201311 \u2014 baseline diagnostics (report only; no client fixes)",
+  "raw": "/home/gautamtalksdev/projects/jevbench/runs/exp1_difficulty_calibration_20260925T070159Z_84db02c9/raw.jsonl",
+  "run_id": "exp1_difficulty_calibration_20260925T070159Z_84db02c9",
+  "schema": "jevbench.baseline_diagnostics.v1"
+}
