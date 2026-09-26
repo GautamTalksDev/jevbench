@@ -1,7 +1,7 @@
 # jevbench
 
-**Paper:** [doi.org/10.5281/zenodo.22971492](https://doi.org/10.5281/zenodo.22971492)  
-**Preregistration:** [doi.org/10.5281/zenodo.22971413](https://doi.org/10.5281/zenodo.22971413)
+**Paper:** [zenodo.org/records/22971492](https://zenodo.org/records/22971492) (DOI 10.5281/zenodo.22971492)  
+**Preregistration:** [zenodo.org/records/22971413](https://zenodo.org/records/22971413) (DOI 10.5281/zenodo.22971413)
 
 > **About the red CI marks.** GitHub Actions on this repository are currently blocked by an account
 > billing issue, so workflow runs fail within seconds, before any code executes. This is not a test
