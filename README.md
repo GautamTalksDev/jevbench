@@ -6,10 +6,11 @@
 
 *v1.1 (29 Sep 2026) adds missing related work and credits consistency resampling (Bröcker and Smith 2007) as the basis of the bias correction. No data or results changed.*
 
-> **About the red CI marks.** GitHub Actions on this repository are currently blocked by an account
-> billing issue, so workflow runs fail within seconds, before any code executes. This is not a test
-> failure. At commit `4291542` the full suite passes locally (184 tests). To check for yourself, run
-> `pytest -q` and `make reproduce` (no API key needed). The note will be removed once CI runs again.
+> **About the red CI marks.** CI runs again, and the unit tests pass there. Two checks are still red for reasons
+> outside the analysis: the citation checker needs the full git history (CI checks out only the latest commit) and
+> misreads one file hash in the prereg changelog as a commit id, and the zizmor workflow linter reports findings in the
+> workflow configuration. Neither affects the analysis or its results. To check it yourself, run `pytest -q` and
+> `make reproduce` (no API key needed).
 
 
 Independent study. Not affiliated with or endorsed by TypeSafe AI.
