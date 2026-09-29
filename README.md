@@ -1,7 +1,8 @@
 # jevbench
 
 **Paper (latest version):** [doi.org/10.5281/zenodo.22971491](https://doi.org/10.5281/zenodo.22971491) · v1.1: [zenodo.org/records/23032384](https://zenodo.org/records/23032384) · v1.0: [zenodo.org/records/22971492](https://zenodo.org/records/22971492)  
-**Preregistration:** [zenodo.org/records/22971413](https://zenodo.org/records/22971413) (DOI 10.5281/zenodo.22971413)
+**Preregistration:** [zenodo.org/records/22971413](https://zenodo.org/records/22971413) (DOI 10.5281/zenodo.22971413)  
+**Plain-language write-up:** [docs/WRITEUP.md](docs/WRITEUP.md) · **11-minute video:** [youtu.be/C6chAhTWvP4](https://youtu.be/C6chAhTWvP4)
 
 *v1.1 (29 Sep 2026) adds missing related work and credits consistency resampling (Bröcker and Smith 2007) as the basis of the bias correction. No data or results changed.*
 
