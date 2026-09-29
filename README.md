@@ -1,7 +1,9 @@
 # jevbench
 
-**Paper:** [zenodo.org/records/22971492](https://zenodo.org/records/22971492) (DOI 10.5281/zenodo.22971492)  
+**Paper (latest version):** [doi.org/10.5281/zenodo.22971491](https://doi.org/10.5281/zenodo.22971491) · v1.1: [zenodo.org/records/23032384](https://zenodo.org/records/23032384) · v1.0: [zenodo.org/records/22971492](https://zenodo.org/records/22971492)  
 **Preregistration:** [zenodo.org/records/22971413](https://zenodo.org/records/22971413) (DOI 10.5281/zenodo.22971413)
+
+*v1.1 (29 Sep 2026) adds missing related work and credits consistency resampling (Bröcker and Smith 2007) as the basis of the bias correction. No data or results changed.*
 
 > **About the red CI marks.** GitHub Actions on this repository are currently blocked by an account
 > billing issue, so workflow runs fail within seconds, before any code executes. This is not a test
@@ -46,7 +48,7 @@ Hashes: item and label files are pinned by SHA-256. Citation checks confirm that
 
 Equal-n: easy and hard use the same count, so a sample-size gap cannot imitate a calibration gap.
 
-Bias correction: binned ECE is biased even when a model is perfectly calibrated. The preregistration requires a parametric correction and says to publish the raw number beside the corrected one.
+Bias correction: binned ECE is biased even when a model is perfectly calibrated. The preregistration requires a parametric correction and says to publish the raw number beside the corrected one. The correction is a form of consistency resampling (Bröcker and Smith 2007; Vaicenavicius et al. 2019), extended with a Beta-Binomial model of annotator sampling.
 
 Publish-regardless: the locked text says the result will be published whichever way it goes, including a null and including a result that supports TypeSafe's claims.
 

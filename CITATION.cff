@@ -1,33 +1,52 @@
 cff-version: 1.2.0
-message: "If you use jevbench, please cite it."
+message: "If you use this work, please cite the paper (preferred-citation)."
 type: software
-title: "jevbench: Difficulty-stratified calibration of TypeSafe Jev"
-version: 0.1.0
-date-released: "2026-09-21"
+title: "jevbench: code, preregistration and data seals for 'Confident Where People Disagree'"
+version: "1.1"
+date-released: "2026-09-29"
 license: MIT
 repository-code: "https://github.com/gautamtalksdev/jevbench"
 authors:
-  - family-names: Contributors
-    given-names: jevbench
-    alias: jevbench
+  - family-names: Khosla
+    given-names: Gautam
+    orcid: "https://orcid.org/0009-0006-7404-8877"
 abstract: >
-  Pre-registered independent study of calibration under difficulty for
-  TypeSafe System One (Jev). Metrics and charts regenerate offline from
-  committed JSONL via `make reproduce`. Pin jev-1.13.0; Arena is replay-only
-  for scored numbers.
+  Pre-registered independent study of whether TypeSafe AI's Jev lowers its
+  confidence when humans disagree, on ChaosNLI. Bias-corrected soft ΔECE
+  under equal-n entropy strata. Metrics and charts regenerate offline from
+  committed JSONL via `make reproduce`. Pin jev-1.13.0.
 keywords:
   - calibration
   - expected calibration error
   - Jev
   - System One
   - TypeSafe
-  - selective prediction
+  - ChaosNLI
+  - preregistration
 preferred-citation:
-  type: software
-  title: "jevbench: Difficulty-stratified calibration of TypeSafe Jev"
-  version: 0.1.0
+  type: article
+  title: "Confident Where People Disagree: A preregistered, bias-corrected test of whether TypeSafe AI's Jev lowers its confidence when humans disagree, on ChaosNLI"
   authors:
-    - family-names: Contributors
-      given-names: jevbench
+    - family-names: Khosla
+      given-names: Gautam
+      orcid: "https://orcid.org/0009-0006-7404-8877"
+  doi: 10.5281/zenodo.22971491
+  url: "https://doi.org/10.5281/zenodo.22971491"
+  version: "1.1"
   year: 2026
-  license: MIT
+  month: 9
+  date-released: "2026-09-29"
+  license: CC-BY-4.0
+  identifiers:
+    - type: doi
+      value: 10.5281/zenodo.22971491
+      description: Concept DOI for the paper (all versions)
+    - type: doi
+      value: 10.5281/zenodo.23032384
+      description: Paper v1.1
+    - type: doi
+      value: 10.5281/zenodo.22971492
+      description: Paper v1.0
+    - type: doi
+      value: 10.5281/zenodo.22971413
+      description: Preregistration
